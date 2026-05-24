@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DiveProSD Forecast</title>
+    <link rel="stylesheet" href="src/forecast/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero-camera">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">DiveProSD</p>
+            <h1>Dive Pro SD</h1>
+          </div>
+          <div class="date-pill" id="date">Today</div>
+        </header>
+
+        <figure class="camera-frame" id="cameraFrame">
+          <img id="cameraImage" src="assets/pier-screenshot.png" alt="Scripps Pier underwater visibility screenshot">
+          <figcaption><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
+        </figure>
+
+        <div class="hero-content">
+          <section class="forecast-panel">
+            <div class="forecast-meta">
+              <span id="location">La Jolla / Scripps Pier</span>
+              <strong id="score">74/100</strong>
+            </div>
+            <div class="forecast-main">
+              <strong id="grade">B</strong>
+              <div class="primary-stat">
+                <span>Estimated visibility</span>
+                <strong id="visibility">15-25 ft</strong>
+              </div>
+            </div>
+            <div class="score-row">
+              <div class="score-track" aria-hidden="true"><div id="scoreFill"></div></div>
+            </div>
+            <div class="wave-weight">
+              <span>Wave weight</span>
+              <strong id="waveWeight">Moderate</strong>
+            </div>
+            <div class="best-window">
+              <span>Best window</span>
+              <strong id="bestWindow">Early morning</strong>
+            </div>
+          </section>
+
+          <section class="daily-report-card">
+            <article class="report-copy">
+              <h2>Daily Dive Report</h2>
+              <p id="dailyReport"></p>
+            </article>
+            <aside class="comments-strip" aria-label="Dive report comments">
+              <div>
+                <span>Comments</span>
+                <strong>No comments yet</strong>
+              </div>
+              <button type="button">Post comment</button>
+            </aside>
+          </section>
+        </div>
+      </section>
+
+      <section class="ten-day-card">
+        <div class="section-heading">
+          <h2>10 Day Forecast</h2>
+          <span id="forecastSource">Model predictions</span>
+        </div>
+        <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
+      </section>
+
+      <section class="chart-grid">
+        <article>
+          <h2>Tide Height</h2>
+          <div class="chart" id="tideChart"></div>
+          <p id="tideSource">NOAA La Jolla predictions</p>
+        </article>
+        <article>
+          <h2>Wind Speed</h2>
+          <div class="chart bars" id="windChart"></div>
+          <p id="windSource">Open-Meteo hourly forecast</p>
+        </article>
+      </section>
+
+      <section class="split">
+        <article>
+          <h2>Risks</h2>
+          <ul id="riskFactors"></ul>
+        </article>
+        <article>
+          <h2>Upside</h2>
+          <ul id="positiveFactors"></ul>
+        </article>
+      </section>
+
+      <section class="model-card">
+        <h2>Model Inputs</h2>
+        <div class="feature-rows" id="featureRows"></div>
+        <p id="explanation"></p>
+      </section>
+
+      <section class="model-card fish-card">
+        <div class="section-heading">
+          <h2>Fish Radar</h2>
+          <span>SD shore dive target ranking</span>
+        </div>
+        <div class="fish-grid" id="fishGrid"></div>
+        <p>Prize score blends table value, size, difficulty, and shore-dive realism. Always check current CDFW rules and local MPAs before take.</p>
+      </section>
+
+      <section class="model-card">
+        <h2>Grade Guide</h2>
+        <div class="grade-guide" id="gradeGuide"></div>
+      </section>
+    </main>
+    <script type="module" src="src/forecast/app.js"></script>
+  </body>
+</html>
