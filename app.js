@@ -22,6 +22,7 @@ async function fetchJson(path) {
 
 function fallbackForecast() {
   const computed = forecastFromFeatures(fallback.features);
+
   return {
     ...fallback,
     grade: computed.grade,
@@ -75,6 +76,7 @@ function shortDate(date) {
 
 function dayLabel(date, index) {
   if (index === 0) return "Latest";
+
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
     weekday: "short",
   });
@@ -227,7 +229,10 @@ function renderCamera(data) {
 
   if (!frame || !image) return;
 
-  image.src = data.camera_image || "pier-screenshot.png";
+  image.removeAttribute("srcset");
+  image.src = "./pier-screenshot.png";
+  image.alt = "Scripps Pier underwater visibility screenshot";
+
   frame.hidden = false;
 }
 
