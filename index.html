@@ -10,15 +10,11 @@
     <main class="shell">
       <section class="hero-camera">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">DiveProSD</p>
-            <h1>Dive Pro SD</h1>
-          </div>
-          <div class="date-pill" id="date">Today</div>
+          <img class="brand-logo" src="divepro-logo.png" alt="DivePro">
         </header>
 
         <figure class="camera-frame" id="cameraFrame">
-<img id="cameraImage" src="https://patdudley.github.io/DivePro/pier-screenshot.png" alt="Scripps Pier underwater visibility screenshot">
+          <img id="cameraImage" src="pier-screenshot.png" alt="Scripps Pier underwater visibility screenshot">
           <figcaption><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
         </figure>
 
@@ -26,7 +22,6 @@
           <section class="forecast-panel">
             <div class="forecast-meta">
               <span id="location">La Jolla / Scripps Pier</span>
-              <strong id="score">74/100</strong>
             </div>
             <div class="forecast-main">
               <strong id="grade">B</strong>
@@ -85,21 +80,9 @@
         </article>
       </section>
 
-      <section class="split">
-        <article>
-          <h2>Risks</h2>
-          <ul id="riskFactors"></ul>
-        </article>
-        <article>
-          <h2>Upside</h2>
-          <ul id="positiveFactors"></ul>
-        </article>
-      </section>
-
       <section class="model-card">
         <h2>Model Inputs</h2>
         <div class="feature-rows" id="featureRows"></div>
-        <p id="explanation"></p>
       </section>
 
       <section class="model-card fish-card">
@@ -108,7 +91,7 @@
           <span>SD shore dive target ranking</span>
         </div>
         <div class="fish-grid" id="fishGrid"></div>
-        <p>Prize score blends table value, size, difficulty, and shore-dive realism. Always check current CDFW rules and local MPAs before take.</p>
+        <p>Tap a species for take-size guidance. Regulations shown are a quick reference checked against California Department of Fish and Wildlife information on May 24, 2026. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
       </section>
 
       <section class="model-card">

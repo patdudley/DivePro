@@ -27,8 +27,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    linear-gradient(180deg, #ffffff 0%, rgba(125, 216, 247, 0.14) 100%);
+  background: #ffffff;
   color: var(--text);
 }
 
@@ -42,10 +41,10 @@ body {
   position: relative;
   display: grid;
   overflow: hidden;
-  border: 1px solid rgba(19, 186, 238, 0.3);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   background: var(--surface);
-  box-shadow: 0 24px 70px rgba(19, 186, 238, 0.16);
+  box-shadow: none;
 }
 
 .hero-camera .camera-frame {
@@ -58,26 +57,16 @@ body {
   z-index: 2;
   display: flex;
   align-items: start;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
-  padding: 22px 22px 16px;
+  padding: 18px 22px;
 }
 
-.eyebrow {
-  margin: 0 0 6px;
-  color: var(--primary);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  max-width: 620px;
-  font-size: clamp(2.2rem, 6vw, 4.8rem);
-  line-height: 0.92;
-  letter-spacing: 0;
-  color: var(--navy);
+.brand-logo {
+  display: block;
+  width: clamp(124px, 19vw, 176px);
+  height: auto;
+  object-fit: contain;
 }
 
 h2 {
@@ -182,6 +171,13 @@ h2::before {
   color: var(--primary);
 }
 
+.grade-a-plus { --grade-color: #0075df; --grade-soft: rgba(0, 117, 223, 0.13); }
+.grade-a { --grade-color: #13baee; --grade-soft: rgba(19, 186, 238, 0.14); }
+.grade-b { --grade-color: #5e8ee8; --grade-soft: rgba(94, 142, 232, 0.13); }
+.grade-c { --grade-color: #a64bd8; --grade-soft: rgba(166, 75, 216, 0.12); }
+.grade-d { --grade-color: #d82fca; --grade-soft: rgba(216, 47, 202, 0.12); }
+.grade-f { --grade-color: #ee13ba; --grade-soft: rgba(238, 19, 186, 0.12); }
+
 .forecast-main {
   display: grid;
   grid-template-columns: minmax(82px, 116px) 1fr;
@@ -196,8 +192,8 @@ h2::before {
   border: 1px solid rgba(19, 186, 238, 0.45);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(19, 186, 238, 0.18), rgba(125, 216, 247, 0.18));
-  color: var(--navy);
+    linear-gradient(135deg, var(--grade-soft, rgba(19, 186, 238, 0.18)), rgba(125, 216, 247, 0.08));
+  color: var(--grade-color, var(--primary));
   font-size: clamp(4.2rem, 12vw, 6.8rem);
   line-height: 0.86;
   text-align: center;
@@ -244,7 +240,7 @@ h2::before {
 #scoreFill {
   width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(90deg, var(--accent), #a64bd8 44%, var(--primary));
 }
 
 .split article,
@@ -303,8 +299,7 @@ h2::before {
   margin: 0;
   overflow: hidden;
   background: var(--surface);
-  border-top: 1px solid rgba(19, 186, 238, 0.22);
-  border-bottom: 1px solid rgba(19, 186, 238, 0.22);
+  border: 0;
 }
 
 .camera-frame[hidden] {
@@ -314,8 +309,9 @@ h2::before {
 .camera-frame img {
   display: block;
   width: 100%;
-  height: min(68vh, 660px);
-  object-fit: contain;
+  height: min(58vh, 585px);
+  object-fit: cover;
+  object-position: center;
   background: var(--surface);
 }
 
@@ -541,7 +537,7 @@ h2::before {
 .forecast-day strong {
   display: block;
   margin: 8px 0 6px;
-  color: var(--primary);
+  color: var(--grade-color, var(--primary));
   font-size: 2.2rem;
   line-height: 1;
 }
@@ -560,10 +556,10 @@ h2::before {
 }
 
 .forecast-day.is-active {
-  border-color: var(--primary);
+  border-color: var(--grade-color, var(--primary));
   background:
-    linear-gradient(180deg, rgba(125, 216, 247, 0.14), #ffffff);
-  box-shadow: inset 0 0 0 1px var(--primary), 0 10px 28px rgba(238, 19, 186, 0.16);
+    linear-gradient(180deg, var(--grade-soft, rgba(125, 216, 247, 0.14)), #ffffff);
+  box-shadow: inset 0 0 0 1px var(--grade-color, var(--primary)), 0 10px 28px rgba(19, 186, 238, 0.12);
 }
 
 ul {
@@ -607,7 +603,7 @@ ul {
 
 .grade-guide strong {
   display: block;
-  color: var(--primary);
+  color: var(--grade-color, var(--primary));
   font-size: 1.6rem;
   line-height: 1;
 }
@@ -652,15 +648,11 @@ ul {
 }
 
 .fish-row {
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  gap: 10px 12px;
-  align-items: center;
-  min-height: 106px;
-  padding: 12px;
+  min-height: 96px;
   border: 1px solid rgba(13, 122, 140, 0.2);
   border-radius: 8px;
   background: var(--surface);
+  overflow: hidden;
 }
 
 .fish-row.is-prime {
@@ -668,11 +660,43 @@ ul {
   box-shadow: inset 0 0 0 1px rgba(238, 19, 186, 0.12);
 }
 
+.fish-row summary {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 6px 12px;
+  align-items: center;
+  min-height: 96px;
+  padding: 9px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.fish-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.fish-title strong {
+  display: block;
+  color: var(--navy);
+  font-size: 0.96rem;
+}
+
+.fish-title span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
 .fish-rank {
+  grid-column: 1;
+  grid-row: 1 / 3;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
   background: rgba(19, 186, 238, 0.16);
   color: var(--navy);
@@ -683,29 +707,47 @@ ul {
   background: rgba(238, 19, 186, 0.12);
 }
 
-.fish-row strong {
-  display: block;
-  color: var(--navy);
-  font-size: 1rem;
+.expand-label {
+  grid-column: 3;
+  grid-row: 1;
+  color: var(--dark-cyan);
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
-.fish-row span {
-  display: block;
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 750;
+.fish-row[open] .expand-label::before {
+  content: "Close";
+  font-size: 0;
 }
 
-.fish-scores {
-  grid-column: 2;
+.fish-row[open] .expand-label {
+  font-size: 0;
+}
+
+.fish-row[open] .expand-label::after {
+  content: "Close";
+  font-size: 0.68rem;
+}
+
+.fish-details {
+  padding: 0 12px 12px;
+  border-top: 1px solid rgba(13, 122, 140, 0.12);
+}
+
+.fish-row:not([open]) .fish-details {
+  display: none;
+}
+
+.fish-summary-scores {
+  grid-column: 2 / 4;
+  grid-row: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.fish-scores span {
-  margin: 0;
+.fish-summary-scores span {
+  display: block;
   padding: 5px 7px;
   border: 1px solid rgba(13, 122, 140, 0.18);
   border-radius: 999px;
@@ -713,10 +755,21 @@ ul {
   font-size: 0.7rem;
 }
 
+.fish-photo {
+  width: 100%;
+  aspect-ratio: 10 / 3;
+  margin-top: 12px;
+  border-radius: 7px;
+  background-image: url("fish-radar-sheet.png");
+  background-size: 300% 400%;
+  background-position: calc(var(--photo-col) * 50%) calc(var(--photo-row) * 33.333%);
+  background-repeat: no-repeat;
+}
+
 .fish-meters {
-  grid-column: 1 / -1;
   display: grid;
   gap: 6px;
+  margin-top: 10px;
 }
 
 .fish-meter {
@@ -763,15 +816,53 @@ ul {
   background: var(--teal);
 }
 
+.fish-rule {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 7px;
+  background: rgba(125, 216, 247, 0.14);
+}
+
+.fish-rule span {
+  display: block;
+  color: var(--dark-cyan);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.fish-rule strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--navy);
+  font-size: 0.86rem;
+}
+
+.fish-rule p {
+  margin: 5px 0 8px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.fish-rule a {
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 @media (max-width: 720px) {
   .shell {
     padding: 10px;
   }
 
   .topbar {
-    align-items: start;
-    flex-direction: column;
-    padding: 16px;
+    padding: 12px 16px;
+  }
+
+  .brand-logo {
+    width: 124px;
   }
 
   .hero-content {
@@ -782,10 +873,13 @@ ul {
   .forecast-panel,
   .split,
   .chart-grid,
-  .feature-rows,
   .grade-guide,
   .fish-grid {
     grid-template-columns: 1fr;
+  }
+
+  .feature-rows {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .section-heading {
@@ -809,9 +903,7 @@ ul {
   }
 
   .forecast-meta {
-    align-items: start;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
   }
 
   .camera-frame img {
@@ -831,5 +923,14 @@ ul {
 
   .comments-strip {
     max-width: none;
+  }
+
+  .chart {
+    height: 218px;
+  }
+
+  .fish-row summary {
+    grid-template-columns: 30px 1fr auto;
+    gap: 6px 9px;
   }
 }
