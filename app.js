@@ -200,7 +200,7 @@ function defaultReport(data) {
 function renderCamera(data) {
   const frame = document.getElementById("cameraFrame");
   const image = document.getElementById("cameraImage");
-  image.src = "pier-screenshot.png";
+  image.src = "pier-screenshot.png?v=mobile-fix-33";
   frame.hidden = false;
 }
 
