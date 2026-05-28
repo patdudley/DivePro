@@ -3,21 +3,18 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DiveProSD La Jolla Forecast Beta</title>
-    <link rel="stylesheet" href="styles.css?v=beta-ui-2">
+    <title>DiveProSD Forecast</title>
+    <link rel="stylesheet" href="styles.css?v=beta-ui-3">
   </head>
-  <body data-spot="la-jolla">
+  <body>
     <main class="shell">
       <section class="hero-camera">
         <header class="topbar">
-          <img class="brand-logo" src="divepro-logo.png?v=beta-ui-2" alt="DivePro">
-          <div class="date-pill" id="date">Loading</div>
+          <img class="brand-logo" src="divepro-logo.png?v=beta-ui-3" alt="DivePro">
         </header>
 
-        <p class="spot-description" style="padding:0 22px 12px;margin:0;"><strong>La Jolla Forecast Beta:</strong> prospective test forecast, not a verified public accuracy claim.</p>
-
         <figure class="camera-frame" id="cameraFrame">
-          <img id="cameraImage" src="pier-screenshot.png?v=beta-ui-2" alt="Scripps Pier underwater visibility screenshot">
+          <img id="cameraImage" src="pier-screenshot.png?v=beta-ui-3" alt="Scripps Pier underwater visibility screenshot">
           <figcaption><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
         </figure>
 
@@ -25,7 +22,6 @@
           <section class="forecast-panel">
             <div class="forecast-meta">
               <span id="location">La Jolla / Scripps Pier</span>
-              <strong id="score">--/100</strong>
             </div>
             <div class="forecast-main">
               <strong id="grade">--</strong>
@@ -52,7 +48,7 @@
               <h2>Daily Dive Report</h2>
               <p id="dailyReport"></p>
             </article>
-            <aside class="comments-strip" aria-label="Dive report comments">
+            <aside class="comments-strip" aria-label="Beta status">
               <div>
                 <span>Beta Status</span>
                 <strong>Prospective test</strong>
@@ -66,7 +62,7 @@
       <section class="ten-day-card">
         <div class="section-heading">
           <h2>10 Day Forecast</h2>
-          <span id="forecastSource">Soft probabilistic beta model</span>
+          <span id="forecastSource">Model predictions</span>
         </div>
         <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
       </section>
@@ -95,15 +91,14 @@
           <span>SD shore dive target ranking</span>
         </div>
         <div class="fish-grid" id="fishGrid"></div>
-        <p>Tap a species for take-size guidance. Regulations are a quick reference only. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
+        <p>Tap a species for take-size guidance. Regulations shown are a quick reference. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
       </section>
 
       <section class="model-card">
         <h2>Grade Guide</h2>
         <div class="grade-guide" id="gradeGuide"></div>
-        <p>Visibility bands follow the DiveProSD La Jolla scoring scale. This beta forecast remains experimental until prospective validation clears the publish gates.</p>
       </section>
     </main>
-    <script type="module" src="root-beta.js?v=beta-ui-2"></script>
+    <script type="module" src="root-beta.js?v=beta-ui-3"></script>
   </body>
 </html>
