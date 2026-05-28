@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DiveProSD Forecast</title>
-    <link rel="stylesheet" href="styles.css?v=beta-ui-5">
-    <link rel="stylesheet" href="ui-polish.css?v=beta-ui-10">
+    <link rel="stylesheet" href="styles.css?v=beta-ui-14">
+    <link rel="stylesheet" href="ui-polish.css?v=beta-ui-12">
   </head>
   <body>
     <main class="shell">
@@ -15,8 +15,8 @@
         </header>
 
         <figure class="camera-frame" id="cameraFrame">
-          <img id="cameraImage" src="pier-screenshot.png?v=beta-ui-3" alt="Scripps Pier underwater visibility screenshot">
-          <figcaption><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
+          <img id="cameraImage" src="viz-mid.jpg?v=viz-fallback-1" alt="Expected Scripps Pier underwater visibility reference">
+          <figcaption><span>Expected visibility - not live, image from a previous day</span></figcaption>
         </figure>
 
         <div class="hero-content">
@@ -49,13 +49,6 @@
               <h2>Daily Dive Report</h2>
               <p id="dailyReport"></p>
             </article>
-            <aside class="comments-strip" aria-label="Beta status">
-              <div>
-                <span>Beta Status</span>
-                <strong>Prospective test</strong>
-              </div>
-              <button type="button">Report Viz</button>
-            </aside>
           </section>
         </div>
       </section>
@@ -81,8 +74,22 @@
         </article>
       </section>
 
+      <section class="model-card wave-card">
+        <div class="section-heading">
+          <h2>Wave Height & Swell</h2>
+        </div>
+        <div class="wave-summary">
+          <div>
+            <span>Surf</span>
+            <strong id="waveSurfRange">-- ft</strong>
+          </div>
+          <div class="wave-components" id="waveComponents"></div>
+        </div>
+        <div class="chart wave-chart" id="waveChart"></div>
+      </section>
+
       <section class="model-card">
-        <h2>Model Inputs</h2>
+        <h2>Weather</h2>
         <div class="feature-rows" id="featureRows"></div>
       </section>
 
@@ -100,7 +107,7 @@
         <div class="grade-guide" id="gradeGuide"></div>
       </section>
     </main>
-    <script type="module" src="app.js?v=beta-ui-4"></script>
-    <script type="module" src="ui-polish.js?v=beta-ui-10"></script>
+    <script type="module" src="app.js?v=beta-ui-20"></script>
+    <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
   </body>
 </html>

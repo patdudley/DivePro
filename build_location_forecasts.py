@@ -729,11 +729,11 @@ def tide_charts(spot, dates):
         return {d: [] for d in dates}
 
 
-def hourly_day_points(data, key, target_date, value_key):
+def hourly_day_points(data, key, target_date, value_key, multiplier=1.0):
     times  = data.get("hourly", {}).get("time", [])
     values = data.get("hourly", {}).get(key, [])
     return [
-        {"time": ts.split("T")[1], value_key: round(v, 1)}
+        {"time": ts.split("T")[1], value_key: round(v * multiplier, 1)}
         for ts, v in zip(times, values)
         if ts.startswith(target_date) and v is not None
     ]
@@ -1083,6 +1083,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "air_temp_min_f": temp_min,
         "tide_range_ft":  round(max(tide_heights_all) - min(tide_heights_all), 2) if tide_heights_all else None,
         "wind_chart":  hourly_day_points(weather, "wind_speed_10m", target_date, "speed_mph"),
+        "wave_chart":  hourly_day_points(marine, "wave_height", target_date, "height_ft", 3.28084),
         "tide_chart":  tide_points,
         # Explicit pass-through for model consumption
         "source": "open_meteo_marine_coherent" if coherent_source == "hourly_max_height_event"
