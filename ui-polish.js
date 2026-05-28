@@ -27,7 +27,9 @@ const localFish = [
 
 function renderSimpleFishRadar() {
   const grid = document.getElementById("fishGrid");
-  if (!grid || grid.dataset.simpleFish === "true") return;
+  if (!grid) return;
+  const hasOldCards = Boolean(grid.querySelector("details"));
+  if (grid.dataset.simpleFish === "true" && !hasOldCards) return;
   grid.classList.add("is-simple");
   grid.dataset.simpleFish = "true";
   grid.replaceChildren(...localFish.map((fish, index) => {
@@ -65,19 +67,28 @@ async function addPriorRainRow() {
   }
 }
 
-const observer = new MutationObserver(() => {
+let polishQueued = false;
+const runPolish = () => {
+  polishQueued = false;
   relabelRainRows();
   addPriorRainRow();
   renderSimpleFishRadar();
-});
+};
+
+const queuePolish = () => {
+  if (polishQueued) return;
+  polishQueued = true;
+  window.requestAnimationFrame(runPolish);
+};
+
+const observer = new MutationObserver(queuePolish);
 
 const start = () => {
-  const target = document.getElementById("featureRows");
-  if (!target) return;
-  observer.observe(target, { childList: true, subtree: true });
-  relabelRainRows();
-  addPriorRainRow();
-  renderSimpleFishRadar();
+  observer.observe(document.body, { childList: true, subtree: true });
+  runPolish();
+  window.setTimeout(runPolish, 100);
+  window.setTimeout(runPolish, 500);
+  window.setTimeout(runPolish, 1500);
 };
 
 if (document.readyState === "loading") {
