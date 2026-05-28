@@ -42,16 +42,16 @@ jobs:
       - name: Mirror generated JSON to root page files
         run: |
           cp model_outputs/spots/la-jolla.json la-jolla.json
-          cp model_outputs/latest_forecast.json latest_forecast.json
-          cp model_outputs/forecast_10day.json forecast_10day.json
-          cp model_outputs/spots.json spots.json
-          cp model_outputs/diveprosd_grade_guidance.json diveprosd_grade_guidance.json
-          cp model_outputs/model_metrics.json model_metrics.json
+          [ -f model_outputs/latest_forecast.json ] && cp model_outputs/latest_forecast.json latest_forecast.json || true
+          [ -f model_outputs/forecast_10day.json ] && cp model_outputs/forecast_10day.json forecast_10day.json || true
+          [ -f model_outputs/spots.json ] && cp model_outputs/spots.json spots.json || true
+          [ -f model_outputs/diveprosd_grade_guidance.json ] && cp model_outputs/diveprosd_grade_guidance.json diveprosd_grade_guidance.json || true
+          [ -f model_outputs/model_metrics.json ] && cp model_outputs/model_metrics.json model_metrics.json || true
 
       - name: Commit updated forecast artifacts
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add la-jolla.json latest_forecast.json forecast_10day.json spots.json diveprosd_grade_guidance.json model_metrics.json forecast_log.csv model_outputs
+          git add la-jolla.json latest_forecast.json forecast_10day.json spots.json diveprosd_grade_guidance.json model_metrics.json forecast_log.csv model_outputs || true
           git commit -m "Update La Jolla forecast" || echo "No forecast changes to commit"
           git push
