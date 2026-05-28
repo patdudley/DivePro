@@ -2,8 +2,8 @@ name: Update La Jolla Forecast
 
 on:
   schedule:
-    # GitHub cron is UTC. These are roughly 6am, noon, and 6pm Pacific during PDT.
-    - cron: "0 1,13,19 * * *"
+    # GitHub cron is UTC. During Pacific daylight time, these run at 7am and noon PT.
+    - cron: "0 14,19 * * *"
   workflow_dispatch:
 
 permissions:
