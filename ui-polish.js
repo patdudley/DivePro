@@ -1,5 +1,6 @@
 function relabelRainRows() {
   const rows = document.querySelectorAll("#featureRows div");
+  let seenPriorRain = false;
   rows.forEach((row) => {
     const label = row.querySelector("span");
     if (!label) return;
@@ -7,6 +8,13 @@ function relabelRainRows() {
     if (text === "Wind wave") {
       row.remove();
       return;
+    }
+    if (text === "Prior 3d rain") {
+      if (seenPriorRain) {
+        row.remove();
+        return;
+      }
+      seenPriorRain = true;
     }
     if (text === "Rain" || text === "Rain forecast") {
       label.textContent = "Rain forecast";
@@ -16,7 +24,9 @@ function relabelRainRows() {
 }
 
 function formatWaveRange(value) {
-  const wave = Number.parseFloat(String(value).replace(/[^\d.]/g, ""));
+  const text = String(value);
+  if (text.includes("-")) return null;
+  const wave = Number.parseFloat(text);
   if (!Number.isFinite(wave)) return null;
   const low = Math.max(0, Math.floor(wave));
   const high = Math.max(low + 1, Math.ceil(wave));
@@ -32,7 +42,7 @@ function polishWaveRows() {
     const text = label.textContent.trim();
     if (text === "Surf max" || text === "Primary swell" || text === "Secondary swell") {
       const range = formatWaveRange(value.textContent);
-      if (range) value.textContent = range;
+      if (range && value.textContent.trim() !== range) value.textContent = range;
     }
   });
 }
@@ -74,29 +84,6 @@ function renderSimpleFishRadar() {
   }));
 }
 
-async function syncPriorRainRow() {
-  const featureRows = document.getElementById("featureRows");
-  if (!featureRows) return;
-  try {
-    const response = await fetch(`la-jolla.json?v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) return;
-    const bundle = await response.json();
-    const features = (bundle.latest || bundle).features || {};
-    const prior = features.rain_prior_3day_in;
-    if (prior === undefined || prior === null) return;
-    const existing = Array.from(featureRows.querySelectorAll("div")).find((row) => {
-      const label = row.querySelector("span");
-      return label && label.textContent.trim() === "Prior 3d rain";
-    });
-    const card = existing || document.createElement("div");
-    card.title = "Rain from the three days before the forecast day, used as the runoff signal.";
-    card.innerHTML = `<span>Prior 3d rain</span><strong>${Number(prior).toFixed(3)} in</strong>`;
-    if (!existing) featureRows.append(card);
-  } catch {
-    // Non-critical UI label helper only.
-  }
-}
-
 function relabelTodayChip() {
   const firstChipLabel = document.querySelector("#forecastStrip .forecast-day:first-child span");
   if (firstChipLabel && firstChipLabel.textContent.trim() === "Latest") {
@@ -109,7 +96,6 @@ const runPolish = () => {
   polishQueued = false;
   relabelRainRows();
   polishWaveRows();
-  syncPriorRainRow();
   renderSimpleFishRadar();
   relabelTodayChip();
 };
