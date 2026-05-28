@@ -11,8 +11,53 @@
   gap: 8px;
 }
 
+.fish-grid.is-simple {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .fish-row {
   min-height: auto;
+}
+
+.fish-row.simple-fish {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid rgba(13, 122, 140, 0.18);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.simple-fish .fish-rank {
+  grid-column: auto;
+}
+
+.simple-fish strong {
+  display: block;
+  color: var(--navy);
+  font-size: 0.92rem;
+  line-height: 1.15;
+}
+
+.simple-fish span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.fish-likelihood {
+  min-width: 58px;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(125, 216, 247, 0.2);
+  color: var(--dark-cyan);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-align: center;
 }
 
 .fish-row summary {
