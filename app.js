@@ -261,12 +261,19 @@ function reportText(data) {
 
 function waveWeight(data) {
   const features = data.features || {};
-  const swell = Number(features.swell_wave_height_ft ?? features.total_swell_height_mean_ft ?? 0);
-  const period = Number(features.swell_wave_period_sec ?? features.swell_period_sec ?? 0);
+  const swell = Number(features.swell_wave_height_max_ft ?? features.swell_wave_height_ft ?? features.total_swell_height_mean_ft ?? 0);
+  const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? features.swell_period_sec ?? 0);
   if (!Number.isFinite(swell) || swell <= 0) return "Light";
-  if (swell >= 4 || (swell >= 3 && period <= 10)) return `${swell.toFixed(1)} ft · Heavy`;
-  if (swell >= 2) return `${swell.toFixed(1)} ft · Moderate`;
-  return `${swell.toFixed(1)} ft · Light`;
+  const range = waveRange(swell);
+  if (swell >= 4 || (swell >= 3 && period <= 10)) return `${range} · Heavy`;
+  if (swell >= 2) return `${range} · Moderate`;
+  return `${range} · Light`;
+}
+
+function waveRange(feet) {
+  const low = Math.max(0, Math.floor(feet));
+  const high = Math.max(low + 1, Math.ceil(feet));
+  return `${low}-${high} ft`;
 }
 
 function gradeClass(grade) {
