@@ -2,12 +2,18 @@ name: Update La Jolla Forecast
 
 on:
   schedule:
-    # GitHub cron is UTC. During Pacific daylight time, these run at 7am and noon PT.
-    - cron: "0 14,19 * * *"
+    # GitHub cron is UTC. During Pacific daylight time this gives retries around
+    # 7am and noon PT, because scheduled Actions can start late or occasionally
+    # skip a single crowded minute.
+    - cron: "0,15,30 14,19 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: update-la-jolla-forecast
+  cancel-in-progress: true
 
 jobs:
   update-forecast:
