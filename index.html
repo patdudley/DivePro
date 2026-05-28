@@ -3,31 +3,51 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DiveProSD Forecast</title>
-    <link rel="stylesheet" href="styles.css?v=mobile-fix-33">
+    <title>La Jolla Forecast | DiveProUSA</title>
+    <script>
+      if (window.location.protocol === "file:" || window.location.pathname.endsWith("/spot-template.html")) {
+        window.location.replace(window.location.protocol === "file:" ? "http://127.0.0.1:4174/" : "./");
+      }
+    </script>
+    <link rel="stylesheet" href="../../src/forecast/styles.css">
   </head>
-  <body>
+  <body data-spot="la-jolla">
     <main class="shell">
+      <nav class="spot-nav" aria-label="Forecast navigation">
+        <a class="brand-link" href="../../">DiveProUSA</a>
+        <label class="sr-only" for="spotSwitcher">Change dive spot</label>
+        <select id="spotSwitcher" aria-label="Change dive spot"></select>
+      </nav>
+
       <section class="hero-camera">
         <header class="topbar">
-          <img class="brand-logo" src="divepro-logo.png?v=mobile-fix-33" alt="DivePro">
+          <div>
+            <p class="eyebrow">DiveProUSA Forecast</p>
+            <h1 id="spotTitle">La Jolla</h1>
+            <p class="spot-description"><strong>Beta prospective test:</strong> this forecast is being logged against future dive reports and is not yet a public accuracy claim.</p>
+            <p class="spot-description" id="spotDescription"></p>
+          </div>
+          <div class="date-pill" id="date">Today</div>
         </header>
 
-        <figure class="camera-frame" id="cameraFrame">
-          <img id="cameraImage" src="pier-screenshot.png?v=mobile-fix-33" alt="Scripps Pier underwater visibility screenshot">
-          <figcaption><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
+        <figure class="camera-frame" id="cameraFrame" hidden>
+          <div class="camera-embeds" id="cameraEmbeds"></div>
+          <figcaption id="cameraCaption"></figcaption>
         </figure>
+        <div class="camera-actions" id="cameraActions" aria-label="Live camera sources" hidden></div>
+        <p class="camera-note" id="cameraNote" hidden></p>
 
         <div class="hero-content">
           <section class="forecast-panel">
             <div class="forecast-meta">
-              <span id="location">La Jolla / Scripps Pier</span>
+              <span id="location">Loading forecast</span>
+              <strong id="score">--/100</strong>
             </div>
             <div class="forecast-main">
-              <strong id="grade">B</strong>
+              <strong id="grade">--</strong>
               <div class="primary-stat">
                 <span>Estimated visibility</span>
-                <strong id="visibility">15-25 ft</strong>
+                <strong id="visibility">-- ft</strong>
               </div>
             </div>
             <div class="score-row">
@@ -35,11 +55,11 @@
             </div>
             <div class="wave-weight">
               <span>Wave weight</span>
-              <strong id="waveWeight">Moderate</strong>
+              <strong id="waveWeight">Loading</strong>
             </div>
             <div class="best-window">
               <span>Best window</span>
-              <strong id="bestWindow">Early morning</strong>
+              <strong id="bestWindow">Loading</strong>
             </div>
           </section>
 
@@ -48,13 +68,11 @@
               <h2>Daily Dive Report</h2>
               <p id="dailyReport"></p>
             </article>
-            <aside class="comments-strip" aria-label="Dive report comments">
-              <div>
-                <span>Comments</span>
-                <strong>No comments yet</strong>
-              </div>
-              <button type="button">Post comment</button>
-            </aside>
+            <div class="report-meta">
+              <div><span>Habitat</span><strong id="habitat">Loading</strong></div>
+              <div><span>Exposure</span><strong id="exposure">Loading</strong></div>
+              <div><span>Confidence</span><strong id="confidence">Loading</strong></div>
+            </div>
           </section>
         </div>
       </section>
@@ -62,7 +80,7 @@
       <section class="ten-day-card">
         <div class="section-heading">
           <h2>10 Day Forecast</h2>
-          <span id="forecastSource">Model predictions</span>
+          <span id="forecastSource">Forecast inputs loading</span>
         </div>
         <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
       </section>
@@ -71,7 +89,7 @@
         <article>
           <h2>Tide Height</h2>
           <div class="chart" id="tideChart"></div>
-          <p id="tideSource">NOAA La Jolla predictions</p>
+          <p id="tideSource">Tide predictions</p>
         </article>
         <article>
           <h2>Wind Speed</h2>
@@ -80,25 +98,39 @@
         </article>
       </section>
 
+      <section class="split">
+        <article>
+          <h2>Risks</h2>
+          <ul id="riskFactors"></ul>
+        </article>
+        <article>
+          <h2>Upside</h2>
+          <ul id="positiveFactors"></ul>
+        </article>
+      </section>
+
       <section class="model-card">
         <h2>Model Inputs</h2>
         <div class="feature-rows" id="featureRows"></div>
+        <p id="explanation"></p>
       </section>
 
       <section class="model-card fish-card">
         <div class="section-heading">
           <h2>Fish Radar</h2>
-          <span>SD shore dive target ranking</span>
+          <span id="fishRadarSubtitle">Local dive target ranking</span>
         </div>
         <div class="fish-grid" id="fishGrid"></div>
-        <p>Tap a species for take-size guidance. Regulations shown are a quick reference checked against California Department of Fish and Wildlife information on May 24, 2026. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
+        <p id="fishRadarNote">Prize score blends table value, size, difficulty, and shore-dive realism. Always check current rules and local protected areas before take.</p>
       </section>
 
       <section class="model-card">
         <h2>Grade Guide</h2>
         <div class="grade-guide" id="gradeGuide"></div>
+        <p>Visibility bands follow the DiveProSD La Jolla scoring scale. This beta forecast remains experimental until prospective validation clears the publish gates.</p>
       </section>
+      <footer class="site-footer">Marine conditions can change quickly. Verify local warnings, protected-area rules, and safe entry conditions before diving. Forecast data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>; U.S. tide predictions by <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener">NOAA CO-OPS</a>.</footer>
     </main>
-    <script type="module" src="app.js?v=mobile-fix-33"></script>
+    <script type="module" src="../../src/forecast/app.js"></script>
   </body>
 </html>
