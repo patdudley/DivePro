@@ -10,10 +10,10 @@ function setText(id, value) {
 }
 
 function displayRange(range) {
-  if (!Array.isArray(range) || range.length < 2) return "—";
+  if (!Array.isArray(range) || range.length < 2) return "--";
   const low = Number(range[0]);
   const high = Number(range[1]);
-  if (!Number.isFinite(low) || !Number.isFinite(high)) return "—";
+  if (!Number.isFinite(low) || !Number.isFinite(high)) return "--";
   const roundedLow = Math.max(0, Math.floor(low / 5) * 5);
   const roundedHigh = Math.max(roundedLow + 5, Math.ceil(high / 5) * 5);
   return `${roundedLow}-${roundedHigh} ft`;
@@ -24,7 +24,7 @@ function feet(range) {
 }
 
 function shortDate(date) {
-  if (!date) return "—";
+  if (!date) return "--";
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
@@ -60,7 +60,6 @@ function featureRows(features = {}) {
 }
 
 const cdfwRulesUrl = "https://wildlife.ca.gov/Fishing/Ocean/Regulations/Fishing-Map/Southern";
-
 const fishTargets = [
   { name: "Yellowtail", habitat: "Kelp edge / open water", prize: 98, abundance: 18, months: [6,7,8,9,10], tempMin: 64, note: "top trophy shot", photo: 0, sizeRule: "24 in fork length minimum; limited undersize allowance applies.", takeNote: "Confirm bag rules before spearfishing." },
   { name: "White seabass", habitat: "Kelp rooms", prize: 96, abundance: 10, months: [4,5,6,7], tempMin: 60, note: "rare ghost fish", photo: 1, sizeRule: "28 in total length minimum.", takeNote: "Open-area and MPA rules still apply." },
@@ -106,7 +105,7 @@ function renderFishRadar(data) {
     card.innerHTML = `
       <summary>
         <div class="fish-rank">${index + 1}</div>
-        <div class="fish-title"><strong>${fish.name}</strong><span>${fish.habitat} · ${fish.note}</span></div>
+        <div class="fish-title"><strong>${fish.name}</strong><span>${fish.habitat} - ${fish.note}</span></div>
         <div class="fish-summary-scores"><span>Prize ${fish.prize}</span><span>Abundance ${fish.abundance}</span></div>
         <span class="expand-label">View</span>
       </summary>
@@ -123,9 +122,115 @@ function renderFishRadar(data) {
   }));
 }
 
-function defaultReport(data) {
-  const range = data.estimated_visibility_range_ft;
-  return `Viz is currently sitting around ${feet(range)}. Conditions look worth checking before you head out.\n\nStay safe out there divers! :)`;
+function hourLabel(time) {
+  const hour = Number(String(time || "0").split(":")[0]);
+  if (Number.isNaN(hour)) return time || "";
+  if (hour === 0) return "12am";
+  if (hour === 12) return "12pm";
+  return hour < 12 ? `${hour}am` : `${hour - 12}pm`;
+}
+
+function chartTicks(min, max, count = 5) {
+  const span = Math.max(1, max - min);
+  const rawStep = span / Math.max(1, count - 1);
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const niceStep = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+  const start = Math.floor(min / niceStep) * niceStep;
+  const end = Math.ceil(max / niceStep) * niceStep;
+  const ticks = [];
+  for (let value = start; value <= end + niceStep / 2; value += niceStep) ticks.push(Number(value.toFixed(2)));
+  return ticks;
+}
+
+function xFromIndex(index, total, left, width) {
+  return left + (index / Math.max(1, total - 1)) * width;
+}
+
+function yFromValue(value, min, max, top, height) {
+  return top + (1 - ((value - min) / Math.max(0.1, max - min))) * height;
+}
+
+function renderTideChart(data) {
+  const chart = document.getElementById("tideChart");
+  if (!chart) return;
+  const points = data.features?.tide_chart || [];
+  if (!points.length) {
+    chart.textContent = "Tide data unavailable.";
+    return;
+  }
+  const values = points.map((point) => point.height_ft);
+  const yTicks = chartTicks(Math.min(...values), Math.max(...values), 5);
+  const min = yTicks[0];
+  const max = yTicks[yTicks.length - 1];
+  const left = 58;
+  const top = 18;
+  const width = 638;
+  const height = 176;
+  const coords = points.map((point, index) => `${xFromIndex(index, points.length, left, width).toFixed(2)},${yFromValue(point.height_ft, min, max, top, height).toFixed(2)}`).join(" ");
+  const xTicks = points.filter((_, index) => index % 4 === 0 || index === points.length - 1);
+  chart.innerHTML = `
+    <svg viewBox="0 0 720 250" role="img" aria-label="Hourly tide height chart">
+      ${yTicks.map((tick) => {
+        const y = yFromValue(tick, min, max, top, height);
+        return `<line x1="${left}" x2="${left + width}" y1="${y}" y2="${y}" class="chart-gridline"></line><text x="${left - 10}" y="${y + 4}" class="chart-y-label" text-anchor="end">${tick.toFixed(1)} ft</text>`;
+      }).join("")}
+      ${xTicks.map((point, index) => {
+        const pointIndex = points.indexOf(point);
+        const x = xFromIndex(pointIndex, points.length, left, width);
+        return `<line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line><text x="${x}" y="224" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>`;
+      }).join("")}
+      <line x1="${left}" x2="${left}" y1="${top}" y2="${top + height}" class="chart-axis"></line>
+      <line x1="${left}" x2="${left + width}" y1="${top + height}" y2="${top + height}" class="chart-axis"></line>
+      <polyline points="${coords}" class="tide-line"></polyline>
+      ${points.map((point, index) => {
+        const x = xFromIndex(index, points.length, left, width);
+        const y = yFromValue(point.height_ft, min, max, top, height);
+        return `<circle cx="${x}" cy="${y}" r="3.5" class="tide-point"><title>${hourLabel(point.time)}: ${point.height_ft.toFixed(2)} ft</title></circle>`;
+      }).join("")}
+    </svg>`;
+}
+
+function renderWindChart(data) {
+  const chart = document.getElementById("windChart");
+  if (!chart) return;
+  const points = data.features?.wind_chart || [];
+  if (!points.length) {
+    chart.textContent = "Wind data unavailable.";
+    return;
+  }
+  const values = points.map((point) => point.speed_mph || 0);
+  const yTicks = chartTicks(0, Math.max(...values), 5);
+  const min = 0;
+  const max = yTicks[yTicks.length - 1];
+  const left = 58;
+  const top = 18;
+  const width = 638;
+  const height = 176;
+  const gap = 5;
+  const bandWidth = width / points.length;
+  const barWidth = Math.max(8, bandWidth - gap);
+  const xTicks = points.filter((_, index) => index % 4 === 0 || index === points.length - 1);
+  chart.innerHTML = `
+    <svg viewBox="0 0 720 250" role="img" aria-label="Hourly wind speed chart">
+      ${yTicks.map((tick) => {
+        const y = yFromValue(tick, min, max, top, height);
+        return `<line x1="${left}" x2="${left + width}" y1="${y}" y2="${y}" class="chart-gridline"></line><text x="${left - 10}" y="${y + 4}" class="chart-y-label" text-anchor="end">${tick.toFixed(0)} mph</text>`;
+      }).join("")}
+      ${xTicks.map((point, index) => {
+        const pointIndex = points.indexOf(point);
+        const x = xFromIndex(pointIndex, points.length, left, width);
+        return `<line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line><text x="${x}" y="224" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>`;
+      }).join("")}
+      <line x1="${left}" x2="${left}" y1="${top}" y2="${top + height}" class="chart-axis"></line>
+      <line x1="${left}" x2="${left + width}" y1="${top + height}" y2="${top + height}" class="chart-axis"></line>
+      ${points.map((point, index) => {
+        const speed = point.speed_mph || 0;
+        const x = left + (index * bandWidth) + (gap / 2);
+        const y = yFromValue(speed, min, max, top, height);
+        return `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${(top + height - y).toFixed(2)}" rx="4" class="wind-bar"><title>${hourLabel(point.time)}: ${speed.toFixed(1)} mph</title></rect>`;
+      }).join("")}
+    </svg>`;
 }
 
 function waveWeight(data) {
@@ -133,49 +238,57 @@ function waveWeight(data) {
   const swell = Number(features.swell_wave_height_max_ft ?? features.primary_swell_height_max_ft ?? 0);
   const period = Number(features.swell_wave_period_max_s ?? features.primary_swell_period_max_s ?? 0);
   if (!Number.isFinite(swell) || swell <= 0) return "Light";
-  if (swell >= 4 || (swell >= 3 && period <= 10)) return `${swell.toFixed(1)} ft · Heavy`;
-  if (swell >= 2) return `${swell.toFixed(1)} ft · Moderate`;
-  return `${swell.toFixed(1)} ft · Light`;
+  if (swell >= 4 || (swell >= 3 && period <= 10)) return `${swell.toFixed(1)} ft - Heavy`;
+  if (swell >= 2) return `${swell.toFixed(1)} ft - Moderate`;
+  return `${swell.toFixed(1)} ft - Light`;
 }
 
-function cleanReportText(text) {
-  return String(text || "").replace(/^\s*\d{1,2}:\d{2}\s*(?:AM|PM)\s+Update\s+-\s+Grade\s+[^\n]+\n?/i, "");
+function dailyReport(data) {
+  if (data.is_unavailable) return data.report_text || "Forecast unavailable.";
+  const features = data.features || {};
+  const range = feet(data.estimated_visibility_range_ft);
+  const wave = Number(features.wave_height_max_ft ?? features.surf_height_max_ft ?? 0);
+  const wind = Number(features.wind_speed_max_mph ?? 0);
+  const bits = [`Viz is expected around ${range}.`];
+  if (wave > 0) bits.push(`Waves are around ${wave.toFixed(1)} ft.`);
+  if (wind > 0) bits.push(`Wind tops out near ${wind.toFixed(0)} mph.`);
+  if (data.best_window) bits.push(`Best shot: ${String(data.best_window).toLowerCase()}.`);
+  return `${bits.join(" ")}\n\nStay safe out there divers! :)`;
 }
 
 function render(data) {
   if (data.is_unavailable || data.model_source === "unavailable") {
-    setText("date", shortDate(data.date));
     setText("location", data.location || "La Jolla / Scripps Pier");
-    setText("grade", "—");
+    setText("grade", "--");
     setText("score", "Unavailable");
-    setText("visibility", "—");
+    setText("visibility", "--");
     setText("bestWindow", "Forecast unavailable");
-    setText("waveWeight", "—");
-    setText("dailyReport", data.report_text || "Forecast unavailable — model output could not be loaded.");
+    setText("waveWeight", "--");
+    setText("dailyReport", data.report_text || "Forecast unavailable - model output could not be loaded.");
     setText("forecastSource", "Forecast unavailable");
-    setText("tideSource", "—");
-    setText("windSource", "—");
+    setText("tideSource", "--");
+    setText("windSource", "--");
     const fill = document.getElementById("scoreFill");
     if (fill) fill.style.width = "0%";
     return;
   }
-  const range = data.estimated_visibility_range_ft;
   const score = data.numeric_score_0_100 ?? 0;
-  setText("date", shortDate(data.date));
   setText("location", data.location || "La Jolla / Scripps Pier");
-  setText("grade", data.grade || "—");
+  setText("grade", data.grade || "--");
   setText("score", `${score}/100`);
-  setText("visibility", feet(range));
+  setText("visibility", feet(data.estimated_visibility_range_ft));
   setText("bestWindow", data.best_window || "Early morning");
   setText("waveWeight", waveWeight(data));
-  setText("dailyReport", cleanReportText(data.report_text || defaultReport(data)));
+  setText("dailyReport", dailyReport(data));
   setText("forecastSource", data.model_source === "soft_probabilistic" ? "Soft probabilistic beta model" : "Forecast unavailable");
-  setText("tideSource", `NOAA La Jolla predictions · ${shortDate(data.date)}`);
-  setText("windSource", `Open-Meteo hourly forecast · ${shortDate(data.date)}`);
+  setText("tideSource", `NOAA La Jolla predictions - ${shortDate(data.date)}`);
+  setText("windSource", `Open-Meteo hourly forecast - ${shortDate(data.date)}`);
   const fill = document.getElementById("scoreFill");
   if (fill) fill.style.width = `${score}%`;
   const featureEl = document.getElementById("featureRows");
   if (featureEl) featureEl.innerHTML = featureRows(data.features || {});
+  renderTideChart(data);
+  renderWindChart(data);
   renderFishRadar(data);
 }
 
@@ -186,7 +299,7 @@ function renderStrip(forecasts = [], activeDate) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `forecast-day${forecast.date === activeDate ? " is-active" : ""}`;
-    button.innerHTML = `<span>${dayLabel(forecast.date, index)}</span><strong>${forecast.grade || "—"}</strong><em>${feet(forecast.estimated_visibility_range_ft)}</em><small>${shortDate(forecast.date)}</small>`;
+    button.innerHTML = `<span>${dayLabel(forecast.date, index)}</span><strong>${forecast.grade || "--"}</strong><em>${feet(forecast.estimated_visibility_range_ft)}</em><small>${shortDate(forecast.date)}</small>`;
     button.addEventListener("click", () => {
       render(forecast);
       renderStrip(forecasts, forecast.date);
@@ -219,10 +332,9 @@ async function main() {
     renderGuide(Array.isArray(guide) ? guide : []);
   } catch (error) {
     console.error(error);
-    setText("date", "Forecast unavailable");
-    setText("grade", "—");
-    setText("visibility", "—");
-    setText("dailyReport", "Forecast unavailable — forecast data could not be loaded.");
+    setText("grade", "--");
+    setText("visibility", "--");
+    setText("dailyReport", "Forecast unavailable - forecast data could not be loaded.");
   }
 }
 
