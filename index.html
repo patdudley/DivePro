@@ -3,20 +3,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>La Jolla Forecast | DiveProUSA</title>
-    <script>
-      if (window.location.protocol === "file:" || window.location.pathname.endsWith("/spot-template.html")) {
-        window.location.replace(window.location.protocol === "file:" ? "http://127.0.0.1:4174/" : "./");
-      }
-    </script>
-    <link rel="stylesheet" href="../../src/forecast/styles.css">
+    <title>La Jolla Forecast Beta | DiveProUSA</title>
+    <link rel="stylesheet" href="styles.css?v=beta-root-2">
   </head>
   <body data-spot="la-jolla">
     <main class="shell">
       <nav class="spot-nav" aria-label="Forecast navigation">
-        <a class="brand-link" href="../../">DiveProUSA</a>
-        <label class="sr-only" for="spotSwitcher">Change dive spot</label>
-        <select id="spotSwitcher" aria-label="Change dive spot"></select>
+        <a class="brand-link" href="./">DiveProUSA</a>
       </nav>
 
       <section class="hero-camera">
@@ -27,15 +20,17 @@
             <p class="spot-description"><strong>Beta prospective test:</strong> this forecast is being logged against future dive reports and is not yet a public accuracy claim.</p>
             <p class="spot-description" id="spotDescription"></p>
           </div>
-          <div class="date-pill" id="date">Today</div>
+          <div class="date-pill" id="date">Loading</div>
         </header>
 
-        <figure class="camera-frame" id="cameraFrame" hidden>
-          <div class="camera-embeds" id="cameraEmbeds"></div>
-          <figcaption id="cameraCaption"></figcaption>
+        <figure class="camera-frame" id="cameraFrame">
+          <div class="camera-embeds" id="cameraEmbeds">
+            <a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">
+              <img src="pier-screenshot.png" alt="Scripps Pier underwater visibility screenshot">
+            </a>
+          </div>
+          <figcaption id="cameraCaption"><a href="https://coollab.ucsd.edu/pierviz/" target="_blank" rel="noopener">Live Scripps Pier cam</a></figcaption>
         </figure>
-        <div class="camera-actions" id="cameraActions" aria-label="Live camera sources" hidden></div>
-        <p class="camera-note" id="cameraNote" hidden></p>
 
         <div class="hero-content">
           <section class="forecast-panel">
@@ -85,19 +80,6 @@
         <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
       </section>
 
-      <section class="chart-grid">
-        <article>
-          <h2>Tide Height</h2>
-          <div class="chart" id="tideChart"></div>
-          <p id="tideSource">Tide predictions</p>
-        </article>
-        <article>
-          <h2>Wind Speed</h2>
-          <div class="chart bars" id="windChart"></div>
-          <p id="windSource">Open-Meteo hourly forecast</p>
-        </article>
-      </section>
-
       <section class="split">
         <article>
           <h2>Risks</h2>
@@ -115,22 +97,14 @@
         <p id="explanation"></p>
       </section>
 
-      <section class="model-card fish-card">
-        <div class="section-heading">
-          <h2>Fish Radar</h2>
-          <span id="fishRadarSubtitle">Local dive target ranking</span>
-        </div>
-        <div class="fish-grid" id="fishGrid"></div>
-        <p id="fishRadarNote">Prize score blends table value, size, difficulty, and shore-dive realism. Always check current rules and local protected areas before take.</p>
-      </section>
-
       <section class="model-card">
         <h2>Grade Guide</h2>
         <div class="grade-guide" id="gradeGuide"></div>
         <p>Visibility bands follow the DiveProSD La Jolla scoring scale. This beta forecast remains experimental until prospective validation clears the publish gates.</p>
       </section>
-      <footer class="site-footer">Marine conditions can change quickly. Verify local warnings, protected-area rules, and safe entry conditions before diving. Forecast data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>; U.S. tide predictions by <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener">NOAA CO-OPS</a>.</footer>
+
+      <footer class="site-footer">Marine conditions can change quickly. Forecast data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>; tide predictions by <a href="https://tidesandcurrents.noaa.gov/" target="_blank" rel="noopener">NOAA CO-OPS</a>.</footer>
     </main>
-    <script type="module" src="../../src/forecast/app.js"></script>
+    <script type="module" src="root-beta.js?v=beta-root-2"></script>
   </body>
 </html>
