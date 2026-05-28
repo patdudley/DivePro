@@ -1,0 +1,67 @@
+.topbar {
+  padding: 10px 16px 6px;
+}
+
+.brand-logo {
+  width: clamp(82px, 9vw, 112px);
+}
+
+.fish-grid {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.fish-row {
+  min-height: auto;
+}
+
+.fish-row summary {
+  grid-template-columns: 28px 1fr;
+  gap: 6px 10px;
+  min-height: 74px;
+  padding: 10px;
+}
+
+.fish-rank {
+  width: 26px;
+  height: 26px;
+  font-size: 0.78rem;
+}
+
+.fish-title strong {
+  font-size: 0.9rem;
+}
+
+.fish-title span {
+  font-size: 0.68rem;
+}
+
+.fish-summary-scores {
+  grid-column: 2;
+  gap: 5px;
+}
+
+.fish-summary-scores span {
+  padding: 3px 6px;
+  font-size: 0.64rem;
+}
+
+.expand-label,
+.fish-photo {
+  display: none;
+}
+
+.fish-rule p {
+  margin-top: 5px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    padding: 10px 12px 6px;
+  }
+
+  .brand-logo {
+    width: 86px;
+  }
+}
