@@ -9,9 +9,18 @@ function setText(id, value) {
   if (el) el.textContent = value ?? "";
 }
 
+function displayRange(range) {
+  if (!Array.isArray(range) || range.length < 2) return "—";
+  const low = Number(range[0]);
+  const high = Number(range[1]);
+  if (!Number.isFinite(low) || !Number.isFinite(high)) return "—";
+  const roundedLow = Math.max(0, Math.floor(low / 5) * 5);
+  const roundedHigh = Math.max(roundedLow + 5, Math.ceil(high / 5) * 5);
+  return `${roundedLow}-${roundedHigh} ft`;
+}
+
 function feet(range) {
-  if (!Array.isArray(range)) return "—";
-  return `${range[0]}-${range[1]} ft`;
+  return displayRange(range);
 }
 
 function shortDate(date) {
@@ -129,7 +138,27 @@ function waveWeight(data) {
   return `${swell.toFixed(1)} ft · Light`;
 }
 
+function cleanReportText(text) {
+  return String(text || "").replace(/^\s*\d{1,2}:\d{2}\s*(?:AM|PM)\s+Update\s+-\s+Grade\s+[^\n]+\n?/i, "");
+}
+
 function render(data) {
+  if (data.is_unavailable || data.model_source === "unavailable") {
+    setText("date", shortDate(data.date));
+    setText("location", data.location || "La Jolla / Scripps Pier");
+    setText("grade", "—");
+    setText("score", "Unavailable");
+    setText("visibility", "—");
+    setText("bestWindow", "Forecast unavailable");
+    setText("waveWeight", "—");
+    setText("dailyReport", data.report_text || "Forecast unavailable — model output could not be loaded.");
+    setText("forecastSource", "Forecast unavailable");
+    setText("tideSource", "—");
+    setText("windSource", "—");
+    const fill = document.getElementById("scoreFill");
+    if (fill) fill.style.width = "0%";
+    return;
+  }
   const range = data.estimated_visibility_range_ft;
   const score = data.numeric_score_0_100 ?? 0;
   setText("date", shortDate(data.date));
@@ -139,7 +168,7 @@ function render(data) {
   setText("visibility", feet(range));
   setText("bestWindow", data.best_window || "Early morning");
   setText("waveWeight", waveWeight(data));
-  setText("dailyReport", (data.report_text || defaultReport(data)).replace(/^\s*\d{1,2}:\d{2}\s*(?:AM|PM)\s+Update\s+-\s+Grade\s+[^\n]+\n?/i, ""));
+  setText("dailyReport", cleanReportText(data.report_text || defaultReport(data)));
   setText("forecastSource", data.model_source === "soft_probabilistic" ? "Soft probabilistic beta model" : "Forecast unavailable");
   setText("tideSource", `NOAA La Jolla predictions · ${shortDate(data.date)}`);
   setText("windSource", `Open-Meteo hourly forecast · ${shortDate(data.date)}`);
