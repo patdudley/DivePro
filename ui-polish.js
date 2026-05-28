@@ -10,6 +10,41 @@ function relabelRainRows() {
   });
 }
 
+const localFish = [
+  { name: "Surfperch", habitat: "Surf grass / shallow sand", likelihood: 96, note: "one of the most common local sightings" },
+  { name: "Opaleye", habitat: "Shallow reef", likelihood: 88, note: "very common around structure" },
+  { name: "Calico bass", habitat: "Kelp / reef", likelihood: 84, note: "reliable kelp fish" },
+  { name: "California sheephead", habitat: "Reef / boulders", likelihood: 72, note: "common when reef is visible" },
+  { name: "Sculpin", habitat: "Reef pockets", likelihood: 58, note: "present but easy to miss" },
+  { name: "Rockfish", habitat: "Deeper reef", likelihood: 54, note: "depth and site dependent" },
+  { name: "California halibut", habitat: "Sand channels", likelihood: 42, note: "good target, less common sighting" },
+  { name: "Cabezon", habitat: "Rock structure", likelihood: 36, note: "structure-dependent" },
+  { name: "Bonito", habitat: "Current edges", likelihood: 28, note: "seasonal cruiser" },
+  { name: "Barracuda", habitat: "Kelp edge", likelihood: 24, note: "seasonal and water-temp dependent" },
+  { name: "Yellowtail", habitat: "Kelp edge / open water", likelihood: 18, note: "trophy chance, not common" },
+  { name: "White seabass", habitat: "Kelp rooms", likelihood: 10, note: "rare ghost fish" },
+];
+
+function renderSimpleFishRadar() {
+  const grid = document.getElementById("fishGrid");
+  if (!grid || grid.dataset.simpleFish === "true") return;
+  grid.classList.add("is-simple");
+  grid.dataset.simpleFish = "true";
+  grid.replaceChildren(...localFish.map((fish, index) => {
+    const card = document.createElement("article");
+    card.className = `fish-row simple-fish${index < 3 ? " is-prime" : ""}`;
+    card.innerHTML = `
+      <div class="fish-rank">${index + 1}</div>
+      <div>
+        <strong>${fish.name}</strong>
+        <span>${fish.habitat} - ${fish.note}</span>
+      </div>
+      <div class="fish-likelihood">${fish.likelihood}%</div>
+    `;
+    return card;
+  }));
+}
+
 async function addPriorRainRow() {
   const featureRows = document.getElementById("featureRows");
   if (!featureRows || featureRows.dataset.priorRainAdded === "true") return;
@@ -33,6 +68,7 @@ async function addPriorRainRow() {
 const observer = new MutationObserver(() => {
   relabelRainRows();
   addPriorRainRow();
+  renderSimpleFishRadar();
 });
 
 const start = () => {
@@ -41,6 +77,7 @@ const start = () => {
   observer.observe(target, { childList: true, subtree: true });
   relabelRainRows();
   addPriorRainRow();
+  renderSimpleFishRadar();
 };
 
 if (document.readyState === "loading") {
