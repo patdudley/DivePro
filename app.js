@@ -69,6 +69,12 @@ function setText(id, value) {
   if (el) el.textContent = value;
 }
 
+function trackEvent(name, params = {}) {
+  if (typeof window.diveproTrack === "function") {
+    window.diveproTrack(name, params);
+  }
+}
+
 function shortDate(date) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
@@ -183,6 +189,13 @@ function renderFishRadar(data) {
     card.querySelector("summary")?.addEventListener("click", () => {
       window.setTimeout(() => {
         card.setAttribute("aria-expanded", card.open ? "true" : "false");
+        if (card.open) {
+          trackEvent("fish_detail_open", {
+            species: fish.name,
+            prize: fish.prize,
+            abundance: fish.abundance,
+          });
+        }
       }, 0);
     });
     return card;
@@ -587,6 +600,10 @@ function renderForecastStrip(forecasts, activeDate) {
       render(forecast);
       renderWaveChart(forecasts, forecast.date);
       renderForecastStrip(forecasts, forecast.date);
+      trackEvent("forecast_day_select", {
+        forecast_date: forecast.date,
+        grade: forecast.grade,
+      });
     });
     return button;
   }));
@@ -616,4 +633,12 @@ loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
   renderForecastStrip(tenDay, latest.date);
   renderWaveChart(tenDay, latest.date);
   renderGradeGuide(gradeGuide);
+  if (!latest.is_unavailable) {
+    trackEvent("forecast_loaded", {
+      forecast_date: latest.date,
+      grade: latest.grade,
+      visibility_range: feet(latest.estimated_visibility_range_ft),
+      surf_range: waveHeightValue(latest),
+    });
+  }
 });
