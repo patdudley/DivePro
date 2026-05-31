@@ -599,6 +599,18 @@ function render(data) {
   renderTideChart(data);
   renderWindChart(data);
   renderFishRadar(data);
+
+  // Tide phase and next event
+  const tidePhase = data.features?.tide_phase;
+  const nextTide = data.features?.tide_next_event;
+  const phaseArrow = tidePhase === "rising" ? "↑ Rising" : tidePhase === "falling" ? "↓ Falling" : "--";
+  setText("tidePhase", phaseArrow);
+  if (nextTide) {
+    const typeLabel = nextTide.type === "H" ? "High" : "Low";
+    setText("tideNextEvent", `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${nextTide.time}`);
+  } else {
+    setText("tideNextEvent", "");
+  }
 }
 
 function renderForecastStrip(forecasts, activeDate) {

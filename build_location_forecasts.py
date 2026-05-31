@@ -805,6 +805,81 @@ def tide_charts(spot, dates):
         return {d: [] for d in dates}
 
 
+def _fetch_tide_hilo(tide_station, target_date, now_hhmm=None):
+    """Fetch H/L tide events for target_date and derive phase, next event, and slack windows.
+
+    now_hhmm: override current time as "HH:MM" string (for testing). Defaults to actual local time.
+    Returns dict with current_phase, next_tide, slack_windows — or None on any failure.
+    """
+    url = api_url("https://api.tidesandcurrents.noaa.gov/api/prod/datagetter", {
+        "product": "predictions",
+        "application": "diveprousa",
+        "begin_date": target_date.replace("-", ""),
+        "end_date": target_date.replace("-", ""),
+        "datum": "MLLW",
+        "station": tide_station,
+        "time_zone": "lst_ldt",
+        "interval": "hilo",
+        "units": "english",
+        "format": "json",
+    })
+    try:
+        data = _get_json_with_retry(url)
+        predictions = data.get("predictions", [])
+        if not predictions:
+            return None
+
+        schedule = []
+        for p in predictions:
+            try:
+                _, time_str = p["t"].split(" ")
+                schedule.append({
+                    "time": time_str,
+                    "height_ft": round(float(p["v"]), 2),
+                    "type": p["type"],
+                })
+            except (KeyError, ValueError):
+                continue
+
+        if not schedule:
+            return None
+
+        # Slack windows: ±30 min around each H/L event
+        slack_windows = []
+        for event in schedule:
+            h, m = map(int, event["time"].split(":"))
+            total = h * 60 + m
+            def _fmt(mins):
+                mins = max(0, min(1439, mins))
+                return f"{mins // 60:02d}:{mins % 60:02d}"
+            slack_windows.append({
+                "around": event["time"],
+                "start": _fmt(total - 30),
+                "end": _fmt(total + 30),
+                "type": event["type"],
+            })
+
+        # Current phase: find which H/L bracket now falls in
+        now_str = now_hhmm or datetime.now().strftime("%H:%M")
+        current_phase = "unknown"
+        for i in range(len(schedule) - 1):
+            if schedule[i]["time"] <= now_str < schedule[i + 1]["time"]:
+                current_phase = "rising" if schedule[i + 1]["type"] == "H" else "falling"
+                break
+
+        # Next tide: first event after now
+        future = [e for e in schedule if e["time"] > now_str]
+        next_tide = future[0] if future else schedule[-1]
+
+        return {
+            "current_phase": current_phase,
+            "next_tide": next_tide,
+            "slack_windows": slack_windows,
+        }
+    except Exception:
+        return None
+
+
 def hourly_day_points(data, key, target_date, value_key, multiplier=1.0):
     times  = data.get("hourly", {}).get("time", [])
     values = data.get("hourly", {}).get(key, [])
@@ -1044,6 +1119,16 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
     tide_morning_avg = (round(sum(tide_morning_heights)/len(tide_morning_heights), 2)
                         if tide_morning_heights else tide_min_ft)
 
+    # ── Tide phase and slack windows (today only — hilo uses current time) ────
+    try:
+        _local_today = datetime.now(ZoneInfo(spot.get("timezone", "America/Los_Angeles"))).date().isoformat()
+    except Exception:
+        _local_today = ""
+    if target_date == _local_today and spot.get("tide_station"):
+        _tide_hilo_data = _fetch_tide_hilo(spot["tide_station"], target_date)
+    else:
+        _tide_hilo_data = None
+
     # ── Chlorophyll ───────────────────────────────────────────────────────────
     chla_recent = chla_recent or {}
     def _chla_for_date(d_str):
@@ -1167,6 +1252,9 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "wind_chart":  hourly_day_points(weather, "wind_speed_10m", target_date, "speed_mph"),
         "wave_chart":  hourly_day_points(marine, "wave_height", target_date, "height_ft", 3.28084),
         "tide_chart":  tide_points,
+        "tide_phase":         _tide_hilo_data["current_phase"] if _tide_hilo_data else "unknown",
+        "tide_next_event":    _tide_hilo_data["next_tide"] if _tide_hilo_data else None,
+        "tide_slack_windows": _tide_hilo_data["slack_windows"] if _tide_hilo_data else [],
         # Explicit pass-through for model consumption
         "source": "open_meteo_marine_coherent" if coherent_source == "hourly_max_height_event"
                   else ("open_meteo_marine" if component_available else "open_meteo_long_range_wave_proxy"),
