@@ -105,11 +105,11 @@ function featureRows(features) {
       || directionFromDegrees(features?.secondary_swell_direction_deg ?? features?.wind_direction_deg),
   };
   const wanted = [
-    ["Water temp", "water_temp_estimate_f", "F"],
+    ["Water temp", "water_temp_estimate_f", "°F"],
     ["Rain forecast", "rain_24h_in", "in"],
     ["72-hour rain", "rain_prior_3day_in", "in"],
   ];
-  return wanted.map(([label, key, unit]) => {
+  const rows = wanted.map(([label, key, unit]) => {
     const raw = enriched?.[key];
     const value = raw === undefined || raw === null || raw === ""
       ? "n/a"
@@ -117,7 +117,12 @@ function featureRows(features) {
         ? `${raw.toFixed(key.includes("energy") ? 0 : 1)} ${unit}`.trim()
         : `${raw}${unit ? ` ${unit}` : ""}`;
     return `<div><span>${label}</span><strong>${value}</strong></div>`;
-  }).join("");
+  });
+  const chlaAlert = enriched?.chla_alert;
+  const chlaLabel = enriched?.chla_label || "No satellite data";
+  const chlaColor = chlaAlert === "RED" ? "#c0392b" : chlaAlert === "YELLOW" ? "#e67e22" : chlaAlert === "GREEN" ? "#27ae60" : "";
+  rows.push(`<div><span>Chlorophyll</span><strong style="color:${chlaColor}">${chlaLabel}</strong></div>`);
+  return rows.join("");
 }
 
 const cdfwRulesUrl = "https://wildlife.ca.gov/Fishing/Ocean/Regulations/Fishing-Map/Southern";

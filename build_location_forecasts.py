@@ -179,6 +179,21 @@ def _fetch_chla_recent(n_days=14):
         return {}
 
 
+_CHLA_YELLOW_RAW = 0.8   # mg/m³ — elevated, visibility may be affected
+_CHLA_RED_RAW    = 1.5   # mg/m³ — high, pea-soup conditions possible
+
+
+def _classify_chla(chla_log):
+    if chla_log is None:
+        return "UNKNOWN", "No satellite data available"
+    raw = math.expm1(chla_log)
+    if raw >= _CHLA_RED_RAW:
+        return "RED", "High chlorophyll — reduced visibility likely"
+    if raw >= _CHLA_YELLOW_RAW:
+        return "YELLOW", "Elevated chlorophyll — visibility may be affected"
+    return "GREEN", "Chlorophyll normal"
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # GRADE FUNCTIONS — official F/D/C/B/A/A+ visibility bands
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1018,6 +1033,8 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
     except Exception:
         chla_7d_avg = chla_log_today
 
+    chla_alert, chla_label = _classify_chla(chla_log_today)
+
     # ── Derived energy metrics ────────────────────────────────────────────────
     energy      = wave_ft * wave_ft * max(1, swell_period) * 0.72
     short_energy = wind_wave_ft * wind_wave_ft * max(1, min(10, wind_wave_period))
@@ -1081,6 +1098,8 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "ml_upwelling_wind":  upwelling_wind,
         "ml_chla_log":        chla_log_today,
         "ml_chla_7d_avg":     chla_7d_avg,
+        "chla_alert":         chla_alert,
+        "chla_label":         chla_label,
         "ml_pressure_trend":  pressure_trend,
         "ml_sst_anomaly":     sst_anomaly,
         "ml_wave_trend":      wave_trend,
