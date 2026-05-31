@@ -194,6 +194,34 @@ def _classify_chla(chla_log):
     return "GREEN", "Chlorophyll normal"
 
 
+_NDBC_STATION = "46254"
+
+
+def _fetch_ndbc_water_temp():
+    """Fetch current water temperature from NDBC buoy 46254 (Scripps Pier nearshore).
+
+    Returns dict with water_temp_f, water_temp_c, source — or None on any failure.
+    This is for display only; do NOT use as ml_sst_f model input.
+    """
+    url = f"https://www.ndbc.noaa.gov/data/realtime2/{_NDBC_STATION}.txt"
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            lines = resp.read().decode("utf-8", errors="replace").strip().splitlines()
+        if len(lines) < 3:
+            return None
+        parts = lines[2].split()
+        if len(parts) <= 14:
+            return None
+        raw = parts[14]
+        if raw == "MM":
+            return None
+        temp_c = float(raw)
+        temp_f = round((temp_c * 9 / 5) + 32, 1)
+        return {"water_temp_f": temp_f, "water_temp_c": temp_c, "source": f"ndbc_{_NDBC_STATION}"}
+    except Exception:
+        return None
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # GRADE FUNCTIONS — official F/D/C/B/A/A+ visibility bands
 # ══════════════════════════════════════════════════════════════════════════════
@@ -847,7 +875,7 @@ def _unavailable_day(spot, target_date, reason):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_day(spot, marine, long_range_marine, weather, target_date, tide_points,
-              chla_recent=None, run_ts=None):
+              chla_recent=None, run_ts=None, ndbc_temp=None):
     """
     Build the forecast dict for a single target_date.
 
@@ -1124,6 +1152,8 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "wind_wave_churn_proxy": round(wind_wave_ft * wind_max * max(1, wind_wave_period), 3),
         "wave_energy_wind_interaction": round(energy * max(1, wind_max), 3),
         "water_temp_estimate_f": sea_temperature,
+        "buoy_water_temp_f":     ndbc_temp["water_temp_f"] if ndbc_temp else None,
+        "buoy_water_temp_source": ndbc_temp["source"] if ndbc_temp else None,
         "air_temp_max_f": temp_max,
         "air_temp_min_f": temp_min,
         "tide_range_ft":  round(max(tide_heights_all) - min(tide_heights_all), 2) if tide_heights_all else None,
@@ -1436,6 +1466,17 @@ def build_spot(spot):
     else:
         chla_recent = {}
 
+    # ── NDBC buoy water temperature (display only, not a model feature) ───────
+    if spot.get("slug") == "la-jolla":
+        print("  Fetching NDBC buoy water temperature...")
+        ndbc_temp = _fetch_ndbc_water_temp()
+        if ndbc_temp:
+            print(f"  Buoy water temp: {ndbc_temp['water_temp_f']}°F ({ndbc_temp['source']})")
+        else:
+            print("  Buoy water temp: unavailable (will use Open-Meteo estimate)")
+    else:
+        ndbc_temp = None
+
     # ── P0-1: Filter to display dates only (>= local today) ──────────────────
     local_today = datetime.now(ZoneInfo(spot["timezone"])).date().isoformat()
     all_dates   = marine["daily"]["time"]
@@ -1459,7 +1500,8 @@ def build_spot(spot):
     for target_date in forecast_dates:
         try:
             day = build_day(spot, marine, long_range_marine, weather, target_date,
-                            tide_by_date[target_date], chla_recent, run_ts=run_ts)
+                            tide_by_date[target_date], chla_recent, run_ts=run_ts,
+                            ndbc_temp=ndbc_temp)
         except Exception as _day_err:
             print(f"  WARNING: day {target_date} failed — emitting unavailable: {_day_err}")
             day = _unavailable_day(spot, target_date, str(_day_err))

@@ -104,8 +104,10 @@ function featureRows(features) {
     secondary_swell_direction_label: features?.secondary_swell_direction_label
       || directionFromDegrees(features?.secondary_swell_direction_deg ?? features?.wind_direction_deg),
   };
+  const waterTempKey = enriched?.buoy_water_temp_f != null ? "buoy_water_temp_f" : "water_temp_estimate_f";
+  const waterTempLabel = enriched?.buoy_water_temp_f != null ? "Water temp (buoy)" : "Water temp (est.)";
   const wanted = [
-    ["Water temp", "water_temp_estimate_f", "°F"],
+    [waterTempLabel, waterTempKey, "°F"],
     ["Rain forecast", "rain_24h_in", "in"],
     ["72-hour rain", "rain_prior_3day_in", "in"],
   ];
