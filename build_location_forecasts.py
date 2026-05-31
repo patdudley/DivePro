@@ -39,6 +39,7 @@ P1 fixes applied in this version:
 import json
 import math
 import shutil
+import time
 import urllib.parse
 import urllib.request
 from datetime import date as _date_cls, datetime, timedelta
@@ -396,6 +397,31 @@ def get_json(url):
         return json.loads(response.read().decode("utf-8"))
 
 
+def _get_json_with_retry(url, timeout=25, retries=3):
+    delay = 1
+    last_exc = None
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if exc.code in (429, 502, 503, 504):
+                last_exc = exc
+                if attempt < retries:
+                    time.sleep(delay)
+                    delay *= 2
+                    continue
+            raise
+        except urllib.error.URLError as exc:
+            last_exc = exc
+            if attempt < retries:
+                time.sleep(delay)
+                delay *= 2
+                continue
+            raise
+    raise last_exc
+
+
 def api_url(base, params):
     return base + "?" + urllib.parse.urlencode(params)
 
@@ -715,7 +741,7 @@ def tide_charts(spot, dates):
         "format": "json",
     })
     try:
-        data = get_json(url)
+        data = _get_json_with_retry(url)
         charts = {d: [] for d in dates}
         for item in data.get("predictions", []):
             tide_date, tide_time = item["t"].split(" ")
@@ -1379,9 +1405,9 @@ def build_spot(spot):
         "past_days": 7,   # needed for prior rain windows and wave history lags
     })
 
-    marine           = get_json(marine_url)
-    long_range_marine = get_json(long_range_marine_url)
-    weather          = get_json(weather_url)
+    marine           = _get_json_with_retry(marine_url)
+    long_range_marine = _get_json_with_retry(long_range_marine_url)
+    weather          = _get_json_with_retry(weather_url)
 
     # Chlorophyll for La Jolla only
     if spot.get("slug") == "la-jolla":
