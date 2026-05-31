@@ -125,6 +125,13 @@ except ImportError as _e:
     def file_sha256(p): return "unavailable"
     def utc_timestamp_now(): return datetime.utcnow().isoformat() + "Z"
 
+try:
+    import community_report as _cr_mod
+    _COMMUNITY_REPORT_AVAILABLE = True
+except ImportError as _cr_err:
+    _COMMUNITY_REPORT_AVAILABLE = False
+    print(f"  NOTE: community_report unavailable ({_cr_err}) — community data will be skipped")
+
 # ── La Jolla chlorophyll (MODIS Aqua, NOAA CoastWatch ERDDAP) ────────────────
 _CHLA_LAT  = 32.850
 _CHLA_LON  = -117.310
@@ -1477,6 +1484,20 @@ def build_spot(spot):
     else:
         ndbc_temp = None
 
+    # ── Community report (JustGetWet — today only, La Jolla only) ─────────────
+    if spot.get("slug") == "la-jolla" and _COMMUNITY_REPORT_AVAILABLE:
+        print("  Fetching JustGetWet community report...")
+        community_data = _cr_mod.get_community_report()
+        if community_data.get("error"):
+            print(f"  Community report error: {community_data['error']}")
+        elif community_data.get("visibility_ft"):
+            print(f"  Community report: {community_data['visibility_ft']} ft (weight {community_data['weight']})")
+        else:
+            print("  Community report: no today posts found")
+    else:
+        community_data = {"visibility_ft": None, "weight": 0.0, "confidence_label": "low",
+                          "source_excerpt": None, "error": None}
+
     # ── P0-1: Filter to display dates only (>= local today) ──────────────────
     local_today = datetime.now(ZoneInfo(spot["timezone"])).date().isoformat()
     all_dates   = marine["daily"]["time"]
@@ -1514,13 +1535,15 @@ def build_spot(spot):
         f"past_days data leaked into display array."
     )
 
+    latest = dict(days[0])
+    latest["community_report"] = community_data
     return {
         "spot": {k: spot[k] for k in (
             "slug", "name", "menu_name", "location", "region",
             "lat", "lon", "timezone", "tide_label",
             "description", "habitat", "exposure", "calibration_note",
         ) if k in spot},
-        "latest": days[0],
+        "latest": latest,
         "tenDay": days,
     }
 

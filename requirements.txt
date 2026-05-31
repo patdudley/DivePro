@@ -16,6 +16,9 @@ joblib==1.5.3
 numpy==2.4.6
 pandas==3.0.3
 
+# Community report scraper (runtime dependency)
+requests>=2.28
+beautifulsoup4>=4.12
+
 # Optional — only needed if re-training or building forecast data
-# requests>=2.28         # build_training_data.py HTTP calls
 # open-meteo-sdk          # if switching from urllib to SDK

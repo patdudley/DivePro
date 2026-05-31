@@ -543,6 +543,21 @@ function gradeClass(grade) {
   return `grade-${String(grade || "C").toLowerCase().replace("+", "-plus")}`;
 }
 
+function renderCommunityReport(data) {
+  const section = document.getElementById("communitySection");
+  const report = data?.community_report;
+  if (!section) return;
+  if (!report || !report.visibility_ft || report.error) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  const confidence = { high: "High confidence", medium: "Medium confidence", low: "Low confidence" };
+  setText("communityConfidence", confidence[report.confidence_label] || "");
+  setText("communityVis", `Reported visibility: ${report.visibility_ft[0]}–${report.visibility_ft[1]} ft`);
+  setText("communityExcerpt", report.source_excerpt || "");
+}
+
 function render(data) {
   const range = data.estimated_visibility_range_ft || [0, 6];
   const score = data.numeric_score_0_100 ?? 0;
@@ -637,6 +652,7 @@ function renderGradeGuide(gradeGuide) {
 
 loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
   render(latest);
+  renderCommunityReport(latest);
   renderForecastStrip(tenDay, latest.date);
   renderWaveChart(tenDay, latest.date);
   renderGradeGuide(gradeGuide);
