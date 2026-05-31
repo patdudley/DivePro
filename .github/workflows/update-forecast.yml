@@ -62,3 +62,30 @@ jobs:
           git add la-jolla.json latest_forecast.json forecast_10day.json spots.json diveprosd_grade_guidance.json model_metrics.json forecast_log.csv model_outputs || true
           git commit -m "Update La Jolla forecast" || echo "No forecast changes to commit"
           git push
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+        run: |
+          python3 - << 'PY'
+          import json, os, urllib.request, urllib.parse
+          try:
+              cfg = json.loads(os.environ.get("CONFIG_JSON", "{}"))
+              tg = cfg.get("telegram", {})
+              token = tg.get("bot_token")
+              chat_id = tg.get("chat_id")
+              if not token or not chat_id:
+                  print("Telegram not configured — skipping alert")
+                  exit(0)
+              msg = "DivePro forecast update FAILED. Check GitHub Actions: https://github.com/patdudley/DivePro/actions"
+              payload = urllib.parse.urlencode({"chat_id": chat_id, "text": msg}).encode()
+              urllib.request.urlopen(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=payload,
+                  timeout=10,
+              )
+              print("Telegram alert sent")
+          except Exception as exc:
+              print(f"Telegram alert failed (non-fatal): {exc}")
+          PY
