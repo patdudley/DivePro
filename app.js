@@ -656,7 +656,6 @@ function renderGradeGuide(gradeGuide) {
     row.innerHTML = `
       <strong>${item.grade}</strong>
       <span>${min}-${max} ft</span>
-      <em>${item.source === "diveprosd_public_posts" ? "Scraped from DiveProSD posts" : "Inferred extension"}</em>
     `;
     return row;
   }));
