@@ -17,8 +17,7 @@ All files live at the repository root (flat layout):
 - Soft probabilistic model: `model_lajolla_soft.pkl` (+ `model_lajolla_soft_features.json`)
 - Point-model fallback: `model_lajolla.pkl` (+ `model_lajolla_features.json`)
 - Forecast log: `forecast_log.csv` (append-only — never delete rows)
-- Generated output: `model_outputs/spots/la-jolla.json` (authoritative), mirrored to root-level
-  `la-jolla.json`, `latest_forecast.json`, `forecast_10day.json`, `spots.json`
+- Generated output: `model_outputs/spots/la-jolla.json` (authoritative, served directly by Pages)
 - GitHub Action: `.github/workflows/update-forecast.yml`
 - Tests: `tests/`
 
@@ -56,9 +55,9 @@ python -m pytest tests/ -q
 ## GitHub Pages Automation
 
 `.github/workflows/update-forecast.yml` runs the forecast builder on a UTC cron
-(retry clusters just after midnight, ~7am, and ~noon Pacific), commits updated
-forecast artifacts back to `main`, and mirrors the generated JSON to root-level
-files served by Pages. On failure it sends a Telegram alert (credentials in the
+(retry clusters just after midnight, ~7am, and ~noon Pacific) and commits the
+updated `model_outputs/` artifacts back to `main`, where GitHub Pages serves
+them directly. On failure it sends a Telegram alert (credentials in the
 `CONFIG_JSON` repository secret).
 
 ## Public Language
