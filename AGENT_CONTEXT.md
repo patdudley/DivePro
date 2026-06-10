@@ -51,11 +51,8 @@ model_outputs/
   latest_forecast.json        Copy of today's forecast
   forecast_10day.json         10-day strip forecast
 
-la-jolla.json                 Mirror of model_outputs/spots/la-jolla.json (served by Pages)
-latest_forecast.json          Mirror (served by Pages)
-forecast_10day.json           Mirror (served by Pages)
-spots.json                    Mirror (served by Pages)
 diveprosd_grade_guidance.json Grade guide config (A+ → F with ft ranges)
+data_sources.py               External data fetchers (HTTP retry, chla, NDBC, tide H/L)
 
 index.html                    Single-page app shell
 app.js                        Main frontend JS (loads JSON, renders all sections)
@@ -84,7 +81,7 @@ GitHub Actions runs `build_location_forecasts.py` on a schedule:
 - `14:00, 14:15, 14:30 UTC` (~7am PT)
 - `19:00, 19:15, 19:30 UTC` (~noon PT)
 
-Concurrency group prevents parallel runs. On completion, JSON output is committed back to main and mirrored to root-level files.
+Concurrency group prevents parallel runs. On completion, JSON output under `model_outputs/` is committed back to main; GitHub Pages serves it directly (no root-level mirror copies).
 
 ### Python Environment
 - **Python 3.13** on GitHub Actions (Ubuntu latest)
