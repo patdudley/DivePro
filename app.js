@@ -558,6 +558,27 @@ function renderCommunityReport(data) {
   setText("communityExcerpt", report.source_excerpt || "");
 }
 
+function todayPacific() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function renderStaleNotice(latest) {
+  const banner = document.getElementById("staleBanner");
+  if (!banner) return;
+  const isStale = !latest.is_unavailable && latest.date && latest.date < todayPacific();
+  if (!isStale) {
+    banner.hidden = true;
+    return;
+  }
+  banner.textContent = `Last updated ${shortDate(latest.date)} — conditions may have changed since this forecast was issued.`;
+  banner.hidden = false;
+}
+
 function render(data) {
   const range = data.estimated_visibility_range_ft || [0, 6];
   const score = data.numeric_score_0_100 ?? 0;
@@ -663,6 +684,7 @@ function renderGradeGuide(gradeGuide) {
 
 loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
   render(latest);
+  renderStaleNotice(latest);
   renderCommunityReport(latest);
   renderForecastStrip(tenDay, latest.date);
   renderWaveChart(tenDay, latest.date);
