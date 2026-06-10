@@ -61,6 +61,9 @@ jobs:
           git config user.email "github-actions@github.com"
           git add la-jolla.json latest_forecast.json forecast_10day.json spots.json diveprosd_grade_guidance.json model_metrics.json forecast_log.csv model_outputs || true
           git commit -m "Update La Jolla forecast" || echo "No forecast changes to commit"
+          # Rebase onto any commits pushed while this run was in flight so the
+          # push does not fail and trigger a false failure alert.
+          git pull --rebase origin main
           git push
 
       - name: Notify on failure
