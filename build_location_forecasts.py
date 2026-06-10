@@ -50,7 +50,8 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo  # Python 3.8
 
-ROOT = Path(__file__).resolve().parents[1]
+# Flat repo layout: this script lives at the repo root alongside its outputs.
+ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "model_outputs"
 SPOT_OUT = OUT / "spots"
 FORECAST_LOG_PATH = Path(__file__).parent / "forecast_log.csv"
