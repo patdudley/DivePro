@@ -640,6 +640,17 @@ function renderSwellChart(data) {
 }
 
 function renderWeather(data) {
+  document.querySelectorAll(".weather-grid > div").forEach((tile) => {
+    const label = tile.querySelector("span")?.textContent?.toLowerCase() || "";
+    const value = tile.querySelector("strong")?.textContent?.toLowerCase() || "";
+    if (
+      label.includes("chlorophyll")
+      || label.includes("chla")
+      || value.includes("no satellite data")
+    ) {
+      tile.remove();
+    }
+  });
   const features = data.features || {};
   setText("waterTemp", `${formatOneDecimal(features.water_temp_estimate_f ?? features.ml_sst_f, "n/a")} F`);
   setText("rainForecast", `${formatOneDecimal(features.rain_target_day_forecast_in ?? features.rain_24h_in, "0.0")} in`);

@@ -146,6 +146,21 @@ from data_sources import (
 _CHLA_YELLOW_RAW = 0.8   # mg/m³ — elevated, visibility may be affected
 _CHLA_RED_RAW    = 1.5   # mg/m³ — high, pea-soup conditions possible
 
+PUBLIC_FEATURE_DENY_SUBSTRINGS = (
+    "chla",
+    "chlorophyll",
+    "satellite",
+)
+
+
+def public_feature_payload(features: dict) -> dict:
+    """Return feature fields safe for public display/runtime JSON."""
+    return {
+        key: value
+        for key, value in features.items()
+        if not any(token in key.lower() for token in PUBLIC_FEATURE_DENY_SUBSTRINGS)
+    }
+
 
 def _classify_chla(chla_log):
     if chla_log is None:
@@ -1257,6 +1272,8 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         f"Swell: {swell_ft:.1f} ft @ {swell_period:.0f}s {direction_label(swell_dir)}"
     )
 
+    public_features = public_feature_payload(features)
+
     day_out = {
         "generated_at": datetime.now().replace(microsecond=0).isoformat(),
         "spot_slug":    spot["slug"],
@@ -1289,7 +1306,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
                            else ("Open-Meteo marine components" if component_available
                                  else "Open-Meteo ECMWF WAM total-wave proxy")),
         "report_text": report,
-        "features":    features,
+        "features":    public_features,
         "cams": [
             {**cam, "embed": cam.get("embed") or youtube_embed(cam["url"])}
             for cam in spot["cams"]
