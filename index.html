@@ -3,155 +3,151 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DiveProSD Spots</title>
-    <link rel="stylesheet" href="styles.css?v=daily-snapshots-51">
+    <title>DiveProSD | La Jolla Dive Visibility Forecast</title>
+    <meta name="description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#13baee">
+    <link rel="canonical" href="https://diveprosd.com/">
+    <meta property="og:site_name" content="DiveProSD">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DiveProSD | La Jolla Dive Visibility Forecast">
+    <meta property="og:description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta property="og:url" content="https://diveprosd.com/">
+    <meta property="og:image" content="https://diveprosd.com/viz-mid.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DiveProSD | La Jolla Dive Visibility Forecast">
+    <meta name="twitter:description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta name="twitter:image" content="https://diveprosd.com/viz-mid.jpg">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "DiveProSD",
+        "url": "https://diveprosd.com/",
+        "description": "Daily La Jolla dive visibility forecast for San Diego shore divers.",
+        "inLanguage": "en-US",
+        "publisher": {
+          "@type": "Organization",
+          "name": "DiveProSD",
+          "url": "https://diveprosd.com/"
+        },
+        "potentialAction": {
+          "@type": "ViewAction",
+          "target": "https://diveprosd.com/"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="styles.css?v=beta-ui-15">
+    <link rel="stylesheet" href="ui-polish.css?v=beta-ui-12">
   </head>
   <body>
-    <main class="shell home-shell">
-      <header class="home-header">
-        <img class="brand-logo" src="divepro-logo.png?v=mobile-fix-33" alt="DivePro">
-      </header>
+    <main class="shell">
+      <div class="stale-banner" id="staleBanner" hidden></div>
+      <section class="hero-camera">
+        <header class="topbar">
+          <img class="brand-logo" src="divepro-logo.png?v=beta-ui-3" alt="DivePro">
+        </header>
 
-      <section class="home-hero" aria-label="Dive forecast and visibility report">
-        <img src="divepro-forecast-hero.png?v=mobile-hero-crop-46" alt="Dive Forecast and Visibility Report">
+        <figure class="camera-frame" id="cameraFrame">
+          <img id="cameraImage" src="viz-mid.jpg?v=viz-fallback-1" alt="Expected Scripps Pier underwater visibility reference">
+          <figcaption><span>Expected visibility - not live, image from a previous day</span></figcaption>
+        </figure>
+
+        <div class="hero-content">
+          <section class="forecast-panel">
+            <div class="forecast-meta">
+              <span id="location">La Jolla / Scripps Pier</span>
+            </div>
+            <div class="forecast-main">
+              <strong id="grade">--</strong>
+              <div class="primary-stat">
+                <span>Estimated visibility</span>
+                <strong id="visibility">-- ft</strong>
+              </div>
+            </div>
+            <div class="score-row">
+              <div class="score-track" aria-hidden="true"><div id="scoreFill"></div></div>
+            </div>
+            <div class="wave-weight">
+              <span>Wave weight</span>
+              <strong id="waveWeight">Loading</strong>
+            </div>
+            <div class="best-window">
+              <span>Best window</span>
+              <strong id="bestWindow">Loading</strong>
+            </div>
+          </section>
+
+          <section class="daily-report-card">
+            <article class="report-copy">
+              <h2>Daily Dive Report</h2>
+              <p id="dailyReport"></p>
+            </article>
+          </section>
+        </div>
       </section>
 
-      <section class="spot-list" aria-label="Dive spots">
-        <a class="spot-card is-live grade-c" href="la-jolla.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/san-diego.png?v=20260605-2155" alt="Scripps Pier underwater visibility camera preview">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>San Diego</span>
-              <h1>San Diego</h1>
-            </div>
-            <div class="spot-grade"><b>C</b><em>10-14 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:59%"></div>
-        </a>
+      <section class="ten-day-card">
+        <div class="section-heading">
+          <h2>10 Day Forecast</h2>
+          <span id="forecastSource">Model predictions</span>
+        </div>
+        <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
+      </section>
 
-        <a class="spot-card grade-b" href="lower-keys.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/lower-keys.jpg?v=20260605-2155" alt="Lower Keys underwater camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Florida</span>
-              <h1>Lower Keys</h1>
-            </div>
-            <div class="spot-grade"><b>B</b><em>15-25 ft</em></div>
+      <section class="chart-grid">
+        <article>
+          <h2>Tide Height</h2>
+          <div class="tide-meta">
+            <span id="tidePhase">--</span>
+            <span id="tideNextEvent"></span>
           </div>
-          <div class="spot-gradient" style="--fill:70%"></div>
-        </a>
+          <div class="chart" id="tideChart"></div>
+          <p id="tideSource">NOAA La Jolla predictions</p>
+        </article>
+        <article>
+          <h2>Wind Speed</h2>
+          <div class="chart bars" id="windChart"></div>
+          <p id="windSource">Open-Meteo hourly forecast</p>
+        </article>
+      </section>
 
-        <a class="spot-card grade-c" href="deerfield-beach.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/deerfield-beach.jpg?v=20260605-2155" alt="Deerfield Beach underwater camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Florida</span>
-              <h1>Deerfield Beach</h1>
-            </div>
-            <div class="spot-grade"><b>C</b><em>10-18 ft</em></div>
+      <section class="model-card wave-card">
+        <div class="section-heading">
+          <h2>Wave Height & Swell</h2>
+        </div>
+        <div class="wave-summary">
+          <div>
+            <span>Surf</span>
+            <strong id="waveSurfRange">-- ft</strong>
           </div>
-          <div class="spot-gradient" style="--fill:58%"></div>
-        </a>
+          <div class="wave-components" id="waveComponents"></div>
+        </div>
+        <div class="chart wave-chart" id="waveChart"></div>
+      </section>
 
-        <a class="spot-card grade-a" href="utopia-sandy-channel.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/utopia-sandy-channel.jpg?v=20260605-2155" alt="Utopia Village Sandy Channel camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Roatan</span>
-              <h1>Utopia Village Sandy Channel</h1>
-            </div>
-            <div class="spot-grade"><b>A</b><em>25-35 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:84%"></div>
-        </a>
+      <section class="model-card">
+        <h2>Weather</h2>
+        <div class="feature-rows" id="featureRows"></div>
+      </section>
 
-        <a class="spot-card grade-a" href="utopia-reef-cam.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/utopia-reef-cam.jpg?v=20260605-2155" alt="Utopia Village reef camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Roatan</span>
-              <h1>Utopia Village Reef Cam</h1>
-            </div>
-            <div class="spot-grade"><b>A</b><em>25-35 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:86%"></div>
-        </a>
+      <section class="model-card fish-card">
+        <div class="section-heading">
+          <h2>Fish Radar</h2>
+          <span>SD shore dive target ranking</span>
+        </div>
+        <div class="fish-grid" id="fishGrid"></div>
+        <p>Tap a species for take-size guidance. Regulations shown are a quick reference. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
+      </section>
 
-        <a class="spot-card grade-b" href="catalina-wrigley.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/catalina-wrigley.jpg?v=20260605-2155" alt="USC Wrigley Catalina Marine Reserve camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Catalina Island</span>
-              <h1>USC Wrigley Catalina Marine Reserve</h1>
-            </div>
-            <div class="spot-grade"><b>B</b><em>15-25 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:72%"></div>
-        </a>
-
-        <a class="spot-card grade-c" href="anacapa-ocean.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/anacapa-ocean.jpg?v=20260605-2155" alt="Anacapa Ocean underwater camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Channel Islands</span>
-              <h1>Anacapa Ocean</h1>
-            </div>
-            <div class="spot-grade"><b>C</b><em>10-20 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:61%"></div>
-        </a>
-
-        <a class="spot-card grade-b" href="coral-city.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/coral-city.jpg?v=20260605-2155" alt="Coral City Camera reef snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Miami</span>
-              <h1>Coral City Camera</h1>
-            </div>
-            <div class="spot-grade"><b>B</b><em>15-25 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:74%"></div>
-        </a>
-
-        <a class="spot-card grade-c" href="pompano-pier.html">
-          <figure class="spot-preview">
-            <img src="camera-snapshots/pompano-pier.jpg?v=20260605-2155" alt="Pompano Beach underwater pier camera snapshot">
-            <span>Daily camera frame</span>
-          </figure>
-          <div class="spot-info">
-            <div>
-              <span>Florida</span>
-              <h1>Pompano Beach Underwater Pier Cam</h1>
-            </div>
-            <div class="spot-grade"><b>C</b><em>10-18 ft</em></div>
-          </div>
-          <div class="spot-gradient" style="--fill:59%"></div>
-        </a>
+      <section class="model-card">
+        <h2>Grade Guide</h2>
+        <div class="grade-guide" id="gradeGuide"></div>
       </section>
     </main>
+    <script src="analytics-config.js?v=analytics-1"></script>
+    <script src="analytics.js?v=analytics-1"></script>
+    <script type="module" src="app.js?v=beta-ui-22"></script>
+    <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
   </body>
 </html>

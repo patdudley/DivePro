@@ -1,83 +1,78 @@
-import { forecastFromFeatures } from "./visibilityModel.js";
-
-const fallback = {
-  date: "2026-05-23",
-  location: "La Jolla / Scripps Pier",
-  features: {
-    date: "2026-05-23",
-    surf_height_max_ft: 2,
-    total_swell_height_mean_ft: 2.5,
-    short_period_swell_energy: 8.2,
-    wind_speed_max_mph: 8,
-    wave_energy_mean_kj: 29,
-    mixed_swell_score: 1,
-  },
-};
-
 async function fetchJson(path) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`${path} unavailable`);
   return response.json();
 }
 
-function fallbackForecast() {
-  const computed = forecastFromFeatures(fallback.features);
-  return {
-    ...fallback,
-    grade: computed.grade,
-    numeric_score_0_100: computed.score,
-    estimated_visibility_range_ft: computed.visibilityRange,
-    estimated_visibility_mid_ft: computed.visibilityMid,
-    confidence: computed.confidence,
-    best_window: computed.bestWindow,
-    risk_factors: computed.riskFactors,
-    positive_factors: computed.positiveFactors,
-    explanation: "Score starts at 70, then adjusts for total swell, surf height, short-period energy, wind, mixed swell, and wave energy.",
-    is_projected: false,
-  };
+async function fetchFirst(paths) {
+  let lastError;
+  for (const path of paths) {
+    try {
+      return await fetchJson(path);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("No forecast path available");
 }
 
 async function loadForecastData() {
-  if (window.staticSpotReport) {
-    return {
-      latest: window.staticSpotReport,
-      tenDay: [],
-      gradeGuide: [],
-      history: [],
-    };
-  }
-
   try {
-    const [latest, tenDay, gradeGuide] = await Promise.all([
-      fetchJson("latest_forecast.json"),
-      fetchJson("forecast_10day.json"),
-      fetchJson("diveprosd_grade_guidance.json"),
+    const [spotForecast, gradeGuide] = await Promise.all([
+      fetchFirst(["model_outputs/spots/la-jolla.json", "la-jolla.json"]),
+      fetchFirst(["model_outputs/diveprosd_grade_guidance.json", "diveprosd_grade_guidance.json"]),
     ]);
-    let history = [];
-    try {
-      history = await fetchJson("forecast_history.json");
-    } catch {
-      history = [];
-    }
+    const latest = spotForecast.latest || spotForecast;
+    const tenDay = Array.isArray(spotForecast.tenDay) && spotForecast.tenDay.length
+      ? spotForecast.tenDay
+      : [latest];
     return {
       latest,
-      tenDay: Array.isArray(tenDay) && tenDay.length ? tenDay : [latest],
+      tenDay,
       gradeGuide: Array.isArray(gradeGuide) ? gradeGuide : [],
-      history: Array.isArray(history) ? history : [],
     };
-  } catch {
-    const latest = fallbackForecast();
-    return { latest, tenDay: [latest], gradeGuide: [], history: [] };
+  } catch (error) {
+    console.error(error);
+    return {
+      latest: {
+        date: new Date().toISOString().slice(0, 10),
+        location: "La Jolla / Scripps Pier",
+        grade: "--",
+        numeric_score_0_100: 0,
+        estimated_visibility_range_ft: null,
+        features: {},
+        best_window: "Forecast unavailable",
+        is_unavailable: true,
+      },
+      tenDay: [],
+      gradeGuide: [],
+    };
   }
 }
 
+function displayRange(range) {
+  if (!Array.isArray(range) || range.length < 2) return "-- ft";
+  const low = Number(range[0]);
+  const high = Number(range[1]);
+  if (!Number.isFinite(low) || !Number.isFinite(high)) return "-- ft";
+  const roundedLow = Math.max(0, Math.floor(low / 5) * 5);
+  const roundedHigh = Math.max(roundedLow + 5, Math.ceil(high / 5) * 5);
+  return `${roundedLow}-${roundedHigh} ft`;
+}
+
 function feet(range) {
-  return `${range[0]}-${range[1]} ft`;
+  return displayRange(range);
 }
 
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
+}
+
+function trackEvent(name, params = {}) {
+  if (typeof window.diveproTrack === "function") {
+    window.diveproTrack(name, params);
+  }
 }
 
 function shortDate(date) {
@@ -109,21 +104,14 @@ function featureRows(features) {
     secondary_swell_direction_label: features?.secondary_swell_direction_label
       || directionFromDegrees(features?.secondary_swell_direction_deg ?? features?.wind_direction_deg),
   };
+  const waterTempKey = enriched?.buoy_water_temp_f != null ? "buoy_water_temp_f" : "water_temp_estimate_f";
+  const waterTempLabel = enriched?.buoy_water_temp_f != null ? "Water temp (buoy)" : "Water temp (est.)";
   const wanted = [
-    ["Surf max", "surf_height_max_ft", "ft"],
-    ["Primary swell", "swell_wave_height_max_ft", "ft"],
-    ["Primary period", "swell_wave_period_max_s", "s"],
-    ["Primary direction", "swell_direction_label", ""],
-    ["Secondary swell", "wind_wave_height_max_ft", "ft"],
-    ["Secondary period", "wind_wave_period_max_s", "s"],
-    ["Secondary direction", "secondary_swell_direction_label", ""],
-    ["Total swell", "total_swell_height_mean_ft", "ft"],
-    ["Water temp", "water_temp_estimate_f", "F"],
-    ["Wind max", "wind_speed_max_mph", "mph"],
-    ["Tide range", "tide_range_ft", "ft"],
-    ["Rain", "rain_24h_in", "in"],
+    [waterTempLabel, waterTempKey, "°F"],
+    ["Rain forecast", "rain_24h_in", "in"],
+    ["72-hour rain", "rain_prior_3day_in", "in"],
   ];
-  return wanted.map(([label, key, unit]) => {
+  const rows = wanted.map(([label, key, unit]) => {
     const raw = enriched?.[key];
     const value = raw === undefined || raw === null || raw === ""
       ? "n/a"
@@ -131,183 +119,47 @@ function featureRows(features) {
         ? `${raw.toFixed(key.includes("energy") ? 0 : 1)} ${unit}`.trim()
         : `${raw}${unit ? ` ${unit}` : ""}`;
     return `<div><span>${label}</span><strong>${value}</strong></div>`;
-  }).join("");
+  });
+  return rows.join("");
 }
 
 const cdfwRulesUrl = "https://wildlife.ca.gov/Fishing/Ocean/Regulations/Fishing-Map/Southern";
 
 const fishTargets = [
-  { name: "Kelp bass", habitat: "Kelp edge / boulders", prize: 62, abundance: 88, note: "reliable reef target", photo: 6, sizeRule: "14 in total length minimum; 5/day.", takeNote: "Listed as kelp bass in CDFW regulations. Open-area and MPA rules still apply." },
-  { name: "California sheephead", habitat: "Reef / boulders", prize: 70, abundance: 80, note: "solid table fish", photo: 3, sizeRule: "12 in total length minimum; 2/day.", takeNote: "Divers are generally open year-round, but confirm current CDFW rules before take." },
-  { name: "White seabass", habitat: "Kelp edge / open water", prize: 96, abundance: 24, note: "top SD trophy", photo: 1, sizeRule: "28 in total length minimum; 3/day, but 1/day Mar 15-Jun 15 south of Pt. Conception.", takeNote: "La Jolla is south of Pt. Conception. MPAs still apply." },
-  { name: "California halibut", habitat: "Sand channels", prize: 88, abundance: 35, note: "prime table fish", photo: 2, sizeRule: "22 in total length minimum; 5/day south of Pt. Sur.", takeNote: "Measure total length before retaining." },
-  { name: "Yellowtail", habitat: "Outer kelp / blue water", prize: 92, abundance: 28, note: "pelagic trophy", photo: 0, sizeRule: "24 in fork length minimum; 10/day.", takeNote: "Confirm current CDFW bag language before taking." },
-  { name: "California barracuda", habitat: "Mid-water / kelp edge", prize: 55, abundance: 52, note: "spring run target", photo: 5, sizeRule: "28 in fork length minimum; 10/day.", takeNote: "Pelagic run timing changes fast." },
-  { name: "Opaleye", habitat: "Shallow reef", prize: 38, abundance: 78, note: "ubiquitous, decent eating", photo: 10, sizeRule: "Verify current general finfish rules.", takeNote: "Confirm identification and local MPA boundaries." },
-  { name: "Blacksmith", habitat: "Mid-water over reef", prize: 12, abundance: 95, note: "#1 most-abundant fish", photo: 7, sizeRule: "Not a normal table target.", takeNote: "Useful visibility and reef-life indicator." },
-  { name: "Barred surfperch", habitat: "Sand / surf transition", prize: 32, abundance: 62, note: "shore-dive beginner fish", photo: 11, sizeRule: "Surfperch rules depend on species and area.", takeNote: "Confirm identification and current limits." },
-  { name: "Garibaldi", habitat: "Reef", prize: 0, abundance: 85, note: "PROHIBITED, no take", photo: 8, sizeRule: "Do not take.", takeNote: "Garibaldi are protected statewide." },
-  { name: "Halfmoon", habitat: "Kelp canopy / mid-water", prize: 35, abundance: 60, note: "light table value", photo: 4, sizeRule: "Verify current general finfish rules.", takeNote: "Confirm identification and MPA boundaries." },
-  { name: "Sargo / black perch", habitat: "Reef ledges / sand edge", prize: 30, abundance: 65, note: "common surfperch family", photo: 9, sizeRule: "Species-specific rules may apply.", takeNote: "Confirm identification before retaining." },
+  { name: "California sheephead", habitat: "Reef / boulders", prize: 78, abundance: 98, note: "staple reef resident", season: "Common on rocky structure most of the year.", photo: 3, sizeRule: "12 in total length minimum.", takeNote: "Large males are prized; confirm season and bag rules." },
+  { name: "California halibut", habitat: "Sand meets rock", prize: 86, abundance: 68, note: "camouflaged table fish", season: "Often best in warmer months on sand channels.", photo: 2, sizeRule: "22 in total length minimum.", takeNote: "Measure total length before retaining." },
+  { name: "White seabass", habitat: "Kelp rooms", prize: 96, abundance: 47, note: "low / seasonal trophy", season: "Spring to early summer, especially around squid.", photo: 1, sizeRule: "28 in total length minimum.", takeNote: "Open-area and MPA rules still apply." },
+  { name: "Calico bass", habitat: "Kelp / reef", prize: 54, abundance: 100, note: "most common legal target", season: "Seen year-round around La Jolla kelp and reef.", photo: 6, sizeRule: "14 in total length minimum.", takeNote: "Listed as kelp bass in regulations." },
+  { name: "Yellowtail", habitat: "Outer kelp edge", prize: 98, abundance: 15, note: "rare from shore", season: "Best chance in warm summer-fall pushes.", photo: 0, sizeRule: "No minimum for the first 5 fish; 24 in fork length if taking more.", takeNote: "Rare from shore; confirm current pelagic rules before take." },
+  { name: "Surfperch", habitat: "Surf grass / shallow sand", prize: 46, abundance: 100, note: "practice / beginner target", season: "Frequent in shallow surf grass and sand.", photo: 11, sizeRule: "No size limit for most species; 10.5 in for redtail surfperch.", takeNote: "Confirm species ID, season, bag and local MPA rules." },
+  { name: "Opaleye", habitat: "Shallow reef", prize: 34, abundance: 100, note: "abundant lower-prize fish", season: "Very common on shallow reefs year-round.", photo: 10, sizeRule: "No minimum size shown in the southern finfish table.", takeNote: "Verify current general bag rules and MPAs." },
+  { name: "Sculpin", habitat: "Reef pockets", prize: 44, abundance: 72, note: "handle carefully", season: "Found around reef pockets; venomous spines.", photo: 9, sizeRule: "10 in total length minimum.", takeNote: "Regulations list this as California scorpionfish." },
+  { name: "Cabezon", habitat: "Rock structure", prize: 48, abundance: 62, note: "winter-heavy reef fish", season: "More of a winter / cool-season reef target.", photo: 8, sizeRule: "15 in total length minimum.", takeNote: "Groundfish seasons and area rules apply." },
+  { name: "Rockfish", habitat: "Deeper reef edge", prize: 52, abundance: 78, note: "depth-dependent", season: "Varies by depth, species, season and closure area.", photo: 7, sizeRule: "No single generic minimum size.", takeNote: "Species, season, depth and closed-area rules vary." },
+  { name: "Bonito", habitat: "Current edges", prize: 66, abundance: 30, note: "seasonal pelagic cruiser", season: "Occasional summer-fall passes outside the kelp.", photo: 4, sizeRule: "No minimum size listed for bonito.", takeNote: "Use the current CDFW table before taking." },
+  { name: "Barracuda", habitat: "Outer kelp edge", prize: 62, abundance: 27, note: "seasonal cruiser", season: "Occasional warm-water passes through outer kelp.", photo: 5, sizeRule: "28 in total length minimum.", takeNote: "Confirm current bag limit." },
 ];
-
-const fishWikiTitles = {
-  "Kelp bass": "Kelp_bass",
-  "California sheephead": "Semicossyphus_pulcher",
-  "White seabass": "White_seabass",
-  "California halibut": "California_halibut",
-  "Yellowtail": "California_yellowtail",
-  "California barracuda": "California_barracuda",
-  "Opaleye": "Opaleye",
-  "Blacksmith": "Blacksmith_(fish)",
-  "Barred surfperch": "Barred_surfperch",
-  "Garibaldi": "Garibaldi_(fish)",
-  "Halfmoon": "Halfmoon_(fish)",
-  "Sargo / black perch": "Sargo_(fish)",
-  "Yellowtail snapper": "Yellowtail_snapper",
-  "Hogfish": "Hogfish",
-  "Mutton snapper": "Mutton_snapper",
-  "Gray snapper": "Mangrove_snapper",
-  "Black grouper": "Black_grouper",
-  "Red grouper": "Red_grouper",
-  "Bluestriped grunt": "Bluestriped_grunt",
-  "Blue tang": "Blue_tang",
-  "Stoplight parrotfish": "Stoplight_parrotfish",
-  "Great barracuda": "Great_barracuda",
-  "African pompano": "African_pompano",
-  "Lionfish": "Pterois",
-  "Sheepshead": "Sheepshead_(fish)",
-  "Mangrove snapper": "Mangrove_snapper",
-  "Snook": "Common_snook",
-  "Tarpon": "Atlantic_tarpon",
-  "Crevalle jack": "Crevalle_jack",
-  "Lookdown": "Lookdown_(fish)",
-  "Porkfish": "Porkfish",
-  "Gray triggerfish": "Grey_triggerfish",
-  "Spanish / cero mackerel": "Spanish_mackerel",
-  "Cobia": "Cobia",
-  "Sergeant major": "Sergeant_major_(fish)",
-  "Southern stingray": "Southern_stingray",
-  "Yellow stingray": "Yellow_stingray",
-  "Bar jack": "Bar_jack",
-  "Sand diver": "Synodus_intermedius",
-  "Peacock flounder": "Peacock_flounder",
-  "Goatfish": "Mullidae",
-  "Yellowhead jawfish": "Yellowhead_jawfish",
-  "Spotted eagle ray": "Spotted_eagle_ray",
-  "Nassau grouper": "Nassau_grouper",
-  "Spotted scorpionfish": "Scorpaena_plumieri",
-  "Caribbean reef squid": "Caribbean_reef_squid",
-  "Bluehead wrasse": "Bluehead_wrasse",
-  "French grunt": "French_grunt",
-  "Foureye butterflyfish": "Foureye_butterflyfish",
-  "Queen / French angelfish": "Queen_angelfish",
-  "Caribbean reef shark": "Caribbean_reef_shark",
-  "Senorita": "Oxyjulis_californica",
-  "Black perch": "Black_perch",
-  "Giant sea bass": "Giant_sea_bass",
-  "Bat ray": "Bat_ray",
-  "Horn shark": "Horn_shark",
-  "Giant kelpfish": "Giant_kelpfish",
-  "Bat ray / leopard shark": "Bat_ray",
-  "Yellowtail parrotfish": "Yellowtail_parrotfish",
-  "Stoplight / rainbow parrotfish": "Stoplight_parrotfish",
-  "French / queen angelfish": "French_angelfish",
-  "Lemon shark": "Lemon_shark",
-  "Atlantic spadefish": "Atlantic_spadefish",
-  "West Indian manatee": "West_Indian_manatee",
-  "Florida pompano": "Florida_pompano",
-  "Permit": "Permit_(fish)",
-  "King / Spanish mackerel": "King_mackerel",
-};
-
-const fishImageCache = new Map();
-
-function fishWikiTitle(name) {
-  return fishWikiTitles[name] || String(name || "").split("/")[0].trim().replaceAll(" ", "_");
-}
-
-async function loadFishPhoto(image, fish) {
-  if (!image || image.dataset.loaded === "true") return;
-  const frame = image.closest(".fish-photo");
-  const label = frame?.querySelector("span");
-  const title = fishWikiTitle(fish.name);
-  image.dataset.loaded = "true";
-  if (label) label.textContent = "Loading photo...";
-
-  try {
-    let source = fishImageCache.get(title);
-    if (source === undefined) {
-      const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-      if (!response.ok) throw new Error("image unavailable");
-      const data = await response.json();
-      source = data.thumbnail?.source || data.originalimage?.source || "";
-      fishImageCache.set(title, source);
-    }
-
-    if (!source) throw new Error("image unavailable");
-    image.src = source;
-    image.alt = `${fish.name} photo`;
-    image.hidden = false;
-    if (label) label.hidden = true;
-  } catch {
-    image.hidden = true;
-    if (label) label.textContent = "Photo unavailable";
-  }
-}
 
 function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 function fishRankings(data) {
-  const targets = Array.isArray(data.fish_targets) && data.fish_targets.length ? data.fish_targets : fishTargets;
-  return targets.map((fish, index) => ({
-    ...fish,
-    prize: clampScore(fish.prize ?? 0),
-    abundance: clampScore(fish.abundance ?? 0),
-    photo: Number.isFinite(Number(fish.photo)) ? Number(fish.photo) : index % 12,
-  }));
+  return fishTargets.map((fish) => {
+    const abundance = clampScore(fish.abundance);
+    const overall = clampScore((fish.prize * 0.58) + (abundance * 0.42));
+    return { ...fish, abundance, overall };
+  });
 }
 
 function renderFishRadar(data) {
   const grid = document.getElementById("fishGrid");
   if (!grid) return;
-  const fishCard = grid.closest(".fish-card");
-  const sectionLabel = fishCard?.querySelector(".section-heading span");
-  const footnote = fishCard?.querySelector(":scope > p");
-  const prizeLabel = data.fish_prize_label || "Prize";
-  const ruleLabel = data.fish_rule_label || "Spearfishing size guidance";
-  const rulesUrl = data.fish_rules_url || (data.fish_targets ? "" : cdfwRulesUrl);
-  const rulesLinkText = data.fish_rules_link_text || "Check current regulations";
-
-  if (sectionLabel && data.fish_context) sectionLabel.textContent = data.fish_context;
-  if (footnote) {
-    footnote.textContent = data.fish_legal_label
-      ? "Tap a species for local guidance. Confirm current rules, seasons, closures, and local protected areas before taking fish."
-      : "Tap a species for take-size guidance. Confirm current rules, seasons, closures, and local MPAs before taking fish.";
-  }
-
-  if (fishCard) {
-    let note = fishCard.querySelector(".fish-site-note");
-    if (data.fish_legal_label) {
-      if (!note) {
-        note = document.createElement("div");
-        note.className = "fish-site-note";
-        fishCard.insertBefore(note, grid);
-      }
-      note.textContent = data.fish_legal_label;
-    } else if (note) {
-      note.remove();
-    }
-  }
-
   grid.replaceChildren(...fishRankings(data).map((fish, index) => {
     const card = document.createElement("details");
     card.className = `fish-row${index < 3 ? " is-prime" : ""}`;
-    const link = rulesUrl
-      ? `<a href="${rulesUrl}" target="_blank" rel="noopener">${rulesLinkText}</a>`
-      : "";
+    const photoCol = fish.photo % 3;
+    const photoRow = Math.floor(fish.photo / 3);
     card.innerHTML = `
       <summary>
         <div class="fish-rank">${index + 1}</div>
@@ -316,30 +168,38 @@ function renderFishRadar(data) {
           <span>${fish.habitat} · ${fish.note}</span>
         </div>
         <div class="fish-summary-scores">
-          <span>${prizeLabel} ${fish.prize}</span>
+          <span>Prize ${fish.prize}</span>
           <span>Abundance ${fish.abundance}</span>
         </div>
-        <span class="expand-label">View</span>
+        <span class="expand-label">View details</span>
       </summary>
       <div class="fish-details">
-        <div class="fish-photo">
-          <img alt="${fish.name} photo" loading="lazy" hidden>
-          <span>Tap to load fish photo</span>
-        </div>
+        <div class="fish-photo" style="--photo-col:${photoCol};--photo-row:${photoRow}" role="img" aria-label="${fish.name} visual reference"></div>
         <div class="fish-meters" aria-hidden="true">
-          <div class="fish-meter"><span>${prizeLabel}</span><i style="width:${fish.prize}%"></i></div>
+          <div class="fish-meter"><span>Prize</span><i style="width:${fish.prize}%"></i></div>
           <div class="fish-meter abundance"><span>Abundance</span><i style="width:${fish.abundance}%"></i></div>
         </div>
         <div class="fish-rule">
-          <span>${ruleLabel}</span>
-          <strong>${fish.sizeRule || "Confirm current local rules before take."}</strong>
-          <p>${fish.takeNote || "Regulations change. Use this as prototype guidance, not final legal advice."}</p>
-          ${link}
+          <span>Season / Location</span>
+          <p>${fish.season}</p>
+          <span>Spearfishing size guidance</span>
+          <strong>${fish.sizeRule}</strong>
+          <p>${fish.takeNote}</p>
+          <a href="${cdfwRulesUrl}" target="_blank" rel="noopener">Check current CDFW regulations</a>
         </div>
       </div>
     `;
-    card.addEventListener("toggle", () => {
-      if (card.open) loadFishPhoto(card.querySelector(".fish-photo img"), fish);
+    card.querySelector("summary")?.addEventListener("click", () => {
+      window.setTimeout(() => {
+        card.setAttribute("aria-expanded", card.open ? "true" : "false");
+        if (card.open) {
+          trackEvent("fish_detail_open", {
+            species: fish.name,
+            prize: fish.prize,
+            abundance: fish.abundance,
+          });
+        }
+      }, 0);
     });
     return card;
   }));
@@ -353,29 +213,14 @@ function defaultReport(data) {
 function renderCamera(data) {
   const frame = document.getElementById("cameraFrame");
   const image = document.getElementById("cameraImage");
-  if (!frame || !image) return;
-
-  if (data.live_embed_url) {
-    let iframe = frame.querySelector("iframe");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      frame.insertBefore(iframe, frame.querySelector("figcaption"));
-    }
-    iframe.src = data.live_embed_url;
-    iframe.title = `${data.location || "Dive spot"} live camera`;
-    iframe.loading = "eager";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.allowFullscreen = true;
-    image.hidden = true;
-    image.removeAttribute("src");
-  } else {
-    const iframe = frame.querySelector("iframe");
-    if (iframe) iframe.remove();
-    image.hidden = false;
-    image.src = data.camera_image || "pier-screenshot.png?v=mobile-fix-33";
-    image.alt = `${data.location || "Dive spot"} camera preview`;
-  }
-
+  const grade = String(data.grade || "C").replace("+", "").toUpperCase();
+  const imageName = ["A", "B"].includes(grade)
+    ? "viz-best.jpg"
+    : grade === "C"
+      ? "viz-mid.jpg"
+      : "viz-bad.jpg";
+  image.src = `${imageName}?v=viz-fallback-1`;
+  image.alt = `Expected Scripps Pier visibility reference for grade ${data.grade || grade}`;
   frame.hidden = false;
 }
 
@@ -412,7 +257,6 @@ function yFromValue(value, min, max, top, height) {
 
 function renderTideChart(data) {
   const chart = document.getElementById("tideChart");
-  if (!chart) return;
   const points = data.features?.tide_chart || [];
   if (!points.length) {
     chart.textContent = "Tide data unavailable.";
@@ -463,7 +307,6 @@ function renderTideChart(data) {
 
 function renderWindChart(data) {
   const chart = document.getElementById("windChart");
-  if (!chart) return;
   const points = data.features?.wind_chart || [];
   if (!points.length) {
     chart.textContent = "Wind data unavailable.";
@@ -510,9 +353,142 @@ function renderWindChart(data) {
   `;
 }
 
-function reportText(data) {
-  if (window.staticSpotReport && data.report_text) return data.report_text;
+function formatFeet(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? `${number.toFixed(1)} ft` : "n/a";
+}
 
+function formatPeriod(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? `${Math.round(number)}s` : "n/a";
+}
+
+function formatDirection(label, degrees) {
+  const direction = label || directionFromDegrees(degrees);
+  const number = Number(degrees);
+  if (direction && Number.isFinite(number)) return `${direction} ${Math.round(number)}°`;
+  return direction || "n/a";
+}
+
+function waveHeightValue(forecast) {
+  const features = forecast?.features || {};
+  return Number(
+    features.surf_height_max_ft
+    ?? features.wave_height_max_ft
+    ?? features.swell_wave_height_max_ft
+    ?? 0
+  );
+}
+
+function renderWaveComponents(data) {
+  const container = document.getElementById("waveComponents");
+  if (!container) return;
+  const features = data.features || {};
+  const rows = [
+    {
+      label: "Primary",
+      height: features.swell_wave_height_max_ft,
+      period: features.swell_wave_period_max_s,
+      directionLabel: features.swell_direction_label,
+      directionDeg: features.swell_wave_direction_deg,
+    },
+    {
+      label: "Secondary",
+      height: features.secondary_swell_height_ft ?? features.wind_wave_height_max_ft,
+      period: features.secondary_swell_period_s ?? features.wind_wave_period_max_s,
+      directionLabel: features.secondary_swell_direction_label,
+      directionDeg: features.secondary_swell_direction_deg ?? features.wind_direction_deg,
+    },
+  ];
+  container.innerHTML = `
+    <div class="wave-component-grid" role="table" aria-label="Swell components">
+      <span></span>
+      <span>Swell</span>
+      <span>Period</span>
+      <span>Direction</span>
+      ${rows.map((row) => `
+        <strong>${row.label}</strong>
+        <em>${formatFeet(row.height)}</em>
+        <em>${formatPeriod(row.period)}</em>
+        <em>${formatDirection(row.directionLabel, row.directionDeg)}</em>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderWaveChart(forecasts, activeDate) {
+  const chart = document.getElementById("waveChart");
+  if (!chart) return;
+  const active = (forecasts || []).find((forecast) => forecast.date === activeDate) || forecasts?.[0];
+  const activeValue = waveHeightValue(active);
+  setText("waveSurfRange", Number.isFinite(activeValue) && activeValue > 0 ? waveRange(activeValue) : "-- ft");
+  if (active?.is_unavailable) {
+    renderWaveComponents({ features: {} });
+  } else if (active) {
+    renderWaveComponents(active);
+  }
+  const points = (active?.features?.wave_chart || [])
+    .map((point) => ({
+      time: point.time,
+      value: Number(point.height_ft),
+    }))
+    .filter((point) => point.time && Number.isFinite(point.value) && point.value >= 0);
+  if (!points.length) {
+    chart.textContent = "Wave data unavailable.";
+    return;
+  }
+  const values = points.map((point) => point.value);
+  const chartPoints = points.filter((_, index) => index % 3 === 0 || index === points.length - 1);
+  const yTicks = chartTicks(0, Math.max(...values), 4);
+  const min = 0;
+  const max = Math.max(5, yTicks[yTicks.length - 1]);
+  const left = 58;
+  const top = 22;
+  const width = 638;
+  const height = 166;
+  const coords = chartPoints.map((point, index) => {
+    const x = xFromIndex(index, chartPoints.length, left, width);
+    const y = yFromValue(point.value, min, max, top, height);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  });
+  const activeIndex = Math.max(0, chartPoints.findIndex((point) => point.value === Math.max(...chartPoints.map((item) => item.value))));
+  const activeX = xFromIndex(activeIndex, chartPoints.length, left, width);
+  const area = `${left},${top + height} ${coords.join(" ")} ${left + width},${top + height}`;
+  chart.innerHTML = `
+    <svg viewBox="0 0 720 250" role="img" aria-label="3-hour wave height chart">
+      ${yTicks.map((tick) => {
+        const y = yFromValue(tick, min, max, top, height);
+        return `
+          <line x1="${left}" x2="${left + width}" y1="${y}" y2="${y}" class="chart-gridline"></line>
+          <text x="${left - 10}" y="${y + 4}" class="chart-y-label" text-anchor="end">${tick.toFixed(tick % 1 ? 1 : 0)} ft</text>
+        `;
+      }).join("")}
+      ${chartPoints.map((point, index) => {
+        const x = xFromIndex(index, chartPoints.length, left, width);
+        return `
+          <line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line>
+          <text x="${x}" y="224" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>
+        `;
+      }).join("")}
+      <line x1="${left}" x2="${left}" y1="${top}" y2="${top + height}" class="chart-axis"></line>
+      <line x1="${left}" x2="${left + width}" y1="${top + height}" y2="${top + height}" class="chart-axis"></line>
+      <polygon points="${area}" class="wave-area"></polygon>
+      <polyline points="${coords.join(" ")}" class="wave-line"></polyline>
+      <line x1="${activeX}" x2="${activeX}" y1="${top}" y2="${top + height}" class="wave-active-line"></line>
+      ${chartPoints.map((point, index) => {
+        const x = xFromIndex(index, chartPoints.length, left, width);
+        const y = yFromValue(point.value, min, max, top, height);
+        const activeClass = index === activeIndex ? " is-active" : "";
+        return `<circle cx="${x}" cy="${y}" r="${activeClass ? 6 : 4}" class="wave-point${activeClass}"><title>${hourLabel(point.time)}: ${point.value.toFixed(1)} ft</title></circle>`;
+      }).join("")}
+    </svg>
+  `;
+}
+
+function reportText(data) {
+  if (data.is_unavailable) {
+    return "Forecast unavailable right now. The beta model did not produce a usable La Jolla forecast, so DivePro is not showing a fake grade.";
+  }
   const features = data.features || {};
   const range = feet(data.estimated_visibility_range_ft || [0, 6]);
   const grade = String(data.grade || "C").replace("+", "");
@@ -544,12 +520,12 @@ function reportText(data) {
 
 function waveWeight(data) {
   const features = data.features || {};
-  const swell = Number(features.swell_wave_height_max_ft ?? features.swell_wave_height_ft ?? features.total_swell_height_mean_ft ?? 0);
+  const surf = waveHeightValue(data);
   const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? features.swell_period_sec ?? 0);
-  if (!Number.isFinite(swell) || swell <= 0) return "Light";
-  const range = waveRange(swell);
-  if (swell >= 4 || (swell >= 3 && period <= 10)) return `${range} · Heavy`;
-  if (swell >= 2) return `${range} · Moderate`;
+  if (!Number.isFinite(surf) || surf <= 0) return "Light";
+  const range = waveRange(surf);
+  if (surf >= 4 || (surf >= 3 && period <= 10)) return `${range} · Heavy`;
+  if (surf >= 2) return `${range} · Moderate`;
   return `${range} · Light`;
 }
 
@@ -563,131 +539,103 @@ function gradeClass(grade) {
   return `grade-${String(grade || "C").toLowerCase().replace("+", "-plus")}`;
 }
 
-function formatOneDecimal(value, fallback = "n/a") {
-  const number = Number(value);
-  return Number.isFinite(number) ? number.toFixed(1) : fallback;
+function renderCommunityReport(data) {
+  const section = document.getElementById("communitySection");
+  const report = data?.community_report;
+  if (!section) return;
+  if (!report || !report.visibility_ft || report.error) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  const confidence = { high: "High confidence", medium: "Medium confidence", low: "Low confidence" };
+  setText("communityConfidence", confidence[report.confidence_label] || "");
+  setText("communityVis", `Reported visibility: ${report.visibility_ft[0]}–${report.visibility_ft[1]} ft`);
+  setText("communityExcerpt", report.source_excerpt || "");
 }
 
-function renderWaveSwell(data) {
-  const features = data.features || {};
-  const surf = formatOneDecimal(features.surf_height_max_ft ?? features.wave_height_max_ft ?? features.total_swell_height_mean_ft, "0.0");
-  const primarySwell = formatOneDecimal(features.swell_wave_height_max_ft ?? features.primary_swell_height_max_ft, "0.0");
-  const primaryPeriod = Math.round(Number(features.swell_wave_period_max_s ?? features.primary_swell_period_max_s ?? 0));
-  const primaryDirection = features.swell_direction_label || directionFromDegrees(features.swell_wave_direction_deg) || "SW";
-  const primaryDegrees = Number(features.swell_wave_direction_deg ?? features.primary_swell_direction_deg);
-  const secondarySwell = formatOneDecimal(features.secondary_swell_height_ft ?? features.wind_wave_height_max_ft, "0.0");
-  const secondaryPeriod = Math.round(Number(features.secondary_swell_period_s ?? features.wind_wave_period_max_s ?? 0));
-  const secondaryDirection = features.secondary_swell_direction_label || directionFromDegrees(features.secondary_swell_direction_deg) || "WNW";
-  const secondaryDegrees = Number(features.secondary_swell_direction_deg);
-
-  setText("surfHeight", waveRange(Number(surf)));
-  setText("primarySwell", `${primarySwell} ft`);
-  setText("primaryPeriod", `${primaryPeriod || "n/a"}s`);
-  setText("primaryDirection", `${primaryDirection}${Number.isFinite(primaryDegrees) ? ` ${Math.round(primaryDegrees)}°` : ""}`);
-  setText("secondarySwell", `${secondarySwell} ft`);
-  setText("secondaryPeriod", `${secondaryPeriod || "n/a"}s`);
-  setText("secondaryDirection", `${secondaryDirection}${Number.isFinite(secondaryDegrees) ? ` ${Math.round(secondaryDegrees)}°` : ""}`);
-
-  renderSwellChart(data);
+function todayPacific() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function renderSwellChart(data) {
-  const chart = document.getElementById("swellChart");
-  if (!chart) return;
-  const features = data.features || {};
-  const base = Number(features.surf_height_max_ft ?? features.wave_height_max_ft ?? features.total_swell_height_mean_ft ?? 2.5);
-  const points = Array.from({ length: 9 }, (_, index) => ({
-    time: ["12am", "3am", "6am", "9am", "12pm", "3pm", "6pm", "9pm", "11pm"][index],
-    value: Math.max(0.4, base + (index - 3) * 0.12 + Math.sin(index / 2) * 0.18),
-  }));
-  const max = Math.max(5, Math.ceil(Math.max(...points.map((point) => point.value))));
-  const left = 62;
-  const top = 24;
-  const width = 610;
-  const height = 150;
-  const coords = points.map((point, index) => {
-    const x = xFromIndex(index, points.length, left, width);
-    const y = yFromValue(point.value, 0, max, top, height);
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
-  }).join(" ");
-  const area = `${left},${top + height} ${coords} ${left + width},${top + height}`;
-  chart.innerHTML = `
-    <svg viewBox="0 0 720 230" role="img" aria-label="Hourly wave height and swell chart">
-      ${[0, Math.round(max / 2), max].map((tick) => {
-        const y = yFromValue(tick, 0, max, top, height);
-        return `
-          <line x1="${left}" x2="${left + width}" y1="${y}" y2="${y}" class="chart-gridline"></line>
-          <text x="${left - 10}" y="${y + 4}" class="chart-y-label" text-anchor="end">${tick} ft</text>
-        `;
-      }).join("")}
-      ${points.map((point, index) => {
-        const x = xFromIndex(index, points.length, left, width);
-        return `
-          <line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line>
-          <text x="${x}" y="206" class="chart-x-label" text-anchor="middle">${point.time}</text>
-        `;
-      }).join("")}
-      <polygon points="${area}" class="swell-area"></polygon>
-      <polyline points="${coords}" class="swell-line"></polyline>
-      ${points.map((point, index) => {
-        const x = xFromIndex(index, points.length, left, width);
-        const y = yFromValue(point.value, 0, max, top, height);
-        return `<circle cx="${x}" cy="${y}" r="4" class="swell-point"></circle>`;
-      }).join("")}
-      <line x1="${left + width}" x2="${left + width}" y1="${top}" y2="${top + height}" class="swell-now"></line>
-    </svg>
-  `;
-}
-
-function renderWeather(data) {
-  document.querySelectorAll(".weather-grid > div").forEach((tile) => {
-    const label = tile.querySelector("span")?.textContent?.toLowerCase() || "";
-    const value = tile.querySelector("strong")?.textContent?.toLowerCase() || "";
-    if (
-      label.includes("chlorophyll")
-      || label.includes("chla")
-      || value.includes("no satellite data")
-    ) {
-      tile.remove();
-    }
-  });
-  const features = data.features || {};
-  setText("waterTemp", `${formatOneDecimal(features.water_temp_estimate_f ?? features.ml_sst_f, "n/a")} F`);
-  setText("rainForecast", `${formatOneDecimal(features.rain_target_day_forecast_in ?? features.rain_24h_in, "0.0")} in`);
-  setText("rain72", `${formatOneDecimal(features.rain_prior_3day_in ?? features.ml_rain_3day_in, "0.0")} in`);
+function renderStaleNotice(latest) {
+  const banner = document.getElementById("staleBanner");
+  if (!banner) return;
+  const isStale = !latest.is_unavailable && latest.date && latest.date < todayPacific();
+  if (!isStale) {
+    banner.hidden = true;
+    return;
+  }
+  banner.textContent = `Last updated ${shortDate(latest.date)} — conditions may have changed since this forecast was issued.`;
+  banner.hidden = false;
 }
 
 function render(data) {
   const range = data.estimated_visibility_range_ft || [0, 6];
   const score = data.numeric_score_0_100 ?? 0;
+  document.body.dataset.forecastState = data.is_unavailable ? "unavailable" : "ready";
+  setText("date", data.date ? shortDate(data.date) : "Today");
   setText("location", data.location || "La Jolla / Scripps Pier");
-  setText("grade", data.grade || "C");
-  setText("visibility", feet(range));
+  setText("score", data.is_unavailable ? "--/100" : `${score}/100`);
+  setText("grade", data.is_unavailable ? "--" : (data.grade || "--"));
+  setText("visibility", data.is_unavailable ? "-- ft" : feet(range));
   setText("bestWindow", data.best_window || "Early morning");
   setText("waveWeight", waveWeight(data));
-  setText("forecastSource", data.is_projected ? `Projected from ${shortDate(data.projected_from || data.date)}` : "Model prediction from parsed conditions");
+  setText(
+    "forecastSource",
+    data.is_unavailable
+      ? "Forecast unavailable"
+      : data.is_projected
+        ? `Projected from ${shortDate(data.projected_from || data.date)}`
+        : "Soft probabilistic La Jolla beta model"
+  );
   setText("dailyReport", reportText(data));
-  setText("tideSource", data.tide_source || `NOAA La Jolla 9410230 - ${shortDate(data.date)}`);
-  setText("windSource", data.wind_source || `Open-Meteo hourly wind - ${shortDate(data.date)}`);
+  setText("tideSource", `NOAA La Jolla 9410230 - ${shortDate(data.date)}`);
+  setText("windSource", `Open-Meteo hourly wind - ${shortDate(data.date)}`);
   const panel = document.querySelector(".forecast-panel");
   const grade = document.getElementById("grade");
-  if (panel) panel.className = `forecast-panel ${gradeClass(data.grade)}`;
-  if (grade) grade.className = gradeClass(data.grade);
-  const scoreFill = document.getElementById("scoreFill");
-  const rows = document.getElementById("featureRows");
-  if (scoreFill) scoreFill.style.width = `${score}%`;
-  if (rows) rows.innerHTML = featureRows(data.features || {});
+  if (panel) panel.className = `forecast-panel ${data.is_unavailable ? "" : gradeClass(data.grade)}`;
+  if (grade) grade.className = data.is_unavailable ? "" : gradeClass(data.grade);
+  document.getElementById("scoreFill").style.width = `${data.is_unavailable ? 0 : score}%`;
+  const featureEl = document.getElementById("featureRows");
+  if (featureEl) featureEl.innerHTML = data.is_unavailable ? "" : featureRows(data.features || {});
+  const fishGrid = document.getElementById("fishGrid");
+  if (fishGrid && data.is_unavailable) fishGrid.replaceChildren();
+  if (data.is_unavailable) {
+    document.getElementById("tideChart").textContent = "Forecast data unavailable.";
+    document.getElementById("windChart").textContent = "Forecast data unavailable.";
+    document.getElementById("waveChart").textContent = "Forecast data unavailable.";
+    return;
+  }
   renderCamera(data);
   renderTideChart(data);
   renderWindChart(data);
-  renderWaveSwell(data);
-  renderWeather(data);
   renderFishRadar(data);
+
+  // Tide phase and next event
+  const tidePhase = data.features?.tide_phase;
+  const nextTide = data.features?.tide_next_event;
+  const phaseArrow = tidePhase === "rising" ? "↑ Rising" : tidePhase === "falling" ? "↓ Falling" : "--";
+  setText("tidePhase", phaseArrow);
+  if (nextTide) {
+    const typeLabel = nextTide.type === "H" ? "High" : "Low";
+    setText("tideNextEvent", `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${nextTide.time}`);
+  } else {
+    setText("tideNextEvent", "");
+  }
 }
 
 function renderForecastStrip(forecasts, activeDate) {
   const strip = document.getElementById("forecastStrip");
-  if (!strip) return;
+  if (!forecasts.length) {
+    strip.textContent = "Forecast unavailable.";
+    return;
+  }
   strip.replaceChildren(...forecasts.map((forecast, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -697,11 +645,16 @@ function renderForecastStrip(forecasts, activeDate) {
       <span>${dayLabel(forecast.date, index)}</span>
       <strong>${forecast.grade}</strong>
       <em>${feet(forecast.estimated_visibility_range_ft || [0, 6])}</em>
-      <small>${forecast.is_projected ? "Projected" : shortDate(forecast.date)}</small>
+      <small>${shortDate(forecast.date)}</small>
     `;
     button.addEventListener("click", () => {
       render(forecast);
+      renderWaveChart(forecasts, forecast.date);
       renderForecastStrip(forecasts, forecast.date);
+      trackEvent("forecast_day_select", {
+        forecast_date: forecast.date,
+        grade: forecast.grade,
+      });
     });
     return button;
   }));
@@ -709,7 +662,6 @@ function renderForecastStrip(forecasts, activeDate) {
 
 function renderGradeGuide(gradeGuide) {
   const guide = document.getElementById("gradeGuide");
-  if (!guide) return;
   if (!gradeGuide.length) {
     guide.textContent = "Grade guidance unavailable.";
     return;
@@ -721,58 +673,24 @@ function renderGradeGuide(gradeGuide) {
     row.innerHTML = `
       <strong>${item.grade}</strong>
       <span>${min}-${max} ft</span>
-      <em>${item.source === "diveprosd_public_posts" ? "Scraped from DiveProSD posts" : "Inferred extension"}</em>
     `;
     return row;
   }));
 }
 
-function renderForecastHistory(history, currentDate) {
-  const list = document.getElementById("forecastHistory");
-  const button = document.getElementById("historyToggle");
-  if (!list) return;
-
-  const entries = (history || [])
-    .filter((entry) => entry && entry.date && entry.date !== currentDate)
-    .sort((a, b) => String(b.generated_at || b.date).localeCompare(String(a.generated_at || a.date)));
-
-  if (!entries.length) {
-    list.innerHTML = `<p class="history-empty">Past reports will show here after the next forecast archive run.</p>`;
-    if (button) button.hidden = true;
-    return;
-  }
-
-  const visibleCount = 4;
-  list.replaceChildren(...entries.map((entry, index) => {
-    const article = document.createElement("article");
-    article.className = `history-item${index >= visibleCount ? " is-hidden" : ""}`;
-    const range = entry.estimated_visibility_range_ft || entry.visibility || [0, 0];
-    article.innerHTML = `
-      <div>
-        <span>${shortDate(entry.date)}</span>
-        <strong>${entry.grade || "C"} · ${feet(range)}</strong>
-      </div>
-      <p>${entry.report_text || "Forecast archived."}</p>
-    `;
-    return article;
-  }));
-
-  if (!button) return;
-  button.hidden = entries.length <= visibleCount;
-  button.textContent = `See ${entries.length - visibleCount} More`;
-  button.onclick = () => {
-    const hidden = [...list.querySelectorAll(".history-item.is-hidden")];
-    const isExpanded = hidden.length === 0;
-    list.querySelectorAll(".history-item").forEach((item, index) => {
-      item.classList.toggle("is-hidden", isExpanded && index >= visibleCount);
-    });
-    button.textContent = isExpanded ? `See ${entries.length - visibleCount} More` : "Show Less";
-  };
-}
-
-loadForecastData().then(({ latest, tenDay, gradeGuide, history }) => {
+loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
   render(latest);
+  renderStaleNotice(latest);
+  renderCommunityReport(latest);
   renderForecastStrip(tenDay, latest.date);
+  renderWaveChart(tenDay, latest.date);
   renderGradeGuide(gradeGuide);
-  renderForecastHistory(history, latest.date);
+  if (!latest.is_unavailable) {
+    trackEvent("forecast_loaded", {
+      forecast_date: latest.date,
+      grade: latest.grade,
+      visibility_range: feet(latest.estimated_visibility_range_ft),
+      surf_range: waveHeightValue(latest),
+    });
+  }
 });
