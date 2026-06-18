@@ -75,6 +75,41 @@ function trackEvent(name, params = {}) {
   }
 }
 
+const viewedVerdicts = new Set();
+
+function trackVerdictView(data) {
+  if (!data || data.is_unavailable) return;
+  const panel = document.querySelector(".forecast-panel");
+  if (!panel) return;
+  const key = `${data.date || "unknown"}:${data.grade || "--"}`;
+  if (viewedVerdicts.has(key)) return;
+
+  const fire = () => {
+    if (viewedVerdicts.has(key)) return;
+    viewedVerdicts.add(key);
+    trackEvent("verdict_view", {
+      spot: "la_jolla",
+      forecast_date: data.date,
+      grade: data.grade,
+      visibility_range: feet(data.estimated_visibility_range_ft),
+      score: data.numeric_score_0_100 ?? null,
+    });
+  };
+
+  if (!("IntersectionObserver" in window)) {
+    fire();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.5)) {
+      observer.disconnect();
+      fire();
+    }
+  }, { threshold: [0.5] });
+  observer.observe(panel);
+}
+
 function shortDate(date) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
@@ -616,6 +651,7 @@ function render(data) {
   renderTideChart(data);
   renderWindChart(data);
   renderFishRadar(data);
+  trackVerdictView(data);
 
   // Tide phase and next event
   const tidePhase = data.features?.tide_phase;
