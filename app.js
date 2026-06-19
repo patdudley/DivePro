@@ -382,10 +382,28 @@ function renderWindChart(data) {
         const speed = point.speed_mph || 0;
         const x = left + (index * bandWidth) + (gap / 2);
         const y = yFromValue(speed, min, max, top, height);
-        return `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${(top + height - y).toFixed(2)}" rx="4" class="wind-bar"><title>${hourLabel(point.time)}: ${speed.toFixed(1)} mph</title></rect>`;
+        return `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${(top + height - y).toFixed(2)}" rx="4" class="wind-bar ${windGradeClass(speed)}" style="fill: ${windGradeColor(speed)}"><title>${hourLabel(point.time)}: ${speed.toFixed(1)} mph</title></rect>`;
       }).join("")}
     </svg>
   `;
+}
+
+function windGradeClass(speed) {
+  if (speed <= 1) return "wind-grade-a-plus";
+  if (speed <= 4) return "wind-grade-a";
+  if (speed <= 6) return "wind-grade-b";
+  if (speed <= 8) return "wind-grade-c";
+  if (speed <= 10) return "wind-grade-d";
+  return "wind-grade-f";
+}
+
+function windGradeColor(speed) {
+  if (speed <= 1) return "#0075df";
+  if (speed <= 4) return "#13baee";
+  if (speed <= 6) return "#5e8ee8";
+  if (speed <= 8) return "#a64bd8";
+  if (speed <= 10) return "#d82fca";
+  return "#ee13ba";
 }
 
 function formatFeet(value) {
