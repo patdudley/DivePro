@@ -477,9 +477,9 @@ function renderWaveChart(forecasts, activeDate) {
   const yTicks = chartTicks(0, Math.max(...values), 4);
   const min = 0;
   const max = Math.max(5, yTicks[yTicks.length - 1]);
-  const left = 58;
+  const left = 72;
   const top = 22;
-  const width = 638;
+  const width = 856;
   const height = 166;
   const coords = chartPoints.map((point, index) => {
     const x = xFromIndex(index, chartPoints.length, left, width);
@@ -490,7 +490,7 @@ function renderWaveChart(forecasts, activeDate) {
   const activeX = xFromIndex(activeIndex, chartPoints.length, left, width);
   const area = `${left},${top + height} ${coords.join(" ")} ${left + width},${top + height}`;
   chart.innerHTML = `
-    <svg viewBox="0 0 720 250" role="img" aria-label="3-hour wave height chart">
+    <svg viewBox="0 0 1000 250" role="img" aria-label="3-hour wave height chart">
       ${yTicks.map((tick) => {
         const y = yFromValue(tick, min, max, top, height);
         return `
