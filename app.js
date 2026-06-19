@@ -242,8 +242,7 @@ function renderFishRadar(data) {
 
 function defaultReport(data) {
   const range = data.estimated_visibility_range_ft || [0, 6];
-  const date = data.date ? shortDate(data.date) : "this forecast date";
-  return `For ${date}, the model expects ${feet(range)} visibility. This is a forecast estimate based on the available wave, wind, tide, rain, and water-temperature inputs.`;
+  return `The model expects ${feet(range)} visibility based on the available wave, wind, tide, and rain inputs.`;
 }
 
 function renderCamera(data) {
@@ -528,11 +527,9 @@ function reportText(data) {
   const features = data.features || {};
   const range = feet(data.estimated_visibility_range_ft || [0, 6]);
   const grade = String(data.grade || "C").replace("+", "");
-  const date = data.date ? shortDate(data.date) : "this forecast date";
   const swell = Number(features.swell_wave_height_max_ft ?? features.total_swell_height_mean_ft ?? 0);
   const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? 0);
   const wind = Number(features.wind_speed_max_mph ?? 0);
-  const waterTemp = Number(features.water_temp_estimate_f ?? 0);
   const rain = Number(features.rain_target_day_forecast_in ?? features.rain_24h_in ?? 0);
   const priorRain = Number(features.rain_prior_3day_in ?? features.ml_rain_3day_in ?? 0);
   const tidePhase = features.tide_phase;
@@ -546,12 +543,10 @@ function reportText(data) {
   const windCopy = Number.isFinite(wind) && wind > 0
     ? `${Math.round(wind)} mph peak wind`
     : "light wind";
-  const rainCopy = Number.isFinite(rain) && Number.isFinite(priorRain)
-    ? `${rain.toFixed(1)} in forecast rain and ${priorRain.toFixed(1)} in recent 72-hour rain`
-    : "limited rain signal";
-  const tempCopy = Number.isFinite(waterTemp) && waterTemp > 0
-    ? `Water temperature is modeled near ${Math.round(waterTemp)}F.`
-    : "";
+  const rainParts = [];
+  if (Number.isFinite(rain) && rain >= 0.05) rainParts.push(`${rain.toFixed(1)} in forecast rain`);
+  if (Number.isFinite(priorRain) && priorRain >= 0.05) rainParts.push(`${priorRain.toFixed(1)} in recent 72-hour rain`);
+  const rainCopy = rainParts.length ? `, and ${rainParts.join(" plus ")}` : "";
   const tideCopy = nextTide
     ? `The tide signal is ${tidePhase || "mixed"}, with the next ${nextTide.type === "H" ? "high" : "low"} near ${Number(nextTide.height_ft).toFixed(1)} ft at ${nextTide.time}.`
     : tidePhase
@@ -560,14 +555,14 @@ function reportText(data) {
   const waveCopy = waveWeight(data);
 
   if (grade === "A") {
-    return `For ${date}, the model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, ${windCopy}, and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
+    return `The model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
   }
 
   if (grade === "F" || grade === "D") {
-    return `For ${date}, the model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy} and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
+    return `The model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy}${rainCopy}. ${tideCopy}`.trim();
   }
 
-  return `For ${date}, the model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, ${windCopy}, and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
+  return `The model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
 }
 
 function waveWeight(data) {
