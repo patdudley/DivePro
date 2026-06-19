@@ -550,8 +550,6 @@ function reportText(data) {
   const wind = Number(features.wind_speed_max_mph ?? 0);
   const rain = Number(features.rain_target_day_forecast_in ?? features.rain_24h_in ?? 0);
   const priorRain = Number(features.rain_prior_3day_in ?? features.ml_rain_3day_in ?? 0);
-  const tidePhase = features.tide_phase;
-  const nextTide = features.tide_next_event;
   const direction = features.swell_direction_label
     || directionFromDegrees(features.swell_wave_direction_deg)
     || "SW";
@@ -565,22 +563,33 @@ function reportText(data) {
   if (Number.isFinite(rain) && rain >= 0.05) rainParts.push(`${rain.toFixed(1)} in forecast rain`);
   if (Number.isFinite(priorRain) && priorRain >= 0.05) rainParts.push(`${priorRain.toFixed(1)} in recent 72-hour rain`);
   const rainCopy = rainParts.length ? `, and ${rainParts.join(" plus ")}` : "";
-  const tideCopy = nextTide
-    ? `The tide signal is ${tidePhase || "mixed"}, with the next ${nextTide.type === "H" ? "high" : "low"} near ${Number(nextTide.height_ft).toFixed(1)} ft at ${nextTide.time}.`
-    : tidePhase
-      ? `The tide signal is ${tidePhase}.`
-      : "";
+  const upgradeCopy = upgradeProbabilityCopy(data);
   const waveCopy = waveWeight(data);
 
   if (grade === "A") {
-    return `The model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
+    return `The model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${upgradeCopy}`.trim();
   }
 
   if (grade === "F" || grade === "D") {
-    return `The model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy}${rainCopy}. ${tideCopy}`.trim();
+    return `The model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy}${rainCopy}. ${upgradeCopy}`.trim();
   }
 
-  return `The model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
+  return `The model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${upgradeCopy}`.trim();
+}
+
+function upgradeProbabilityCopy(data) {
+  const grades = ["F", "D", "C", "B", "A", "A+"];
+  const currentGrade = String(data.grade || "").toUpperCase();
+  const currentIndex = grades.indexOf(currentGrade);
+  const probs = data.grade_probabilities || {};
+  if (currentIndex < 0 || currentIndex >= grades.length - 1 || !probs) {
+    return "The model does not currently show a higher-grade upgrade signal.";
+  }
+  const upgradeProb = grades
+    .slice(currentIndex + 1)
+    .reduce((sum, grade) => sum + Number(probs[grade] || 0), 0);
+  const nextGrade = grades[currentIndex + 1];
+  return `The model gives about a ${Math.round(upgradeProb * 100)}% chance of upgrading to ${nextGrade} or better.`;
 }
 
 function waveWeight(data) {
