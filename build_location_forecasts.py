@@ -228,6 +228,27 @@ def visibility_range_from_grade(grade: str) -> list:
     return bands.get(grade, [0, 4])
 
 
+def visibility_midpoint_from_grade(grade: str) -> float:
+    """Official displayed visibility midpoint for a given grade."""
+    lo, hi = visibility_range_from_grade(grade)
+    return round((lo + hi) / 2.0, 2)
+
+
+def median_grade_from_probabilities(probabilities: dict) -> str:
+    """
+    Median grade from an ordered probability vector.
+
+    Grades are ordered worst -> best: F, D, C, B, A, A+.
+    The median is the first grade where cumulative probability crosses 0.5.
+    """
+    cumulative = 0.0
+    for grade in _LAJOLLA_SOFT_GRADES:
+        cumulative += float(probabilities.get(grade, 0.0) or 0.0)
+        if cumulative >= 0.5:
+            return grade
+    return _LAJOLLA_SOFT_GRADES[-1]
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # DATE-KEYED HELPERS  —  P0-1 / P1-3
 # ══════════════════════════════════════════════════════════════════════════════
@@ -572,6 +593,9 @@ def predict_lajolla(features: dict) -> dict:
     result = {
         "probabilities": None,
         "raw_expected_vis_ft": None,
+        "median_expected_vis_ft": None,
+        "display_policy_version": None,
+        "most_likely_grade": None,
         "guardrail_applied": False,
         "guardrail_reason": "",
         "guarded_vis_ft": None,
@@ -639,6 +663,14 @@ def predict_lajolla(features: dict) -> dict:
     # reflect the cap.  Do NOT collapse raw probs to one-hot.
     result["raw_grade_probabilities"] = dict(result["probabilities"]) \
         if result["probabilities"] is not None else None
+    if result["probabilities"] is not None:
+        probs_list = [result["probabilities"][g] for g in _LAJOLLA_SOFT_GRADES]
+        most_likely_idx = int(max(range(6), key=lambda i: probs_list[i]))
+        most_likely_grade = _LAJOLLA_SOFT_GRADES[most_likely_idx]
+        result["most_likely_grade"] = {
+            "grade": most_likely_grade,
+            "probability": round(float(probs_list[most_likely_idx]), 4),
+        }
 
     # ── Physics guardrail: large swell + heavy prior rain ─────────────────────
     # Sparse evidence: p1_h > 4ft AND prior 3-day rain > 0.5in → 17 rows in
@@ -666,16 +698,21 @@ def predict_lajolla(features: dict) -> dict:
 
     # ── Final grade and range ──────────────────────────────────────────────────
     # If guardrail fired, use the guardrail grade for display.
-    # Otherwise use argmax of model probabilities.
+    # Otherwise use the median of the ordered probability distribution.
+    # raw_expected_vis_ft remains the model mean and is preserved for logging.
     if result.get("display_grade_after_guardrail") is not None:
         grade = result["display_grade_after_guardrail"]
+        median_vis_ft = visibility_midpoint_from_grade(grade)
     elif result["probabilities"] is not None:
-        probs_list = [result["probabilities"][g] for g in _LAJOLLA_SOFT_GRADES]
-        grade = _LAJOLLA_SOFT_GRADES[int(max(range(6), key=lambda i: probs_list[i]))]
+        grade = median_grade_from_probabilities(result["probabilities"])
+        median_vis_ft = visibility_midpoint_from_grade(grade)
     else:
         grade = grade_from_visibility(result["guarded_vis_ft"])
+        median_vis_ft = visibility_midpoint_from_grade(grade)
     result["display_grade"] = grade
     result["vis_range"] = visibility_range_from_grade(grade)
+    result["median_expected_vis_ft"] = median_vis_ft
+    result["display_policy_version"] = "v2-median"
     return result
 
 
@@ -1131,6 +1168,9 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         probs       = prediction["probabilities"]
         raw_probs   = prediction.get("raw_grade_probabilities", probs)
         raw_vis_ft  = prediction["raw_expected_vis_ft"]
+        median_vis_ft = prediction.get("median_expected_vis_ft")
+        display_policy_version = prediction.get("display_policy_version")
+        most_likely_grade = prediction.get("most_likely_grade")
         guarded_vis = prediction["guarded_vis_ft"]
         guardrail   = prediction["guardrail_applied"]
         guardrail_reason = prediction["guardrail_reason"]
@@ -1236,6 +1276,9 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         vis_range = visibility_range_from_score(score)
         probs     = None
         raw_vis_ft = (vis_range[0] + vis_range[1]) / 2.0
+        median_vis_ft = raw_vis_ft
+        display_policy_version = None
+        most_likely_grade = None
         guarded_vis = raw_vis_ft
         guardrail = False
         guardrail_reason = ""
@@ -1285,9 +1328,11 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "grade":                            grade,
         "grade_probabilities":              probs,
         "raw_grade_probabilities":          raw_probs if spot.get("slug") == "la-jolla" else None,
+        "most_likely_grade":                most_likely_grade,
         "model_source":                     model_src,
+        "display_policy_version":           display_policy_version,
         "estimated_visibility_range_ft":    vis_range,
-        "estimated_visibility_mid_ft":      (min_viz + max_viz) / 2,
+        "estimated_visibility_mid_ft":      median_vis_ft if median_vis_ft is not None else (min_viz + max_viz) / 2,
         "raw_expected_vis_ft":              raw_vis_ft,
         "guardrail_applied":                guardrail,
         "confidence": ("medium" if component_available and spot["slug"] == "la-jolla"
