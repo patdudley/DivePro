@@ -242,7 +242,8 @@ function renderFishRadar(data) {
 
 function defaultReport(data) {
   const range = data.estimated_visibility_range_ft || [0, 6];
-  return `Viz is currently sitting around ${feet(range)}. Conditions look worth checking before you head out.\n\nStay safe out there divers! :)`;
+  const date = data.date ? shortDate(data.date) : "this forecast date";
+  return `For ${date}, the model expects ${feet(range)} visibility. This is a forecast estimate based on the available wave, wind, tide, rain, and water-temperature inputs.`;
 }
 
 function renderCamera(data) {
@@ -527,30 +528,46 @@ function reportText(data) {
   const features = data.features || {};
   const range = feet(data.estimated_visibility_range_ft || [0, 6]);
   const grade = String(data.grade || "C").replace("+", "");
+  const date = data.date ? shortDate(data.date) : "this forecast date";
   const swell = Number(features.swell_wave_height_max_ft ?? features.total_swell_height_mean_ft ?? 0);
   const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? 0);
   const wind = Number(features.wind_speed_max_mph ?? 0);
   const waterTemp = Number(features.water_temp_estimate_f ?? 0);
+  const rain = Number(features.rain_target_day_forecast_in ?? features.rain_24h_in ?? 0);
+  const priorRain = Number(features.rain_prior_3day_in ?? features.ml_rain_3day_in ?? 0);
+  const tidePhase = features.tide_phase;
+  const nextTide = features.tide_next_event;
   const direction = features.swell_direction_label
     || directionFromDegrees(features.swell_wave_direction_deg)
     || "SW";
   const swellCopy = Number.isFinite(swell) && swell > 0
     ? `${swell.toFixed(1)} ft @ ${Math.round(period)}s ${direction} swell`
     : "light rolling swell";
+  const windCopy = Number.isFinite(wind) && wind > 0
+    ? `${Math.round(wind)} mph peak wind`
+    : "light wind";
+  const rainCopy = Number.isFinite(rain) && Number.isFinite(priorRain)
+    ? `${rain.toFixed(1)} in forecast rain and ${priorRain.toFixed(1)} in recent 72-hour rain`
+    : "limited rain signal";
+  const tempCopy = Number.isFinite(waterTemp) && waterTemp > 0
+    ? `Water temperature is modeled near ${Math.round(waterTemp)}F.`
+    : "";
+  const tideCopy = nextTide
+    ? `The tide signal is ${tidePhase || "mixed"}, with the next ${nextTide.type === "H" ? "high" : "low"} near ${Number(nextTide.height_ft).toFixed(1)} ft at ${nextTide.time}.`
+    : tidePhase
+      ? `The tide signal is ${tidePhase}.`
+      : "";
+  const waveCopy = waveWeight(data);
 
   if (grade === "A") {
-    const tempCopy = waterTemp > 0 ? ` With water temps around ${Math.round(waterTemp - 1)}-${Math.round(waterTemp + 1)}F,` : "";
-    return `Really solid visibility today, ${range}. The Scripps Pier cam is showing clean water and detail deep into the frame. Slight haze at distance, but for the most part conditions look clean with minimal particulate.${tempCopy} that means GO DIVE!!!!!\n\nHave fun out there divers :)`;
+    return `For ${date}, the model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, ${windCopy}, and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
   }
 
   if (grade === "F" || grade === "D") {
-    return `Visibility is cooked at ${range}. We are still seeing larger swell that should be picking up in the La Jolla area. Conditions look rough, maybe diveable near the cove, but do not go without a buddy!\n\nStay safe out there divers! :)`;
+    return `For ${date}, the model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy} and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
   }
 
-  const windCopy = wind > 0 && wind < 8
-    ? `Winds look to be holding below ${Math.ceil(wind)} mph.`
-    : "Wind gusts might pick up a bit more in the afternoon, creating bumpier, textured conditions.";
-  return `Viz is currently sitting around ${range}. Expect ${swellCopy} to make some steady rolling waves. ${windCopy}\n\nStay safe out there divers! :)`;
+  return `For ${date}, the model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, ${windCopy}, and ${rainCopy}. ${tideCopy} ${tempCopy}`.trim();
 }
 
 function waveWeight(data) {
