@@ -723,6 +723,23 @@ function renderForecastStrip(forecasts, activeDate) {
     strip.textContent = "Forecast unavailable.";
     return;
   }
+  function selectForecast(forecast, source = "forecast_day_select") {
+    render(forecast);
+    renderWaveChart(forecasts, forecast.date);
+    renderForecastStrip(forecasts, forecast.date);
+    trackEvent(source, {
+      forecast_date: forecast.date,
+      grade: forecast.grade,
+    });
+  }
+
+  window.__diveProSelectForecastDate = (date, source = "wind_map_day_select") => {
+    const forecast = forecasts.find((item) => item.date === date);
+    if (!forecast) return false;
+    selectForecast(forecast, source);
+    return true;
+  };
+
   strip.replaceChildren(...forecasts.map((forecast, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -735,13 +752,7 @@ function renderForecastStrip(forecasts, activeDate) {
       <small>${shortDate(forecast.date)}</small>
     `;
     button.addEventListener("click", () => {
-      render(forecast);
-      renderWaveChart(forecasts, forecast.date);
-      renderForecastStrip(forecasts, forecast.date);
-      trackEvent("forecast_day_select", {
-        forecast_date: forecast.date,
-        grade: forecast.grade,
-      });
+      selectForecast(forecast);
     });
     return button;
   }));
@@ -780,4 +791,10 @@ loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
       surf_range: waveHeightValue(latest),
     });
   }
+});
+
+window.addEventListener("divepro:selectForecastDate", (event) => {
+  const date = event.detail?.date;
+  if (!date || typeof window.__diveProSelectForecastDate !== "function") return;
+  window.__diveProSelectForecastDate(date, event.detail?.source || "wind_map_day_select");
 });

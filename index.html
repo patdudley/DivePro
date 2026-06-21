@@ -49,7 +49,8 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
       })(window, document, "clarity", "script", "x999tjkohl");
     </script>
-    <link rel="stylesheet" href="styles.css?v=wind-grade-16">
+    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css?v=map-1">
+    <link rel="stylesheet" href="styles.css?v=map-6">
     <link rel="stylesheet" href="ui-polish.css?v=beta-ui-12">
   </head>
   <body>
@@ -107,7 +108,28 @@
         <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
       </section>
 
-      <section class="chart-grid">
+      <section class="model-card region-map-card">
+        <div class="section-heading">
+          <h2>Region Map</h2>
+          <span>La Jolla, San Diego</span>
+        </div>
+        <div class="map-frame spot-map-frame">
+          <div id="spotRegionMap" class="spot-region-map" role="img" aria-label="Interactive La Jolla dive region map"></div>
+          <div class="wind-legend spot-wind-legend is-hidden" aria-label="Wind speed legend">
+            <span>Wind MPH</span>
+            <div class="wind-legend-gradient"></div>
+            <div class="wind-legend-labels"><b>0</b><b>5</b><b>10</b><b>20+</b></div>
+          </div>
+          <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
+            <button class="spot-wind-play" type="button" aria-label="Play wind forecast timeline">▶</button>
+            <input class="spot-wind-slider" type="range" min="0" max="0" value="0" aria-label="Wind forecast hour">
+            <button class="spot-wind-next-day" type="button" aria-label="Next day wind forecast">›</button>
+            <div class="wind-time-ticks spot-wind-ticks"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chart-grid chart-grid-single">
         <article>
           <h2>Tide Height</h2>
           <div class="tide-meta">
@@ -116,11 +138,6 @@
           </div>
           <div class="chart" id="tideChart"></div>
           <p id="tideSource">NOAA La Jolla predictions</p>
-        </article>
-        <article>
-          <h2>Wind Speed</h2>
-          <div class="chart bars" id="windChart"></div>
-          <p id="windSource">Open-Meteo hourly forecast</p>
         </article>
       </section>
 
@@ -136,6 +153,14 @@
           <div class="wave-components" id="waveComponents"></div>
         </div>
         <div class="chart wave-chart" id="waveChart"></div>
+      </section>
+
+      <section class="chart-grid chart-grid-single static-wind-card">
+        <article>
+          <h2>Wind Speed</h2>
+          <div class="chart bars" id="windChart"></div>
+          <p id="windSource">Open-Meteo hourly forecast</p>
+        </article>
       </section>
 
       <section class="model-card">
@@ -161,5 +186,8 @@
     <script src="analytics.js?v=analytics-2"></script>
     <script type="module" src="app.js?v=hs-char-fix-29"></script>
     <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
+    <script src="vendor/maplibre/maplibre-gl.js?v=map-1"></script>
+    <script src="map-config.js?v=map-1"></script>
+    <script src="spot-map.js?v=map-1"></script>
   </body>
 </html>
