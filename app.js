@@ -1,3 +1,8 @@
+const DISPLAY_HS_TO_CHAR = 0.625; // 1 / 1.6, display-only Hs to characteristic height.
+const DISPLAY_WAVE_MODERATE_FT = 2 * DISPLAY_HS_TO_CHAR;
+const DISPLAY_WAVE_SHORT_HEAVY_FT = 3 * DISPLAY_HS_TO_CHAR;
+const DISPLAY_WAVE_HEAVY_FT = 4 * DISPLAY_HS_TO_CHAR;
+
 async function fetchJson(path) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`${path} unavailable`);
@@ -406,8 +411,13 @@ function windGradeColor(speed) {
   return "#ee13ba";
 }
 
-function formatFeet(value) {
+function displayWaveHeight(value) {
   const number = Number(value);
+  return Number.isFinite(number) ? number * DISPLAY_HS_TO_CHAR : NaN;
+}
+
+function formatWaveFeet(value) {
+  const number = displayWaveHeight(value);
   return Number.isFinite(number) ? `${number.toFixed(1)} ft` : "n/a";
 }
 
@@ -425,7 +435,7 @@ function formatDirection(label, degrees) {
 
 function waveHeightValue(forecast) {
   const features = forecast?.features || {};
-  return Number(
+  return displayWaveHeight(
     features.surf_height_max_ft
     ?? features.wave_height_max_ft
     ?? features.swell_wave_height_max_ft
@@ -461,7 +471,7 @@ function renderWaveComponents(data) {
       <span>Direction</span>
       ${rows.map((row) => `
         <strong>${row.label}</strong>
-        <em>${formatFeet(row.height)}</em>
+        <em>${formatWaveFeet(row.height)}</em>
         <em>${formatPeriod(row.period)}</em>
         <em>${formatDirection(row.directionLabel, row.directionDeg)}</em>
       `).join("")}
@@ -483,7 +493,7 @@ function renderWaveChart(forecasts, activeDate) {
   const points = (active?.features?.wave_chart || [])
     .map((point) => ({
       time: point.time,
-      value: Number(point.height_ft),
+      value: displayWaveHeight(point.height_ft),
     }))
     .filter((point) => point.time && Number.isFinite(point.value) && point.value >= 0);
   if (!points.length) {
@@ -545,7 +555,7 @@ function reportText(data) {
   const features = data.features || {};
   const range = feet(data.estimated_visibility_range_ft || [0, 6]);
   const grade = String(data.grade || "C").replace("+", "");
-  const swell = Number(features.swell_wave_height_max_ft ?? features.total_swell_height_mean_ft ?? 0);
+  const swell = displayWaveHeight(features.swell_wave_height_max_ft ?? features.total_swell_height_mean_ft ?? 0);
   const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? 0);
   const wind = Number(features.wind_speed_max_mph ?? 0);
   const rain = Number(features.rain_target_day_forecast_in ?? features.rain_24h_in ?? 0);
@@ -598,15 +608,17 @@ function waveWeight(data) {
   const period = Number(features.swell_wave_period_max_s ?? features.swell_wave_period_sec ?? features.swell_period_sec ?? 0);
   if (!Number.isFinite(surf) || surf <= 0) return "Light";
   const range = waveRange(surf);
-  if (surf >= 4 || (surf >= 3 && period <= 10)) return `${range} · Heavy`;
-  if (surf >= 2) return `${range} · Moderate`;
+  if (surf >= DISPLAY_WAVE_HEAVY_FT || (surf >= DISPLAY_WAVE_SHORT_HEAVY_FT && period <= 10)) return `${range} · Heavy`;
+  if (surf >= DISPLAY_WAVE_MODERATE_FT) return `${range} · Moderate`;
   return `${range} · Light`;
 }
 
 function waveRange(feet) {
-  const low = Math.max(0, Math.floor(feet));
-  const high = Math.max(low + 1, Math.ceil(feet));
-  return `${low}-${high} ft`;
+  const number = Number(feet);
+  if (!Number.isFinite(number)) return "-- ft";
+  const rounded = Math.round(number);
+  if (rounded <= 0) return "0-1 ft";
+  return `${rounded} ft`;
 }
 
 function gradeClass(grade) {
