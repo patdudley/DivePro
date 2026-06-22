@@ -1,5 +1,5 @@
 (function () {
-  const WIND_MANIFEST_PATH = "data/wind-san-diego-manifest.json?v=spot-wind-1";
+  const WIND_MANIFEST_PATH = "data/wind-cropped/wind-san-diego-manifest.json?v=socal-crop-final";
   const WATER_MASK_PATH = "data/water-mask-san-diego.geojson?v=spot-wind-1";
   const WIND_PARTICLE_COUNT = 360;
   const WIND_COAST_FEATHER_PX = 52;
