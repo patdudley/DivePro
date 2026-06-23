@@ -515,19 +515,19 @@ h2::before {
 
 .wave-summary {
   display: grid;
-  grid-template-columns: minmax(180px, 0.42fr) 1fr;
-  gap: 18px;
-  align-items: stretch;
-  margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(13, 122, 140, 0.12);
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-bottom: 0;
 }
 
-.wave-summary > div:first-child {
+.wave-surf-panel {
   display: grid;
-  align-content: center;
-  min-height: 118px;
-  padding: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "components";
+  align-items: center;
+  gap: 0;
+  min-height: 0;
+  padding: 22px;
   border: 1px solid rgba(19, 186, 238, 0.2);
   border-radius: 8px;
   background:
@@ -546,10 +546,11 @@ h2::before {
 
 .wave-summary strong {
   display: block;
-  margin-top: 8px;
+  margin-top: 0;
   color: var(--navy);
-  font-size: clamp(2.6rem, 7vw, 4.1rem);
+  font-size: clamp(2.1rem, 4.6vw, 3.2rem);
   line-height: 0.9;
+  white-space: nowrap;
 }
 
 .wave-summary em {
@@ -562,8 +563,13 @@ h2::before {
 }
 
 .wave-components {
+  grid-area: components;
   display: grid;
   align-content: center;
+}
+
+.wave-component-cards {
+  display: none;
 }
 
 .wave-component-grid {
@@ -603,11 +609,104 @@ h2::before {
   white-space: normal;
 }
 
-.wave-chart {
-  height: 250px;
+.wave-component-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(19, 186, 238, 0.2);
+  border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(125, 216, 247, 0.12), rgba(255, 255, 255, 0.94)),
+    linear-gradient(135deg, rgba(125, 216, 247, 0.12), rgba(238, 19, 186, 0.05)),
     var(--surface);
+}
+
+.wave-component-card span {
+  color: var(--dark-cyan);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.wave-component-card strong {
+  color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.wave-component-card em {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.wave-chart {
+  grid-area: chart;
+  display: grid;
+  gap: 10px;
+  height: auto;
+  min-height: 0;
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  border-radius: 8px;
+  padding: 14px 14px 10px;
+  background:
+    linear-gradient(180deg, rgba(125, 216, 247, 0.12), rgba(255, 255, 255, 0.28));
+}
+
+.wave-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.wave-chart-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.wave-chart-header span {
+  display: block;
+  color: var(--dark-cyan);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.wave-chart-header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--navy);
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  line-height: 1;
+}
+
+.wave-chart-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.wave-chart-stats em {
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(19, 186, 238, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .wave-area {
@@ -638,6 +737,16 @@ h2::before {
   stroke-width: 3;
   stroke-dasharray: 5 7;
   stroke-linecap: round;
+}
+
+.wave-peak-label {
+  fill: var(--dark-cyan);
+  font-size: 13px;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.84);
+  stroke-width: 4px;
+  stroke-linejoin: round;
 }
 
 .wave-current-label {
@@ -815,6 +924,29 @@ h2::before {
   transform: translateX(-100%);
 }
 
+.wind-date-bubble {
+  position: absolute;
+  right: 24px;
+  bottom: 110px;
+  z-index: 43;
+  border: 1px solid rgba(125, 216, 247, 0.34);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(5, 22, 37, 0.8);
+  color: #d8f5ff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.wind-date-bubble[hidden] {
+  display: none;
+}
+
 .wind-timeline {
   position: absolute;
   z-index: 40;
@@ -822,7 +954,7 @@ h2::before {
   bottom: 12px;
   left: min(270px, 34%);
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) auto;
+  grid-template-columns: auto auto minmax(220px, 1fr) auto;
   align-items: center;
   gap: 12px;
   border: 1px solid rgba(125, 216, 247, 0.28);
@@ -841,10 +973,12 @@ h2::before {
 .wind-timeline button {
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   width: 34px;
   height: 34px;
   border: 1px solid rgba(125, 216, 247, 0.32);
   border-radius: 999px;
+  padding: 0;
   background: linear-gradient(135deg, rgba(238, 19, 186, 0.22), rgba(19, 186, 238, 0.28));
   color: #fff;
   cursor: pointer;
@@ -857,22 +991,148 @@ h2::before {
   display: none;
 }
 
+.spot-wind-prev-day {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.spot-wind-play-stack {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+
+.spot-wind-slider-wrap {
+  grid-column: 3;
+  grid-row: 1;
+  position: relative;
+  align-self: center;
+  min-width: 0;
+}
+
+.spot-wind-slider {
+  width: 100%;
+}
+
 .spot-wind-next-day {
+  grid-column: 4;
+  grid-row: 1;
+  align-self: center;
   font-size: 1.35rem;
 }
 
+.spot-wind-prev-day {
+  align-self: center;
+  font-size: 1.35rem;
+}
+
+.spot-wind-play-stack {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  width: 34px;
+  height: 34px;
+  min-width: 40px;
+}
+
+.spot-wind-current-time {
+  display: none;
+}
+
+.spot-wind-thumb-time {
+  position: absolute;
+  z-index: 3;
+  top: -31px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 25px;
+  padding: 0 9px;
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  border-radius: 999px;
+  background: #13baee;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.spot-wind-thumb-time::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 11px;
+  height: 11px;
+  border-right: 2px solid rgba(255, 255, 255, 0.94);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.94);
+  background: #13baee;
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .wind-timeline input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  align-self: center;
   width: 100%;
   min-width: 0;
+  height: 20px;
+  border: 0;
+  background: transparent;
   accent-color: var(--primary);
   cursor: pointer;
 }
 
+.wind-timeline input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border: 1px solid rgba(216, 245, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.wind-timeline input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: 2px solid #13baee;
+  border-radius: 999px;
+  background: #13baee;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+
+.wind-timeline input[type="range"]::-moz-range-track {
+  height: 6px;
+  border: 1px solid rgba(216, 245, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.wind-timeline input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #13baee;
+  border-radius: 999px;
+  background: #13baee;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+
 .wind-time-ticks {
-  grid-column: 2;
+  grid-column: 3;
+  grid-row: 2;
   position: relative;
   display: block;
-  margin-top: -5px;
+  margin-top: -3px;
   height: 0.82rem;
   color: rgba(216, 245, 255, 0.66);
   font-size: 0.52rem;
@@ -893,12 +1153,89 @@ h2::before {
   display: block;
 }
 
-.wind-time-ticks span:first-child {
+.wind-time-ticks span.is-start {
   transform: none;
 }
 
-.wind-time-ticks span:last-child {
+.wind-time-ticks span.is-end {
   transform: translateX(-100%);
+}
+
+.map-wind-probe-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  height: 34px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  gap: 6px;
+  padding: 0 10px 0 12px;
+  background: rgba(5, 22, 37, 0.9);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  will-change: transform;
+}
+
+.map-wind-probe-pin::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(255, 255, 255, 0.92);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.92);
+  background: #13baee;
+  transform: rotate(45deg);
+}
+
+.map-wind-probe-pin span {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.map-wind-probe-arrow {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  transform: rotate(var(--wind-flow-rotation, 90deg));
+}
+
+.map-wind-probe-arrow::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 10px;
+  height: 3px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.map-wind-probe-arrow::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 3px;
+  width: 7px;
+  height: 7px;
+  border-top: 3px solid #fff;
+  border-right: 3px solid #fff;
+  transform: rotate(45deg);
 }
 
 .maplibregl-popup-content {
@@ -1044,7 +1381,7 @@ ul {
 
 .feature-rows {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   overflow: hidden;
   border: 1px solid rgba(19, 186, 238, 0.22);
@@ -1388,25 +1725,98 @@ ul {
   .forecast-panel,
   .split,
   .chart-grid,
-  .grade-guide,
   .fish-grid,
   .wave-summary {
     grid-template-columns: 1fr;
   }
 
+  .grade-guide {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grade-guide div {
+    min-height: 84px;
+    padding: 10px 8px;
+  }
+
+  .grade-guide strong {
+    font-size: 1.45rem;
+  }
+
+  .grade-guide span,
+  .grade-guide em {
+    margin-top: 6px;
+    font-size: 0.68rem;
+  }
+
+  .grade-guide em {
+    display: none;
+  }
+
+  .wave-card {
+    padding-bottom: 14px;
+  }
+
+  .wave-summary {
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .wave-surf-panel {
+    grid-template-columns: 1fr;
+    grid-template-areas: "components";
+    align-items: center;
+    gap: 0;
+    min-height: auto;
+    padding: 12px 14px;
+  }
+
+  .wave-summary span {
+    font-size: 0.68rem;
+  }
+
+  .wave-summary strong {
+    margin-top: 0;
+    font-size: clamp(2.1rem, 11vw, 2.8rem);
+    line-height: 0.9;
+  }
+
   .wave-component-grid {
-    grid-template-columns: minmax(96px, 1fr) minmax(62px, 0.66fr) minmax(56px, 0.6fr) minmax(72px, 0.76fr);
+    display: none;
   }
 
-  .wave-component-grid > * {
-    min-height: 46px;
-    padding: 8px 6px;
+  .wave-component-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  .wave-component-grid span,
-  .wave-component-grid strong,
-  .wave-component-grid em {
-    font-size: 0.76rem;
+  .wave-component-card {
+    min-height: 92px;
+    padding: 10px;
+  }
+
+  .wave-component-card strong {
+    font-size: 1.62rem;
+  }
+
+  .wave-component-card em {
+    font-size: 0.72rem;
+  }
+
+  .wave-chart {
+    height: 146px;
+    border-radius: 7px;
+  }
+
+  .wave-chart .chart-y-label,
+  .wave-chart .chart-x-label {
+    font-size: 16px;
+  }
+
+  .wave-chart .wave-line {
+    stroke-width: 7;
   }
 
   .map-frame {
@@ -1416,9 +1826,9 @@ ul {
   .wind-legend {
     right: 10px;
     left: auto;
-    bottom: 78px;
-    width: 158px;
-    padding: 8px 10px 7px;
+    bottom: 126px;
+    width: 146px;
+    padding: 7px 9px 6px;
     border-radius: 10px;
   }
 
@@ -1436,28 +1846,100 @@ ul {
     font-size: 0.58rem;
   }
 
+  .wind-date-bubble {
+    right: 10px;
+    bottom: 202px;
+    padding: 5px 8px;
+    font-size: 0.56rem;
+  }
+
   .wind-timeline {
     right: 10px;
     bottom: 10px;
     left: 10px;
-    grid-template-columns: auto minmax(120px, 1fr) auto;
-    gap: 9px;
-    padding: 9px;
+    grid-template-columns: 44px minmax(0, 1fr) 34px;
+    grid-template-rows: 34px 18px;
+    column-gap: 10px;
+    row-gap: 6px;
+    padding: 9px 10px 10px;
+  }
+
+  .wind-timeline:has(.spot-wind-prev-day:not([hidden])) {
+    grid-template-columns: 34px 44px minmax(0, 1fr) 34px;
   }
 
   .wind-timeline button {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .spot-wind-prev-day {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .spot-wind-play-stack {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+    justify-self: center;
+    min-width: 34px;
+    gap: 2px;
+  }
+
+  .spot-wind-prev-day:not([hidden]) + .spot-wind-play-stack {
+    grid-column: 2;
+  }
+
+  .spot-wind-slider-wrap {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    width: 100%;
+  }
+
+  .wind-timeline:has(.spot-wind-prev-day:not([hidden])) .spot-wind-slider-wrap {
+    grid-column: 3;
+  }
+
+  .spot-wind-thumb-time {
+    top: -28px;
+    min-width: 38px;
+    height: 22px;
+    padding: 0 7px;
+    font-size: 0.58rem;
+  }
+
+  .spot-wind-next-day {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .wind-timeline:has(.spot-wind-prev-day:not([hidden])) .spot-wind-next-day {
+    grid-column: 4;
+  }
+
+  .spot-wind-current-time {
+    top: calc(100% + 7px);
+    font-size: 0.52rem;
   }
 
   .wind-time-ticks {
+    grid-column: 2 / -1;
+    grid-row: 2;
     height: 0.78rem;
-    margin-top: -3px;
-    font-size: 0.54rem;
+    margin-top: 0;
+    padding: 0 2px;
+    font-size: 0.5rem;
+  }
+
+  .wind-timeline:has(.spot-wind-prev-day:not([hidden])) .wind-time-ticks {
+    grid-column: 3 / -1;
   }
 
   .feature-rows {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .section-heading {
@@ -1505,6 +1987,30 @@ ul {
 
   .chart {
     height: 218px;
+  }
+
+  .static-wind-card .chart {
+    height: 172px;
+  }
+
+  .wave-card .wave-chart {
+    gap: 8px;
+    padding: 10px 10px 8px;
+  }
+
+  .wave-chart-header {
+    align-items: start;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .wave-chart-header strong {
+    font-size: 1.25rem;
+  }
+
+  .wave-chart-stats {
+    justify-content: flex-start;
   }
 
   .fish-row summary {

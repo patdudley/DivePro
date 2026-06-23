@@ -148,6 +148,7 @@ function featureRows(features) {
   const waterTempLabel = enriched?.buoy_water_temp_f != null ? "Water temp (buoy)" : "Water temp (est.)";
   const wanted = [
     [waterTempLabel, waterTempKey, "°F"],
+    ["Today's high", "air_temp_max_f", "°F"],
     ["Rain forecast", "rain_24h_in", "in"],
     ["72-hour rain", "rain_prior_3day_in", "in"],
   ];
@@ -356,16 +357,20 @@ function renderWindChart(data) {
   const yTicks = chartTicks(0, Math.max(...values), 5);
   const min = 0;
   const max = yTicks[yTicks.length - 1];
-  const left = 58;
-  const top = 18;
-  const width = 638;
-  const height = 176;
-  const gap = 5;
+  const compactChart = window.matchMedia("(max-width: 720px)").matches;
+  const viewWidth = compactChart ? 360 : 720;
+  const viewHeight = compactChart ? 192 : 250;
+  const left = compactChart ? 42 : 58;
+  const top = compactChart ? 14 : 18;
+  const width = compactChart ? 294 : 638;
+  const height = compactChart ? 118 : 176;
+  const xLabelY = compactChart ? 166 : 224;
+  const gap = compactChart ? 2.5 : 5;
   const bandWidth = width / points.length;
   const barWidth = Math.max(8, bandWidth - gap);
   const xTicks = points.filter((_, index) => index % 4 === 0 || index === points.length - 1);
   chart.innerHTML = `
-    <svg viewBox="0 0 720 250" role="img" aria-label="Hourly wind speed chart">
+    <svg viewBox="0 0 ${viewWidth} ${viewHeight}" role="img" aria-label="Hourly wind speed chart">
       ${yTicks.map((tick) => {
         const y = yFromValue(tick, min, max, top, height);
         return `
@@ -378,7 +383,7 @@ function renderWindChart(data) {
         const x = xFromIndex(pointIndex, points.length, left, width);
         return `
           <line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line>
-          <text x="${x}" y="224" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>
+          <text x="${x}" y="${xLabelY}" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>
         `;
       }).join("")}
       <line x1="${left}" x2="${left}" y1="${top}" y2="${top + height}" class="chart-axis"></line>
@@ -476,20 +481,27 @@ function renderWaveComponents(data) {
         <em>${formatDirection(row.directionLabel, row.directionDeg)}</em>
       `).join("")}
     </div>
+    <div class="wave-component-cards" aria-label="Swell components">
+      ${rows.map((row) => `
+        <article class="wave-component-card">
+          <span>${row.label}</span>
+          <strong>${formatWaveFeet(row.height)}</strong>
+          <em>${formatPeriod(row.period)} · ${formatDirection(row.directionLabel, row.directionDeg)}</em>
+        </article>
+      `).join("")}
+    </div>
   `;
 }
 
 function renderWaveChart(forecasts, activeDate) {
   const chart = document.getElementById("waveChart");
-  if (!chart) return;
   const active = (forecasts || []).find((forecast) => forecast.date === activeDate) || forecasts?.[0];
-  const activeValue = waveHeightValue(active);
-  setText("waveSurfRange", Number.isFinite(activeValue) && activeValue > 0 ? waveRange(activeValue) : "-- ft");
   if (active?.is_unavailable) {
     renderWaveComponents({ features: {} });
   } else if (active) {
     renderWaveComponents(active);
   }
+  if (!chart) return;
   const points = (active?.features?.wave_chart || [])
     .map((point) => ({
       time: point.time,
@@ -501,24 +513,44 @@ function renderWaveChart(forecasts, activeDate) {
     return;
   }
   const values = points.map((point) => point.value);
-  const chartPoints = points.filter((_, index) => index % 3 === 0 || index === points.length - 1);
+  const compactChart = window.matchMedia("(max-width: 720px)").matches;
+  const chartPoints = points.filter((_, index) => index % (compactChart ? 6 : 3) === 0 || index === points.length - 1);
+  const peakPoint = points.reduce((peak, point) => (point.value > peak.value ? point : peak), points[0]);
+  const lowPoint = points.reduce((low, point) => (point.value < low.value ? point : low), points[0]);
+  const firstPoint = points[0];
+  const lastPoint = points[points.length - 1];
+  const change = lastPoint.value - firstPoint.value;
+  const trendLabel = Math.abs(change) < 0.25 ? "Holding steady" : change > 0 ? "Building later" : "Easing later";
   const yTicks = chartTicks(0, Math.max(...values), 4);
   const min = 0;
-  const max = Math.max(5, yTicks[yTicks.length - 1]);
-  const left = 72;
-  const top = 22;
-  const width = 856;
-  const height = 166;
+  const max = Math.max(1, yTicks[yTicks.length - 1]);
+  const viewWidth = compactChart ? 720 : 1000;
+  const viewHeight = compactChart ? 122 : 156;
+  const left = compactChart ? 48 : 62;
+  const top = compactChart ? 8 : 10;
+  const width = viewWidth - left - (compactChart ? 22 : 56);
+  const height = compactChart ? 78 : 104;
+  const xLabelY = compactChart ? 108 : 138;
   const coords = chartPoints.map((point, index) => {
     const x = xFromIndex(index, chartPoints.length, left, width);
     const y = yFromValue(point.value, min, max, top, height);
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
-  const activeIndex = Math.max(0, chartPoints.findIndex((point) => point.value === Math.max(...chartPoints.map((item) => item.value))));
+  const activeIndex = Math.max(0, chartPoints.findIndex((point) => point.time === peakPoint.time));
   const activeX = xFromIndex(activeIndex, chartPoints.length, left, width);
   const area = `${left},${top + height} ${coords.join(" ")} ${left + width},${top + height}`;
   chart.innerHTML = `
-    <svg viewBox="0 0 1000 250" role="img" aria-label="3-hour wave height chart">
+    <div class="wave-chart-header">
+      <div>
+        <span>Wave trend</span>
+        <strong>${trendLabel}</strong>
+      </div>
+      <div class="wave-chart-stats" aria-label="Wave trend summary">
+        <em>Peak ${peakPoint.value.toFixed(1)} ft</em>
+        <em>Low ${lowPoint.value.toFixed(1)} ft</em>
+      </div>
+    </div>
+    <svg viewBox="0 0 ${viewWidth} ${viewHeight}" role="img" aria-label="${compactChart ? "6-hour" : "3-hour"} wave height chart">
       ${yTicks.map((tick) => {
         const y = yFromValue(tick, min, max, top, height);
         return `
@@ -530,7 +562,7 @@ function renderWaveChart(forecasts, activeDate) {
         const x = xFromIndex(index, chartPoints.length, left, width);
         return `
           <line x1="${x}" x2="${x}" y1="${top}" y2="${top + height}" class="chart-x-grid ${index % 2 ? "is-soft" : ""}"></line>
-          <text x="${x}" y="224" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>
+          <text x="${x}" y="${xLabelY}" class="chart-x-label" text-anchor="middle">${hourLabel(point.time)}</text>
         `;
       }).join("")}
       <line x1="${left}" x2="${left}" y1="${top}" y2="${top + height}" class="chart-axis"></line>
@@ -616,9 +648,14 @@ function waveWeight(data) {
 function waveRange(feet) {
   const number = Number(feet);
   if (!Number.isFinite(number)) return "-- ft";
-  const rounded = Math.round(number);
-  if (rounded <= 0) return "0-1 ft";
-  return `${rounded} ft`;
+  if (number < 1) return "0-1 ft";
+  if (number < 2) return "1-2 ft";
+  if (number < 3) return "2-3 ft";
+  if (number < 4) return "3-4 ft";
+  if (number < 6) return "4-6 ft";
+  if (number < 8) return "6-8 ft";
+  const lower = Math.floor(number / 2) * 2;
+  return `${lower}-${lower + 2} ft`;
 }
 
 function gradeClass(grade) {
@@ -682,7 +719,6 @@ function render(data) {
   );
   setText("dailyReport", reportText(data));
   setText("tideSource", `NOAA La Jolla 9410230 - ${shortDate(data.date)}`);
-  setText("windSource", `Open-Meteo hourly wind - ${shortDate(data.date)}`);
   const panel = document.querySelector(".forecast-panel");
   const grade = document.getElementById("grade");
   if (panel) panel.className = `forecast-panel ${data.is_unavailable ? "" : gradeClass(data.grade)}`;
@@ -707,14 +743,15 @@ function render(data) {
   // Tide phase and next event
   const tidePhase = data.features?.tide_phase;
   const nextTide = data.features?.tide_next_event;
-  const phaseArrow = tidePhase === "rising" ? "↑ Rising" : tidePhase === "falling" ? "↓ Falling" : "--";
+  const phaseArrow = tidePhase === "rising" ? "↑ Rising" : tidePhase === "falling" ? "↓ Falling" : "";
+  let nextTideText = "";
   setText("tidePhase", phaseArrow);
-  if (nextTide) {
+  if (nextTide?.time && Number.isFinite(nextTide.height_ft)) {
     const typeLabel = nextTide.type === "H" ? "High" : "Low";
-    setText("tideNextEvent", `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${nextTide.time}`);
-  } else {
-    setText("tideNextEvent", "");
+    nextTideText = `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${nextTide.time}`;
   }
+  setText("tideNextEvent", nextTideText);
+  document.querySelector(".tide-meta")?.toggleAttribute("hidden", !phaseArrow && !nextTideText);
 }
 
 function renderForecastStrip(forecasts, activeDate) {
@@ -727,16 +764,25 @@ function renderForecastStrip(forecasts, activeDate) {
     render(forecast);
     renderWaveChart(forecasts, forecast.date);
     renderForecastStrip(forecasts, forecast.date);
+    if (source !== "wind_map_timeline") {
+      window.dispatchEvent(new CustomEvent("divepro:forecastDateSelected", {
+        detail: {
+          date: forecast.date,
+          source,
+        },
+      }));
+    }
     trackEvent(source, {
       forecast_date: forecast.date,
       grade: forecast.grade,
     });
   }
 
-  window.__diveProSelectForecastDate = (date, source = "wind_map_day_select") => {
-    const forecast = forecasts.find((item) => item.date === date);
+  window.__diveProSelectForecastDate = (dateOrDetail, source = "wind_map_day_select") => {
+    const detail = typeof dateOrDetail === "object" && dateOrDetail !== null ? dateOrDetail : { date: dateOrDetail };
+    const forecast = forecasts.find((item) => item.date === detail.date) || forecasts[detail.dayIndex];
     if (!forecast) return false;
-    selectForecast(forecast, source);
+    selectForecast(forecast, detail.source || source);
     return true;
   };
 
@@ -794,7 +840,6 @@ loadForecastData().then(({ latest, tenDay, gradeGuide }) => {
 });
 
 window.addEventListener("divepro:selectForecastDate", (event) => {
-  const date = event.detail?.date;
-  if (!date || typeof window.__diveProSelectForecastDate !== "function") return;
-  window.__diveProSelectForecastDate(date, event.detail?.source || "wind_map_day_select");
+  if (!event.detail || typeof window.__diveProSelectForecastDate !== "function") return;
+  window.__diveProSelectForecastDate(event.detail, event.detail.source || "wind_map_day_select");
 });
