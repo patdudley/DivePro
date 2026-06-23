@@ -116,10 +116,19 @@
         </div>
         <div class="map-frame spot-map-frame">
           <div id="spotRegionMap" class="spot-region-map" role="img" aria-label="Interactive La Jolla dive region map"></div>
+          <div class="map-layer-toggle spot-map-layer-toggle" aria-label="Map layer">
+            <button type="button" data-map-layer="wind" aria-pressed="true">Wind</button>
+            <button type="button" data-map-layer="depth" aria-pressed="false">Depth</button>
+          </div>
           <div class="wind-legend spot-wind-legend is-hidden" aria-label="Wind speed legend">
             <span>Wind MPH</span>
             <div class="wind-legend-gradient"></div>
             <div class="wind-legend-labels"><b>0</b><b>5</b><b>10</b><b>20+</b></div>
+          </div>
+          <div class="depth-legend spot-depth-legend" aria-label="Ocean depth legend">
+            <span>Depth</span>
+            <div class="depth-legend-gradient"></div>
+            <div class="depth-legend-labels"><b>Shallow</b><b>Deep</b></div>
           </div>
           <div class="wind-date-bubble spot-wind-date-bubble" hidden></div>
           <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
@@ -192,6 +201,6 @@
     <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
     <script src="vendor/maplibre/maplibre-gl.js?v=map-1"></script>
     <script src="map-config.js?v=map-1"></script>
-    <script src="spot-map.js?v=live-ui-42"></script>
+    <script src="spot-map.js?v=depth-toggle-44"></script>
   </body>
 </html>
