@@ -119,6 +119,17 @@ function shortDate(date) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+function displayClockTime(time) {
+  const match = String(time || "").match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return time || "";
+  const hour = Number(match[1]);
+  const minute = match[2];
+  if (!Number.isFinite(hour)) return time || "";
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${period}`;
+}
+
 function dayLabel(date, index) {
   if (index === 0) return "Latest";
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
@@ -748,7 +759,7 @@ function render(data) {
   setText("tidePhase", phaseArrow);
   if (nextTide?.time && Number.isFinite(nextTide.height_ft)) {
     const typeLabel = nextTide.type === "H" ? "High" : "Low";
-    nextTideText = `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${nextTide.time}`;
+    nextTideText = `Next: ${typeLabel} ${nextTide.height_ft.toFixed(1)} ft at ${displayClockTime(nextTide.time)}`;
   }
   setText("tideNextEvent", nextTideText);
   document.querySelector(".tide-meta")?.toggleAttribute("hidden", !phaseArrow && !nextTideText);
