@@ -31,18 +31,17 @@ from shapely.geometry import box, mapping, shape
 from shapely.ops import unary_union
 
 
-# Wide regional coverage for the current single-JSON frontend renderer.
-# Covers the West Coast, Baja, Florida, Roatan, and enough open ocean for the
-# static prototype maps before the tiled global loader is ready.
-BBOX = {"west": -180.0, "south": 15.0, "east": -60.0, "north": 55.0}
-TARGET_NX = 1440
-TARGET_NY = 720
-OUT_PATH = Path("data/wind-san-diego.json")
-MANIFEST_OUT_PATH = Path("data/wind-san-diego-manifest.json")
+# SoCal/Baja regional coverage for the La Jolla map. Keep the requested NOAA
+# area and rendered grid tight; the previous 120 x 40 degree box was oversized
+# for a San Diego map and was then upsampled into synthetic points.
+BBOX = {"west": -122.0, "south": 30.0, "east": -116.0, "north": 35.0}
+TARGET_SPACING_DEG = 0.25
+OUT_PATH = Path("data/wind-cropped/wind-san-diego.json")
+MANIFEST_OUT_PATH = Path("data/wind-cropped/wind-san-diego-manifest.json")
 WATER_MASK_OUT_PATH = Path("data/water-mask-san-diego.geojson")
-# Keep enough hourly frames for the UI to jump to the next local day multiple
-# times while still using the existing single-regional-JSON renderer.
-FORECAST_WINDOW_HOURS = 49
+# GFS 0.25 provides hourly forecast steps through f120, then drops to coarser
+# intervals. The map timeline should stay hourly, so stop at the last hourly step.
+MAX_HOURLY_FORECAST_HOUR = 120
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 COASTLINE_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_land.geojson"
 CACHE_DIR = Path("scripts/.cache")
@@ -63,7 +62,7 @@ def latest_cycle(now: dt.datetime) -> tuple[str, str]:
 def forecast_hours_for_now(date: str, cycle: str, now: dt.datetime) -> list[int]:
     cycle_start = dt.datetime.strptime(f"{date}{cycle}", "%Y%m%d%H").replace(tzinfo=dt.UTC)
     start_hour = max(0, int((now - cycle_start).total_seconds() // 3600))
-    return list(range(start_hour, start_hour + FORECAST_WINDOW_HOURS))
+    return list(range(start_hour, MAX_HOURLY_FORECAST_HOUR + 1))
 
 
 def forecast_valid_time(date: str, cycle: str, forecast_hour: int) -> dt.datetime:
@@ -329,14 +328,14 @@ def interpolate_component(component: list[list[float]], lons: list[float], lats:
 def build_json(grib_path: Path, source_url: str, forecast_hour: int) -> dict:
     lons, lats, source_u, source_v = load_wind_arrays(grib_path)
 
-    target_lons = [
-        BBOX["west"] + (BBOX["east"] - BBOX["west"]) * x_index / (TARGET_NX - 1)
-        for x_index in range(TARGET_NX)
-    ]
-    target_lats = [
-        BBOX["north"] - (BBOX["north"] - BBOX["south"]) * y_index / (TARGET_NY - 1)
-        for y_index in range(TARGET_NY)
-    ]
+    target_lons = np.round(
+        np.arange(BBOX["west"], BBOX["east"] + TARGET_SPACING_DEG / 2, TARGET_SPACING_DEG),
+        5,
+    ).tolist()
+    target_lats = np.round(
+        np.arange(BBOX["north"], BBOX["south"] - TARGET_SPACING_DEG / 2, -TARGET_SPACING_DEG),
+        5,
+    ).tolist()
     land_polygons = load_land_polygons()
     land_mask = build_land_mask(target_lons, target_lats, land_polygons)
     u_array = np.round(interpolate_component_grid(source_u, lons, lats, target_lons, target_lats), 3).astype(object)
@@ -354,9 +353,16 @@ def build_json(grib_path: Path, source_url: str, forecast_hour: int) -> dict:
             "generated_at": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
             "forecast_hour": forecast_hour,
             "units": "u/v m/s; rendered speed mph",
-            "bbox": BBOX,
-            "nx": TARGET_NX,
-            "ny": TARGET_NY,
+            "bbox": {
+                "west": target_lons[0],
+                "south": target_lats[-1],
+                "east": target_lons[-1],
+                "north": target_lats[0],
+            },
+            "nx": len(target_lons),
+            "ny": len(target_lats),
+            "dx": round(target_lons[1] - target_lons[0], 5) if len(target_lons) > 1 else 0,
+            "dy": round(target_lats[0] - target_lats[1], 5) if len(target_lats) > 1 else 0,
             "ocean_points": ocean_points,
             "land_points_masked": land_points,
         },
