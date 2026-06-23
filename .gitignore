@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+
+# Local env / secrets
+.env
+.env.*
+
+# Parallel-work scratch (see CLAUDE.md)
+trees/
+.claude/worktrees/
+
+# Wind map: only the cropped frames under data/wind-cropped/ are served.
+# The full-resolution NOAA GFS originals are large (~12MB each) and unused —
+# keep them out of the repo.
+data/wind-san-diego-f*.json
+data/wind-san-diego-manifest.json
+data/wind-san-diego.json
