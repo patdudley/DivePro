@@ -45,8 +45,6 @@ const VISIBILITY_ISLAND_ZONES = [
 const LA_JOLLA_CALIBRATION = { lng: -117.255, lat: 32.866, radiusMiles: 4.5 };
 const HOME_MAP_PINS = [
   { label: "San Diego", detail: "Scripps Beach", lngLat: [-117.255, 32.866], href: "la-jolla.html" },
-  { label: "Catalina", detail: "Wrigley Marine Reserve", lngLat: [-118.485, 33.445], href: "catalina-wrigley.html" },
-  { label: "Channel Islands", detail: "Anacapa Ocean", lngLat: [-119.37, 34.015], href: "anacapa-ocean.html" },
 ];
 const SPOT_GROUP_ORDER = ["California", "Florida", "Caribbean"];
 let windProbeMarker = null;
