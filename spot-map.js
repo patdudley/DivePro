@@ -1,6 +1,7 @@
 (function () {
-  const WIND_MANIFEST_PATH = "data/wind-cropped/wind-san-diego-manifest.json?v=live-ui-42";
-  const WATER_MASK_PATH = "data/water-mask-san-diego.geojson?v=live-ui-42";
+  const WIND_MANIFEST_PATH = "data/wind-cropped/wind-san-diego-manifest.json?v=multi-map-timeline-2";
+  const WATER_MASK_PATH = "data/water-mask-san-diego.geojson?v=multi-map-2";
+  const NOW_FRAME_TOLERANCE_MS = 90 * 60 * 1000;
   const WIND_PARTICLE_COUNT = 360;
   const WIND_COAST_FEATHER_PX = 52;
   const WIND_PARTICLE_SPEED = 0.000078;
@@ -37,7 +38,7 @@
       center: [-117.255, 32.866],
       zoom: 12.25,
       pins: [
-        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "index.html" },
+        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "la-jolla.html" },
       ],
     },
     "catalina-wrigley": {
@@ -383,13 +384,16 @@
 
   function defaultFrameIndex(frames) {
     const now = Date.now();
-    return frames.reduce((bestIndex, frame, index) => {
+    const firstCurrentOrFuture = frames.findIndex((frame) => {
       const time = frameTime(frame);
-      if (!time) return bestIndex;
-      const bestTime = frameTime(frames[bestIndex]);
-      if (!bestTime) return index;
-      return Math.abs(time.getTime() - now) < Math.abs(bestTime.getTime() - now) ? index : bestIndex;
-    }, 0);
+      return time && time.getTime() >= now - NOW_FRAME_TOLERANCE_MS;
+    });
+    return firstCurrentOrFuture >= 0 ? firstCurrentOrFuture : 0;
+  }
+
+  function isCurrentWindFrame(frame) {
+    const time = frameTime(frame);
+    return Boolean(time && Math.abs(time.getTime() - Date.now()) <= NOW_FRAME_TOLERANCE_MS);
   }
 
   async function loadWindManifest() {
@@ -839,13 +843,11 @@
     }
 
     function currentTimelineDate() {
-      return frames[currentIndex]?.localDate || pacificDate(new Date().toISOString());
+      return pacificDate(new Date().toISOString());
     }
 
     function activeWindowIsFuture() {
-      const date = activeWindowDate();
-      const today = currentTimelineDate();
-      return Boolean(date && today && date > today);
+      return Boolean(adjacentTimelineDate(-1));
     }
 
     function timelineDateLabel(date) {
@@ -913,8 +915,8 @@
       tickResizeTimer = window.setTimeout(renderTicks, 120);
     }
 
-    function activeTimeLabel(forecastFrame, index) {
-      return index === currentIndex ? "Now" : pacificHourLabel(forecastFrame);
+    function activeTimeLabel(forecastFrame) {
+      return isCurrentWindFrame(forecastFrame) ? "Now" : pacificHourLabel(forecastFrame);
     }
 
     function updateActiveTime() {
@@ -938,12 +940,19 @@
       }));
     }
 
+    function setTimelineDayButton(button, isAvailable) {
+      if (!button) return;
+      button.classList.toggle("is-unavailable", !isAvailable);
+      button.disabled = !isAvailable;
+      button.setAttribute("aria-hidden", isAvailable ? "false" : "true");
+    }
+
     function updateDayButtons() {
-      if (prevDayButton) {
-        prevDayButton.hidden = !activeWindowIsFuture() || !adjacentTimelineDate(-1);
-      }
-      if (!nextDayButton) return;
-      nextDayButton.hidden = !adjacentTimelineDate(1);
+      setTimelineDayButton(
+        prevDayButton,
+        Boolean(activeWindowIsFuture() && adjacentTimelineDate(-1))
+      );
+      setTimelineDayButton(nextDayButton, Boolean(adjacentTimelineDate(1)));
     }
 
     function updateDateBubble() {
