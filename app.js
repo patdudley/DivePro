@@ -778,14 +778,35 @@ function renderGradeGuide(gradeGuide) {
   }));
 }
 
+function normalizeForecastHistory(history) {
+  const rawEntries = Array.isArray(history)
+    ? history
+    : Array.isArray(history?.reports)
+      ? history.reports
+      : Array.isArray(history?.entries)
+        ? history.entries
+        : Array.isArray(history?.history)
+          ? history.history
+          : [];
+
+  return rawEntries
+    .filter((entry) => entry && entry.date)
+    .map((entry) => ({
+      ...entry,
+      generated_at: entry.generated_at || entry.archived_at || entry.date,
+      report_text: entry.report_text || entry.daily_report || entry.summary || "",
+    }))
+    .sort((a, b) => String(b.generated_at || b.date).localeCompare(String(a.generated_at || a.date)));
+}
+
 function renderForecastHistory(history, currentDate) {
   const list = document.getElementById("forecastHistory");
   const button = document.getElementById("historyToggle");
   if (!list) return;
 
-  const entries = (history || [])
-    .filter((entry) => entry && entry.date && entry.date !== currentDate)
-    .sort((a, b) => String(b.generated_at || b.date).localeCompare(String(a.generated_at || a.date)));
+  const savedEntries = normalizeForecastHistory(history);
+  const pastEntries = savedEntries.filter((entry) => entry.date !== currentDate);
+  const entries = pastEntries.length ? pastEntries : savedEntries;
 
   if (!entries.length) {
     list.innerHTML = `<p class="history-empty">Past reports will show here after the next forecast archive run.</p>`;
