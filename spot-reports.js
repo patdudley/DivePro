@@ -120,7 +120,7 @@ const fishLists = {
 const spotReports = {
   "lower-keys": {
     location: "Lower Keys, Florida",
-    camera_image: "camera-snapshots/lower-keys.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/lower-keys.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=qi0mY6zVQnY",
     live_embed_url: "https://www.youtube.com/embed/qi0mY6zVQnY?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Lower Keys cam",
@@ -142,7 +142,7 @@ const spotReports = {
   },
   "deerfield-beach": {
     location: "Deerfield Beach, Florida",
-    camera_image: "camera-snapshots/deerfield-beach.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/deerfield-beach.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=SHfAtWHr9Ks",
     live_embed_url: "https://www.youtube.com/embed/SHfAtWHr9Ks?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Deerfield Beach cam",
@@ -164,7 +164,7 @@ const spotReports = {
   },
   "utopia-sandy-channel": {
     location: "Utopia Village Sandy Channel, Roatan",
-    camera_image: "camera-snapshots/utopia-sandy-channel.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/utopia-sandy-channel.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=jzx_n25g3kA",
     live_embed_url: "https://www.youtube.com/embed/jzx_n25g3kA?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Sandy Channel cam",
@@ -187,7 +187,7 @@ const spotReports = {
   },
   "utopia-reef-cam": {
     location: "Utopia Village Reef Cam, Roatan",
-    camera_image: "camera-snapshots/utopia-reef-cam.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/utopia-reef-cam.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=nmjlQlYygB4",
     live_embed_url: "https://www.youtube.com/embed/nmjlQlYygB4?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live reef cam",
@@ -210,7 +210,7 @@ const spotReports = {
   },
   "catalina-wrigley": {
     location: "USC Wrigley Catalina Marine Reserve",
-    camera_image: "camera-snapshots/catalina-wrigley.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/catalina-wrigley.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=JH_NzhSsqis",
     live_embed_url: "https://www.youtube.com/embed/JH_NzhSsqis?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Catalina reserve cam",
@@ -233,7 +233,7 @@ const spotReports = {
   },
   "anacapa-ocean": {
     location: "Anacapa Ocean, Channel Islands",
-    camera_image: "camera-snapshots/anacapa-ocean.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/anacapa-ocean.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=OAJF1Ie1m_Q",
     live_embed_url: "https://www.youtube.com/embed/OAJF1Ie1m_Q?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Anacapa cam",
@@ -255,7 +255,7 @@ const spotReports = {
   },
   "coral-city": {
     location: "Coral City Camera, Miami",
-    camera_image: "camera-snapshots/coral-city.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/coral-city.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=7i8ARjIeM2k",
     live_embed_url: "https://www.youtube.com/embed/7i8ARjIeM2k?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Coral City cam",
@@ -278,7 +278,7 @@ const spotReports = {
   },
   "pompano-pier": {
     location: "Pompano Beach Underwater Pier Cam",
-    camera_image: "camera-snapshots/pompano-pier.jpg?v=20260630-2317",
+    camera_image: "camera-snapshots/pompano-pier.jpg?v=20260701-1630",
     live_url: "https://www.youtube.com/watch?v=mV8zVsX_o_0",
     live_embed_url: "https://www.youtube.com/embed/mV8zVsX_o_0?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1",
     live_label: "Live Pompano Beach pier cam",
