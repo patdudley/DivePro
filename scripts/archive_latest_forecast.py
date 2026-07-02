@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LATEST = ROOT / "latest_forecast.json"
+LATEST = ROOT / "model_outputs" / "latest_forecast.json"
 HISTORY = ROOT / "forecast_history.json"
 DAILY_DIR = ROOT / "forecast-history"
 
@@ -50,7 +50,7 @@ def clean_report_text(forecast: dict) -> str:
 
 def compact_forecast(forecast: dict) -> dict:
     return {
-        "archived_at": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "archived_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "generated_at": forecast.get("generated_at"),
         "date": forecast.get("date"),
         "location": forecast.get("location") or forecast.get("spot_name") or "La Jolla",

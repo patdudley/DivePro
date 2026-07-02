@@ -49,8 +49,8 @@ async function loadForecastData() {
 
   try {
     const [latest, tenDay, gradeGuide] = await Promise.all([
-      fetchJson("latest_forecast.json"),
-      fetchJson("forecast_10day.json"),
+      fetchJson("model_outputs/latest_forecast.json"),
+      fetchJson("model_outputs/forecast_10day.json"),
       fetchJson("diveprosd_grade_guidance.json"),
     ]);
     let history = [];

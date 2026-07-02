@@ -1,0 +1,8 @@
+# GFS wind-map tooling deps (scripts/build_gfs_wind_grid.py, scripts/build_gfs_wind_tiles.py).
+# Run locally only — no GitHub Actions workflow installs this file.
+# cfgrib needs the ECMWF ecCodes runtime available to parse GRIB2 files.
+# macOS: brew install eccodes
+cfgrib>=0.9.14
+xarray>=2025.1.0
+numpy>=2.0.0
+shapely>=2.1.0
