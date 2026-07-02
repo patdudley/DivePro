@@ -46,3 +46,18 @@ scripts/.cache/
 outputs/
 tmp/
 temp/
+
+# Parallel-work scratch (see CLAUDE.md)
+trees/
+.claude/worktrees/
+
+# Wind map: only the cropped frames under data/wind-cropped/ are served.
+# The full-resolution NOAA GFS originals are large (~12MB each) and unused —
+# keep them out of the repo.
+data/wind-san-diego-f*.json
+data/wind-san-diego-manifest.json
+data/wind-san-diego.json
+
+# Output of scripts/build_gfs_wind_tiles.py — experimental tile pipeline,
+# nothing on the site loads it. Keep the generated tiles out of the repo.
+public/wind/
