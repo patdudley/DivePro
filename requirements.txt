@@ -1,6 +1,24 @@
-# cfgrib needs the ECMWF ecCodes runtime available to parse GRIB2 files.
-# macOS: brew install eccodes
-cfgrib>=0.9.14
-xarray>=2025.1.0
-numpy>=2.0.0
-shapely>=2.1.0
+# DivePro SD1 — Python serving environment
+# Pinned at the exact versions used to train model_lajolla_soft.pkl.
+# Train and serve with the SAME Python installation.
+#
+# IMPORTANT: retrain and re-evaluate if you update scikit-learn.
+# Pickle compatibility between scikit-learn versions is not guaranteed.
+# Record the scikit-learn version in model_lajolla_soft_features.json
+# (the "sklearn_version" field) when re-running train_soft_model.py.
+#
+# Runtime: Python 3.11+  (sklearn 1.8.0 requires Python >= 3.11)
+# Production environment: Python 3.13 on macOS (Pat's machine)
+# Do NOT train in the Claude sandbox (Python 3.10) — it cannot install 1.8.0.
+
+scikit-learn==1.8.0
+joblib==1.5.3
+numpy==2.4.6
+pandas==3.0.3
+
+# Community report scraper (runtime dependency)
+requests>=2.28
+beautifulsoup4>=4.12
+
+# Optional — only needed if re-training or building forecast data
+# open-meteo-sdk          # if switching from urllib to SDK
