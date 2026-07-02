@@ -1532,6 +1532,25 @@ def write_pages(spots):
         (folder / "index.html").write_text(html)
 
 
+_PUBLISHABLE_MODEL_SOURCES = ("soft_probabilistic", "point_gbt_fallback")
+
+
+def _assert_publishable(la_jolla):
+    """Exit non-zero when La Jolla has no real model forecast, so the
+    workflow fails and the Telegram failure alert fires instead of
+    silently publishing an 'unavailable' page."""
+    if la_jolla is None:
+        raise SystemExit("ERROR: La Jolla spot was not built — failing the run.")
+    latest = la_jolla["latest"]
+    grade  = latest.get("grade")
+    source = latest.get("model_source")
+    if grade is None or source not in _PUBLISHABLE_MODEL_SOURCES:
+        raise SystemExit(
+            f"ERROR: La Jolla forecast unpublishable (grade={grade!r}, "
+            f"model_source={source!r}) — failing the run."
+        )
+
+
 def main():
     SPOT_OUT.mkdir(parents=True, exist_ok=True)
     active_slugs = {spot["slug"] for spot in SPOTS}
@@ -1608,6 +1627,7 @@ def main():
         print(f"La Jolla latest: {latest['date']}  grade={latest['grade']}  "
               f"range={latest['estimated_visibility_range_ft']}ft  "
               f"model={latest.get('model_source','?')}")
+    _assert_publishable(la_jolla)
 
 
 if __name__ == "__main__":

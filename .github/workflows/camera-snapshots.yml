@@ -1,0 +1,41 @@
+name: Camera snapshots
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 7:00 AM, 11:00 AM, and 3:00 PM San Diego time during daylight saving time.
+    - cron: "0 14,18,22 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Install capture tools
+        run: |
+          python3 -m pip install --upgrade playwright
+          python3 -m playwright install --with-deps chromium
+
+      - name: Capture camera frames
+        run: python3 scripts/capture_camera_snapshots.py
+
+      - name: Archive latest forecast
+        run: python3 scripts/archive_latest_forecast.py
+
+      - name: Commit updated snapshots and forecast history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add camera-snapshots camera-snapshot-history index.html spot-reports.js forecast_history.json forecast-history
+          if git diff --cached --quiet; then
+            echo "No snapshot or forecast history changes to commit."
+          else
+            git commit -m "Update camera snapshots and forecast history"
+            git push
+          fi

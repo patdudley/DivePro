@@ -1,11 +1,18 @@
 (function () {
-  const WIND_MANIFEST_PATH = "data/wind-cropped/wind-san-diego-manifest.json?v=live-ui-42";
-  const WATER_MASK_PATH = "data/water-mask-san-diego.geojson?v=live-ui-42";
+  const WIND_MANIFEST_PATH = "data/wind-cropped/wind-san-diego-manifest.json?v=multi-map-timeline-2";
+  const WATER_MASK_PATH = "data/water-mask-san-diego.geojson?v=multi-map-2";
+  const NOW_FRAME_TOLERANCE_MS = 90 * 60 * 1000;
   const WIND_PARTICLE_COUNT = 360;
   const WIND_COAST_FEATHER_PX = 52;
   const WIND_PARTICLE_SPEED = 0.000078;
   const WIND_PARTICLE_REFERENCE_ZOOM = 8.5;
   const WIND_STREAK_LENGTH_MULTIPLIER = 5.4;
+  const DEPTH_SOURCE_ID = "divepro-ocean-depth";
+  const DEPTH_REFERENCE_SOURCE_ID = "divepro-ocean-depth-reference";
+  const DEPTH_LAYER_ID = "divepro-ocean-depth";
+  const DEPTH_REFERENCE_LAYER_ID = "divepro-ocean-depth-reference";
+  const DEPTH_TILE_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}";
+  const DEPTH_REFERENCE_TILE_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}";
   const MAPTILER_WATER_LAYER_ID = "Water";
   const MPS_TO_MPH = 2.23694;
   const VISIBILITY_REFERENCE_POINTS = [
@@ -31,7 +38,7 @@
       center: [-117.255, 32.866],
       zoom: 12.25,
       pins: [
-        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "index.html" },
+        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "la-jolla.html" },
       ],
     },
     "catalina-wrigley": {
@@ -377,13 +384,16 @@
 
   function defaultFrameIndex(frames) {
     const now = Date.now();
-    return frames.reduce((bestIndex, frame, index) => {
+    const firstCurrentOrFuture = frames.findIndex((frame) => {
       const time = frameTime(frame);
-      if (!time) return bestIndex;
-      const bestTime = frameTime(frames[bestIndex]);
-      if (!bestTime) return index;
-      return Math.abs(time.getTime() - now) < Math.abs(bestTime.getTime() - now) ? index : bestIndex;
-    }, 0);
+      return time && time.getTime() >= now - NOW_FRAME_TOLERANCE_MS;
+    });
+    return firstCurrentOrFuture >= 0 ? firstCurrentOrFuture : 0;
+  }
+
+  function isCurrentWindFrame(frame) {
+    const time = frameTime(frame);
+    return Boolean(time && Math.abs(time.getTime() - Date.now()) <= NOW_FRAME_TOLERANCE_MS);
   }
 
   async function loadWindManifest() {
@@ -833,13 +843,11 @@
     }
 
     function currentTimelineDate() {
-      return frames[currentIndex]?.localDate || pacificDate(new Date().toISOString());
+      return pacificDate(new Date().toISOString());
     }
 
     function activeWindowIsFuture() {
-      const date = activeWindowDate();
-      const today = currentTimelineDate();
-      return Boolean(date && today && date > today);
+      return Boolean(adjacentTimelineDate(-1));
     }
 
     function timelineDateLabel(date) {
@@ -907,8 +915,8 @@
       tickResizeTimer = window.setTimeout(renderTicks, 120);
     }
 
-    function activeTimeLabel(forecastFrame, index) {
-      return index === currentIndex ? "Now" : pacificHourLabel(forecastFrame);
+    function activeTimeLabel(forecastFrame) {
+      return isCurrentWindFrame(forecastFrame) ? "Now" : pacificHourLabel(forecastFrame);
     }
 
     function updateActiveTime() {
@@ -932,12 +940,19 @@
       }));
     }
 
+    function setTimelineDayButton(button, isAvailable) {
+      if (!button) return;
+      button.classList.toggle("is-unavailable", !isAvailable);
+      button.disabled = !isAvailable;
+      button.setAttribute("aria-hidden", isAvailable ? "false" : "true");
+    }
+
     function updateDayButtons() {
-      if (prevDayButton) {
-        prevDayButton.hidden = !activeWindowIsFuture() || !adjacentTimelineDate(-1);
-      }
-      if (!nextDayButton) return;
-      nextDayButton.hidden = !adjacentTimelineDate(1);
+      setTimelineDayButton(
+        prevDayButton,
+        Boolean(activeWindowIsFuture() && adjacentTimelineDate(-1))
+      );
+      setTimelineDayButton(nextDayButton, Boolean(adjacentTimelineDate(1)));
     }
 
     function updateDateBubble() {
@@ -1120,7 +1135,7 @@
   }
 
   function setupSpotProbe(map) {
-    const ignoredClickSelector = ".wind-timeline, .wind-legend, .visibility-legend, .maplibregl-ctrl, .map-spot-pin, .map-wind-probe-pin";
+    const ignoredClickSelector = ".wind-timeline, .wind-legend, .depth-legend, .map-layer-toggle, .visibility-legend, .maplibregl-ctrl, .map-spot-pin, .map-wind-probe-pin";
     const container = map.getContainer();
     let lastMapLibreProbeAt = 0;
 
@@ -1129,6 +1144,7 @@
     }
 
     function dropProbe(lngLat) {
+      if (container.closest(".map-frame")?.classList.contains("is-depth-mode")) return;
       lastMapLibreProbeAt = Date.now();
       setSpotProbe(map, lngLat);
     }
@@ -1149,6 +1165,64 @@
 
     map.on("move", () => positionSpotProbe(map));
     map.on("resize", () => positionSpotProbe(map));
+  }
+
+  function addDepthLayer(map) {
+    if (map.getSource(DEPTH_SOURCE_ID)) return;
+
+    map.addSource(DEPTH_SOURCE_ID, {
+      type: "raster",
+      tiles: [DEPTH_TILE_URL],
+      tileSize: 256,
+      attribution: "Esri, GEBCO, NOAA, Garmin, FAO, NPS, NRCAN, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+    });
+    map.addLayer({
+      id: DEPTH_LAYER_ID,
+      type: "raster",
+      source: DEPTH_SOURCE_ID,
+      layout: { visibility: "none" },
+      paint: { "raster-opacity": 0.88 },
+    });
+
+    map.addSource(DEPTH_REFERENCE_SOURCE_ID, {
+      type: "raster",
+      tiles: [DEPTH_REFERENCE_TILE_URL],
+      tileSize: 256,
+    });
+    map.addLayer({
+      id: DEPTH_REFERENCE_LAYER_ID,
+      type: "raster",
+      source: DEPTH_REFERENCE_SOURCE_ID,
+      layout: { visibility: "none" },
+      paint: { "raster-opacity": 0.94 },
+    });
+  }
+
+  function setupMapLayerToggle(map, frame) {
+    if (!frame || frame.__diveProLayerToggleReady) return;
+    frame.__diveProLayerToggleReady = true;
+    frame.classList.add("is-wind-mode");
+
+    const buttons = Array.from(frame.querySelectorAll("[data-map-layer]"));
+    const setLayer = (layer) => {
+      const isDepth = layer === "depth";
+      frame.classList.toggle("is-depth-mode", isDepth);
+      frame.classList.toggle("is-wind-mode", !isDepth);
+      if (map.getLayer(DEPTH_LAYER_ID)) {
+        map.setLayoutProperty(DEPTH_LAYER_ID, "visibility", isDepth ? "visible" : "none");
+      }
+      if (map.getLayer(DEPTH_REFERENCE_LAYER_ID)) {
+        map.setLayoutProperty(DEPTH_REFERENCE_LAYER_ID, "visibility", isDepth ? "visible" : "none");
+      }
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.mapLayer === layer ? "true" : "false");
+      });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setLayer(button.dataset.mapLayer || "wind"));
+    });
+    setLayer("wind");
   }
 
   async function addWindLayer(map, mapEl) {
@@ -1184,10 +1258,19 @@
       </div>
       <div class="map-frame spot-map-frame">
         <div id="spotRegionMap" class="spot-region-map" role="img" aria-label="Interactive region map for ${config.region}"></div>
+        <div class="map-layer-toggle spot-map-layer-toggle" aria-label="Map layer">
+          <button type="button" data-map-layer="wind" aria-pressed="true">Wind</button>
+          <button type="button" data-map-layer="depth" aria-pressed="false">Depth</button>
+        </div>
         <div class="wind-legend spot-wind-legend is-hidden" aria-label="Wind speed legend">
           <span>Wind MPH</span>
           <div class="wind-legend-gradient"></div>
         <div class="wind-legend-labels"><b>0</b><b>5</b><b>10</b><b>20+</b></div>
+        </div>
+        <div class="depth-legend spot-depth-legend" aria-label="Ocean depth legend">
+          <span>Depth</span>
+          <div class="depth-legend-gradient"></div>
+          <div class="depth-legend-labels"><b>Shallow</b><b>Deep</b></div>
         </div>
         <div class="wind-date-bubble spot-wind-date-bubble" hidden></div>
         <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
@@ -1241,6 +1324,8 @@
       map.on("load", async () => {
         addPins(map, config.pins);
         setupSpotProbe(map);
+        addDepthLayer(map);
+        setupMapLayerToggle(map, mapEl.closest(".spot-map-frame"));
         try {
           await addWindLayer(map, mapEl);
         } catch (error) {
