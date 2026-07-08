@@ -739,6 +739,36 @@ function render(data) {
 function renderForecastStrip(forecasts, activeDate) {
   const strip = document.getElementById("forecastStrip");
   if (!strip) return;
+
+  if (!forecasts.length) {
+    strip.textContent = "Forecast unavailable.";
+    return;
+  }
+  function selectForecast(forecast, source = "forecast_day_select") {
+    render(forecast);
+    renderForecastStrip(forecasts, forecast.date);
+    if (source !== "wind_map_timeline") {
+      window.dispatchEvent(new CustomEvent("divepro:forecastDateSelected", {
+        detail: {
+          date: forecast.date,
+          source,
+        },
+      }));
+    }
+    trackEvent(source, {
+      forecast_date: forecast.date,
+      grade: forecast.grade,
+    });
+  }
+
+  window.__diveProSelectForecastDate = (dateOrDetail, source = "wind_map_day_select") => {
+    const detail = typeof dateOrDetail === "object" && dateOrDetail !== null ? dateOrDetail : { date: dateOrDetail };
+    const forecast = forecasts.find((item) => item.date === detail.date) || forecasts[detail.dayIndex];
+    if (!forecast) return false;
+    selectForecast(forecast, detail.source || source);
+    return true;
+  };
+
   strip.replaceChildren(...forecasts.map((forecast, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -848,10 +878,7 @@ loadForecastData().then(({ latest, tenDay, gradeGuide, history }) => {
   renderGradeGuide(gradeGuide);
   renderForecastHistory(history, latest.date);
   window.addEventListener("divepro:selectForecastDate", (event) => {
-    const { date, dayIndex } = event.detail || {};
-    const forecast = tenDay.find((item) => item.date === date) || (Number.isInteger(dayIndex) ? tenDay[dayIndex] : null);
-    if (!forecast) return;
-    render(forecast);
-    renderForecastStrip(tenDay, forecast.date);
+    if (!event.detail || typeof window.__diveProSelectForecastDate !== "function") return;
+    window.__diveProSelectForecastDate(event.detail, event.detail.source || "wind_map_day_select");
   });
 });

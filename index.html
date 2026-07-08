@@ -3,17 +3,62 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DivePro SD</title>
-    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css?v=multisport-7">
-    <link rel="stylesheet" href="styles.css?v=map-timeline-width-1">
+    <title>DiveProSD | La Jolla Dive Visibility Forecast</title>
+    <meta name="description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#13baee">
+    <link rel="canonical" href="https://diveprosd.com/">
+    <link rel="icon" href="favicon.ico?v=fish-icon-4" sizes="any">
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png?v=fish-icon-4">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png?v=fish-icon-4">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png?v=fish-icon-4">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=fish-icon-4">
+    <meta property="og:site_name" content="DiveProSD">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DiveProSD | La Jolla Dive Visibility Forecast">
+    <meta property="og:description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta property="og:url" content="https://diveprosd.com/">
+    <meta property="og:image" content="https://diveprosd.com/divepro-fish-preview.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DiveProSD | La Jolla Dive Visibility Forecast">
+    <meta name="twitter:description" content="Daily La Jolla dive visibility forecast with tide, wind, wave, swell, weather, and shore-dive target conditions for San Diego divers.">
+    <meta name="twitter:image" content="https://diveprosd.com/divepro-fish-preview.png">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "DiveProSD",
+        "url": "https://diveprosd.com/",
+        "description": "Daily La Jolla dive visibility forecast for San Diego shore divers.",
+        "inLanguage": "en-US",
+        "publisher": {
+          "@type": "Organization",
+          "name": "DiveProSD",
+          "url": "https://diveprosd.com/"
+        },
+        "potentialAction": {
+          "@type": "ViewAction",
+          "target": "https://diveprosd.com/"
+        }
+      }
+    </script>
+    <script>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "x999tjkohl");
+    </script>
+    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css?v=map-1">
+    <link rel="stylesheet" href="styles.css?v=ui-restore-20260708">
+    <link rel="stylesheet" href="ui-polish.css?v=beta-ui-12">
   </head>
   <body>
     <main class="shell">
+      <div class="stale-banner" id="staleBanner" hidden></div>
       <section class="hero-camera">
         <header class="topbar">
-          <a class="brand-home-link" href="index.html" aria-label="DivePro SD home">
-            <img class="brand-logo" src="divepro-logo.png?v=brand-logo-2" alt="DivePro">
-          </a>
+          <img class="brand-logo" src="divepro-logo.png?v=brand-logo-2" alt="DivePro">
         </header>
 
         <figure class="camera-frame" id="cameraFrame">
@@ -27,10 +72,10 @@
               <span id="location">La Jolla / Scripps Pier</span>
             </div>
             <div class="forecast-main">
-              <strong id="grade">B</strong>
+              <strong id="grade">--</strong>
               <div class="primary-stat">
                 <span>Estimated visibility</span>
-                <strong id="visibility">15-25 ft</strong>
+                <strong id="visibility">-- ft</strong>
               </div>
             </div>
             <div class="score-row">
@@ -38,11 +83,11 @@
             </div>
             <div class="wave-weight">
               <span>Wave weight</span>
-              <strong id="waveWeight">Moderate</strong>
+              <strong id="waveWeight">Loading</strong>
             </div>
             <div class="best-window">
               <span>Best window</span>
-              <strong id="bestWindow">Early morning</strong>
+              <strong id="bestWindow">Loading</strong>
             </div>
           </section>
 
@@ -63,12 +108,71 @@
         <div class="forecast-strip" id="forecastStrip" aria-label="10 day visibility forecast"></div>
       </section>
 
-      <section class="chart-grid">
+      <section class="model-card region-map-card">
+        <div class="section-heading">
+          <h2>Region Map</h2>
+          <span>La Jolla, San Diego</span>
+        </div>
+        <div class="map-frame spot-map-frame">
+          <div id="spotRegionMap" class="spot-region-map" role="img" aria-label="Interactive La Jolla dive region map"></div>
+          <div class="map-layer-toggle spot-map-layer-toggle" aria-label="Map layer">
+            <button type="button" data-map-layer="wind" aria-pressed="true">Wind</button>
+            <button type="button" data-map-layer="depth" aria-pressed="false">Depth</button>
+          </div>
+          <div class="wind-legend spot-wind-legend is-hidden" aria-label="Wind speed legend">
+            <span>Wind MPH</span>
+            <div class="wind-legend-gradient"></div>
+            <div class="wind-legend-labels"><b>0</b><b>5</b><b>10</b><b>20+</b></div>
+          </div>
+          <div class="depth-legend spot-depth-legend" aria-label="Ocean depth legend">
+            <span>Depth</span>
+            <div class="depth-legend-gradient"></div>
+            <div class="depth-legend-labels"><b>Shallow</b><b>Deep</b></div>
+          </div>
+          <div class="wind-date-bubble spot-wind-date-bubble" hidden></div>
+          <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
+            <button class="spot-wind-prev-day" type="button" aria-label="Previous day wind forecast">‹</button>
+            <div class="spot-wind-play-stack">
+              <button class="spot-wind-play" type="button" aria-label="Play wind forecast timeline">▶</button>
+              <span class="spot-wind-current-time">Now</span>
+            </div>
+            <div class="spot-wind-slider-wrap">
+              <input class="spot-wind-slider" type="range" min="0" max="0" value="0" aria-label="Wind forecast hour">
+              <span class="spot-wind-thumb-time" aria-hidden="true">Now</span>
+            </div>
+            <button class="spot-wind-next-day" type="button" aria-label="Next day wind forecast">›</button>
+            <div class="wind-time-ticks spot-wind-ticks"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="chart-grid chart-grid-single">
         <article>
           <h2>Tide Height</h2>
+          <div class="tide-meta">
+            <span id="tidePhase">--</span>
+            <span id="tideNextEvent"></span>
+          </div>
           <div class="chart" id="tideChart"></div>
           <p id="tideSource">NOAA La Jolla predictions</p>
         </article>
+      </section>
+
+      <section class="model-card wave-card">
+        <div class="section-heading">
+          <h2>Wave Height & Swell</h2>
+        </div>
+        <div class="wave-summary">
+          <div>
+            <span>Surf</span>
+            <strong id="waveSurfRange">-- ft</strong>
+          </div>
+          <div class="wave-components" id="waveComponents"></div>
+        </div>
+        <div class="chart wave-chart" id="waveChart"></div>
+      </section>
+
+      <section class="chart-grid chart-grid-single static-wind-card">
         <article>
           <h2>Wind Speed</h2>
           <div class="chart bars" id="windChart"></div>
@@ -76,29 +180,9 @@
         </article>
       </section>
 
-      <section class="model-card wave-card">
-        <h2>Wave Height &amp; Swell</h2>
-        <div class="wave-summary">
-          <div class="surf-tile">
-            <span>Surf</span>
-            <strong id="surfHeight">3-4 ft</strong>
-          </div>
-          <div class="swell-table">
-            <div></div><span>Swell</span><span>Period</span><span>Direction</span>
-            <strong>Primary</strong><b id="primarySwell">2.7 ft</b><b id="primaryPeriod">5s</b><b id="primaryDirection">W 277°</b>
-            <strong>Secondary</strong><b id="secondarySwell">2.0 ft</b><b id="secondaryPeriod">15s</b><b id="secondaryDirection">SSW 205°</b>
-          </div>
-        </div>
-        <div class="chart swell-chart" id="swellChart"></div>
-      </section>
-
-      <section class="model-card weather-card">
+      <section class="model-card">
         <h2>Weather</h2>
-        <div class="weather-grid">
-          <div><span>Water temp</span><strong id="waterTemp">66.4 F</strong></div>
-          <div><span>Rain forecast</span><strong id="rainForecast">0.0 in</strong></div>
-          <div><span>72-hour rain</span><strong id="rain72">0.0 in</strong></div>
-        </div>
+        <div class="feature-rows" id="featureRows"></div>
       </section>
 
       <section class="model-card fish-card">
@@ -107,16 +191,7 @@
           <span>SD shore dive target ranking</span>
         </div>
         <div class="fish-grid" id="fishGrid"></div>
-        <p>Tap a species for take-size guidance. Regulations shown are a quick reference checked against California Department of Fish and Wildlife information on May 24, 2026. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
-      </section>
-
-      <section class="model-card history-card">
-        <div class="section-heading">
-          <h2>Past Reports</h2>
-          <span>Saved daily report archive</span>
-        </div>
-        <div class="forecast-history" id="forecastHistory"></div>
-        <button class="history-toggle" id="historyToggle" type="button" hidden>See More</button>
+        <p>Tap a species for take-size guidance. Regulations shown are a quick reference. Confirm current rules, seasons, closures, and local MPAs before taking fish.</p>
       </section>
 
       <section class="model-card">
@@ -124,9 +199,12 @@
         <div class="grade-guide" id="gradeGuide"></div>
       </section>
     </main>
-    <script type="module" src="app.js?v=model-outputs-1"></script>
-    <script src="vendor/maplibre/maplibre-gl.js?v=multisport-7"></script>
-    <script src="map-config.js?v=multisport-7"></script>
-    <script src="spot-map.js?v=multi-map-timeline-2"></script>
+    <script src="analytics-config.js?v=analytics-2"></script>
+    <script src="analytics.js?v=analytics-2"></script>
+    <script type="module" src="app.js?v=ui-restore-20260708"></script>
+    <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
+    <script src="vendor/maplibre/maplibre-gl.js?v=map-1"></script>
+    <script src="map-config.js?v=map-1"></script>
+    <script src="spot-map.js?v=map-restore-20260708"></script>
   </body>
 </html>

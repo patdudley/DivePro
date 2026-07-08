@@ -38,7 +38,7 @@
       center: [-117.255, 32.866],
       zoom: 12.25,
       pins: [
-        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "la-jolla.html" },
+        { label: "Scripps Beach", detail: "San Diego", lngLat: [-117.255, 32.866], href: "index.html" },
       ],
     },
     "catalina-wrigley": {
