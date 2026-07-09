@@ -4126,14 +4126,43 @@ ul {
     grid-template-columns: 1fr;
   }
 
-  .swell-table {
-    grid-template-columns: 1fr repeat(3, 0.78fr);
-    font-size: 0.8rem;
+  .wave-component-grid {
+    display: none;
   }
 
-  .swell-table > * {
-    min-height: 46px;
-    padding: 8px;
+  .wave-component-cards {
+    display: grid;
+    gap: 12px;
+  }
+
+  .wave-component-card {
+    min-height: 118px;
+    padding: 18px;
+    border-color: rgba(19, 186, 238, 0.24);
+    background:
+      linear-gradient(135deg, rgba(19, 186, 238, 0.12), rgba(238, 19, 186, 0.06)),
+      rgba(255, 255, 255, 0.94);
+    box-shadow: 0 14px 34px rgba(10, 37, 64, 0.08);
+  }
+
+  .wave-component-card span {
+    color: var(--dark-cyan);
+    font-size: 0.76rem;
+    letter-spacing: 0.14em;
+  }
+
+  .wave-component-card strong {
+    margin-top: 8px;
+    color: var(--text);
+    font-size: clamp(2.2rem, 12vw, 3.1rem);
+    line-height: 0.95;
+  }
+
+  .wave-component-card em {
+    margin-top: 10px;
+    font-size: 0.98rem;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
   .feature-rows {
