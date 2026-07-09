@@ -1,5 +1,10 @@
 import { forecastFromFeatures } from "./visibilityModel.js";
 
+const DISPLAY_HS_TO_CHAR = 0.625; // 1 / 1.6, display-only Hs to characteristic height.
+const DISPLAY_WAVE_MODERATE_FT = 2 * DISPLAY_HS_TO_CHAR;
+const DISPLAY_WAVE_SHORT_HEAVY_FT = 3 * DISPLAY_HS_TO_CHAR;
+const DISPLAY_WAVE_HEAVY_FT = 4 * DISPLAY_HS_TO_CHAR;
+
 const fallback = {
   date: "2026-05-23",
   location: "La Jolla / Scripps Pier",
@@ -109,19 +114,13 @@ function featureRows(features) {
     secondary_swell_direction_label: features?.secondary_swell_direction_label
       || directionFromDegrees(features?.secondary_swell_direction_deg ?? features?.wind_direction_deg),
   };
+  const waterTempKey = enriched?.buoy_water_temp_f != null ? "buoy_water_temp_f" : "water_temp_estimate_f";
+  const waterTempLabel = enriched?.buoy_water_temp_f != null ? "Water temp (buoy)" : "Water temp (est.)";
   const wanted = [
-    ["Surf max", "surf_height_max_ft", "ft"],
-    ["Primary swell", "swell_wave_height_max_ft", "ft"],
-    ["Primary period", "swell_wave_period_max_s", "s"],
-    ["Primary direction", "swell_direction_label", ""],
-    ["Secondary swell", "wind_wave_height_max_ft", "ft"],
-    ["Secondary period", "wind_wave_period_max_s", "s"],
-    ["Secondary direction", "secondary_swell_direction_label", ""],
-    ["Total swell", "total_swell_height_mean_ft", "ft"],
-    ["Water temp", "water_temp_estimate_f", "F"],
-    ["Wind max", "wind_speed_max_mph", "mph"],
-    ["Tide range", "tide_range_ft", "ft"],
-    ["Rain", "rain_24h_in", "in"],
+    [waterTempLabel, waterTempKey, "°F"],
+    ["Today's high", "air_temp_max_f", "°F"],
+    ["Rain forecast", "rain_24h_in", "in"],
+    ["72-hour rain", "rain_prior_3day_in", "in"],
   ];
   return wanted.map(([label, key, unit]) => {
     const raw = enriched?.[key];
@@ -549,6 +548,83 @@ function windGradeColor(speed) {
   return "#ee13ba";
 }
 
+function displayWaveHeight(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number * DISPLAY_HS_TO_CHAR : NaN;
+}
+
+function formatWaveFeet(value) {
+  const number = displayWaveHeight(value);
+  return Number.isFinite(number) ? `${number.toFixed(1)} ft` : "n/a";
+}
+
+function formatPeriod(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? `${Math.round(number)}s` : "n/a";
+}
+
+function formatDirection(label, degrees) {
+  const direction = label || directionFromDegrees(degrees);
+  const number = Number(degrees);
+  if (direction && Number.isFinite(number)) return `${direction} ${Math.round(number)}°`;
+  return direction || "n/a";
+}
+
+function waveHeightValue(forecast) {
+  const features = forecast?.features || {};
+  return displayWaveHeight(
+    features.surf_height_max_ft
+    ?? features.wave_height_max_ft
+    ?? features.swell_wave_height_max_ft
+    ?? 0
+  );
+}
+
+function renderWaveComponents(data) {
+  const container = document.getElementById("waveComponents");
+  if (!container) return;
+  const features = data.features || {};
+  const rows = [
+    {
+      label: "Primary",
+      height: features.swell_wave_height_max_ft,
+      period: features.swell_wave_period_max_s,
+      directionLabel: features.swell_direction_label,
+      directionDeg: features.swell_wave_direction_deg,
+    },
+    {
+      label: "Secondary",
+      height: features.secondary_swell_height_ft ?? features.wind_wave_height_max_ft,
+      period: features.secondary_swell_period_s ?? features.wind_wave_period_max_s,
+      directionLabel: features.secondary_swell_direction_label,
+      directionDeg: features.secondary_swell_direction_deg ?? features.wind_direction_deg,
+    },
+  ];
+  container.innerHTML = `
+    <div class="wave-component-grid" role="table" aria-label="Swell components">
+      <span></span>
+      <span>Swell</span>
+      <span>Period</span>
+      <span>Direction</span>
+      ${rows.map((row) => `
+        <strong>${row.label}</strong>
+        <em>${formatWaveFeet(row.height)}</em>
+        <em>${formatPeriod(row.period)}</em>
+        <em>${formatDirection(row.directionLabel, row.directionDeg)}</em>
+      `).join("")}
+    </div>
+    <div class="wave-component-cards" aria-label="Swell components">
+      ${rows.map((row) => `
+        <article class="wave-component-card">
+          <span>${row.label}</span>
+          <strong>${formatWaveFeet(row.height)}</strong>
+          <em>${formatPeriod(row.period)} · ${formatDirection(row.directionLabel, row.directionDeg)}</em>
+        </article>
+      `).join("")}
+    </div>
+  `;
+}
+
 function reportText(data) {
   if (window.staticSpotReport && data.report_text) return data.report_text;
 
@@ -718,16 +794,23 @@ function render(data) {
   setText("waveWeight", waveWeight(data));
   setText("forecastSource", data.is_projected ? `Projected from ${shortDate(data.projected_from || data.date)}` : "Model prediction from parsed conditions");
   setText("dailyReport", reportText(data));
-  setText("tideSource", data.tide_source || `NOAA La Jolla 9410230 - ${shortDate(data.date)}`);
-  setText("windSource", data.wind_source || `Open-Meteo hourly wind - ${shortDate(data.date)}`);
   const panel = document.querySelector(".forecast-panel");
   const grade = document.getElementById("grade");
-  if (panel) panel.className = `forecast-panel ${gradeClass(data.grade)}`;
-  if (grade) grade.className = gradeClass(data.grade);
-  const scoreFill = document.getElementById("scoreFill");
-  const rows = document.getElementById("featureRows");
-  if (scoreFill) scoreFill.style.width = `${score}%`;
-  if (rows) rows.innerHTML = featureRows(data.features || {});
+  if (panel) panel.className = `forecast-panel ${data.is_unavailable ? "" : gradeClass(data.grade)}`;
+  if (grade) grade.className = data.is_unavailable ? "" : gradeClass(data.grade);
+  document.getElementById("scoreFill").style.width = `${data.is_unavailable ? 0 : score}%`;
+  const featureEl = document.getElementById("featureRows");
+  if (featureEl) featureEl.innerHTML = data.is_unavailable ? "" : featureRows(data.features || {});
+  const fishGrid = document.getElementById("fishGrid");
+  if (fishGrid && data.is_unavailable) fishGrid.replaceChildren();
+  if (data.is_unavailable) {
+    document.getElementById("tideChart").textContent = "Forecast data unavailable.";
+    document.getElementById("windChart").textContent = "Forecast data unavailable.";
+    const waveChart = document.getElementById("waveChart");
+    if (waveChart) waveChart.textContent = "Forecast data unavailable.";
+    return;
+  }
+  renderWaveComponents(data);
   renderCamera(data);
   renderTideChart(data);
   renderWindChart(data);
@@ -808,6 +891,42 @@ function renderGradeGuide(gradeGuide) {
   }));
 }
 
+function renderCommunityReport(data) {
+  const section = document.getElementById("communitySection");
+  const report = data?.community_report;
+  if (!section) return;
+  if (!report || !report.visibility_ft || report.error) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  const confidence = { high: "High confidence", medium: "Medium confidence", low: "Low confidence" };
+  setText("communityConfidence", confidence[report.confidence_label] || "");
+  setText("communityVis", `Reported visibility: ${report.visibility_ft[0]}–${report.visibility_ft[1]} ft`);
+  setText("communityExcerpt", report.source_excerpt || "");
+}
+
+function todayPacific() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function renderStaleNotice(latest) {
+  const banner = document.getElementById("staleBanner");
+  if (!banner) return;
+  const isStale = !latest.is_unavailable && latest.date && latest.date < todayPacific();
+  if (!isStale) {
+    banner.hidden = true;
+    return;
+  }
+  banner.textContent = `Last updated ${shortDate(latest.date)} — conditions may have changed since this forecast was issued.`;
+  banner.hidden = false;
+}
+
 function normalizeForecastHistory(history) {
   const rawEntries = Array.isArray(history)
     ? history
@@ -874,9 +993,19 @@ function renderForecastHistory(history, currentDate) {
 
 loadForecastData().then(({ latest, tenDay, gradeGuide, history }) => {
   render(latest);
+  renderStaleNotice(latest);
+  renderCommunityReport(latest);
   renderForecastStrip(tenDay, latest.date);
   renderGradeGuide(gradeGuide);
   renderForecastHistory(history, latest.date);
+  if (!latest.is_unavailable) {
+    trackEvent("forecast_loaded", {
+      forecast_date: latest.date,
+      grade: latest.grade,
+      visibility_range: feet(latest.estimated_visibility_range_ft),
+      surf_range: waveHeightValue(latest),
+    });
+  }
   window.addEventListener("divepro:selectForecastDate", (event) => {
     if (!event.detail || typeof window.__diveProSelectForecastDate !== "function") return;
     window.__diveProSelectForecastDate(event.detail, event.detail.source || "wind_map_day_select");

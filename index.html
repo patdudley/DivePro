@@ -149,34 +149,29 @@
       <section class="chart-grid chart-grid-single">
         <article>
           <h2>Tide Height</h2>
-          <div class="tide-meta">
-            <span id="tidePhase">--</span>
+          <div class="tide-meta" hidden>
+            <span id="tidePhase"></span>
             <span id="tideNextEvent"></span>
           </div>
           <div class="chart" id="tideChart"></div>
-          <p id="tideSource">NOAA La Jolla predictions</p>
         </article>
       </section>
 
       <section class="model-card wave-card">
         <div class="section-heading">
-          <h2>Wave Height & Swell</h2>
+          <h2>Swell</h2>
         </div>
         <div class="wave-summary">
-          <div>
-            <span>Surf</span>
-            <strong id="waveSurfRange">-- ft</strong>
+          <div class="wave-surf-panel">
+            <div class="wave-components" id="waveComponents"></div>
           </div>
-          <div class="wave-components" id="waveComponents"></div>
         </div>
-        <div class="chart wave-chart" id="waveChart"></div>
       </section>
 
       <section class="chart-grid chart-grid-single static-wind-card">
         <article>
           <h2>Wind Speed</h2>
           <div class="chart bars" id="windChart"></div>
-          <p id="windSource">Open-Meteo hourly forecast</p>
         </article>
       </section>
 
