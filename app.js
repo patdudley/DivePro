@@ -605,7 +605,7 @@ function renderWaveComponents(data) {
       <span></span>
       <span>Swell</span>
       <span>Period</span>
-      <span>Direction</span>
+      <span>Dir</span>
       ${rows.map((row) => `
         <strong>${row.label}</strong>
         <em>${formatWaveFeet(row.height)}</em>
