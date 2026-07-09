@@ -20,6 +20,8 @@ import datetime as dt
 import json
 import shutil
 import tempfile
+import time
+import urllib.error
 import urllib.request
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -75,6 +77,25 @@ def local_hour_label(valid_time: dt.datetime) -> str:
     return local_time.strftime("%-I%p").lower()
 
 
+DOWNLOAD_ATTEMPTS = 3
+DOWNLOAD_TIMEOUT_S = 60
+
+
+def _download_with_retry(url: str, target: Path) -> None:
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT_S) as response:
+                with open(target, "wb") as out:
+                    shutil.copyfileobj(response, out)
+            return
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if attempt == DOWNLOAD_ATTEMPTS:
+                raise
+            wait = 2 ** attempt
+            print(f"  download failed (attempt {attempt}/{DOWNLOAD_ATTEMPTS}): {exc} — retrying in {wait}s")
+            time.sleep(wait)
+
+
 def download_grib(date: str, cycle: str, forecast_hour: int, target: Path) -> str:
     leftlon = BBOX["west"] + 360
     rightlon = BBOX["east"] + 360
@@ -84,10 +105,14 @@ def download_grib(date: str, cycle: str, forecast_hour: int, target: Path) -> st
         f"&file=gfs.t{cycle}z.pgrb2.0p25.f{forecast_hour:03d}"
         "&lev_10_m_above_ground=on"
         "&var_UGRD=on&var_VGRD=on"
+        # NOMADS only applies the bbox when the subregion flag is present;
+        # without it the filter returns the full global grid (~1.2MB per file
+        # instead of ~1.4KB).
+        "&subregion="
         f"&leftlon={leftlon}&rightlon={rightlon}"
         f"&toplat={BBOX['north']}&bottomlat={BBOX['south']}"
     )
-    urllib.request.urlretrieve(url, target)
+    _download_with_retry(url, target)
     return url
 
 
@@ -149,7 +174,7 @@ def load_wind_arrays(grib_path: Path) -> tuple[list[float], list[float], list[li
 def download_land_geojson() -> Path:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     if not LAND_GEOJSON_PATH.exists():
-        urllib.request.urlretrieve(COASTLINE_URL, LAND_GEOJSON_PATH)
+        _download_with_retry(COASTLINE_URL, LAND_GEOJSON_PATH)
     return LAND_GEOJSON_PATH
 
 
@@ -371,6 +396,15 @@ def build_json(grib_path: Path, source_url: str, forecast_hour: int) -> dict:
     }
 
 
+def remove_stale_frames(keep_paths: set[str]) -> None:
+    """Delete frame files from previous runs that the new manifest no longer
+    references, so orphans don't accumulate in the repo."""
+    for frame_file in OUT_PATH.parent.glob("wind-san-diego-f*.json"):
+        if str(frame_file).replace("\\", "/") not in keep_paths:
+            frame_file.unlink()
+            print(f"Removed stale {frame_file}")
+
+
 def main() -> None:
     now = dt.datetime.now(dt.UTC)
     date, cycle = latest_cycle(now)
@@ -402,6 +436,7 @@ def main() -> None:
         "frames": written_frames,
         "generated_utc": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
     }, separators=(",", ":")))
+    remove_stale_frames({frame["path"] for frame in written_frames})
     print(f"Wrote {OUT_PATH}")
     print(f"Wrote {MANIFEST_OUT_PATH}")
 

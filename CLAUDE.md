@@ -21,14 +21,15 @@ python -m http.server 8000                  # serve the site locally from repo r
 
 Running the real model needs Python 3.11+ (scikit-learn 1.8.0). On older Pythons the model tests skip and the builder falls back — that's expected locally; CI runs 3.13 and is the real gate.
 
-`requirements-wind.txt` is separate on purpose: it holds the GRIB tooling for the local-only wind-map scripts (`scripts/build_gfs_wind_*.py`). No workflow installs it. When adding a dependency, append to the right file — both GitHub Actions workflows install `requirements.txt`, so replacing or trimming it breaks the forecast pipeline and the test suite at once.
+`requirements-wind.txt` is separate on purpose: it holds the GRIB tooling for the wind-map scripts (`scripts/build_gfs_wind_*.py`), installed only by `update-wind-grid.yml`. When adding a dependency, append to the right file — the forecast and tests workflows install `requirements.txt`, so replacing or trimming it breaks the forecast pipeline and the test suite at once.
 
 ## Architecture
 
-Two scheduled GitHub Actions workflows commit generated content straight to `main`:
+Three scheduled GitHub Actions workflows commit generated content straight to `main`:
 
 1. **`update-forecast.yml`** (9 runs/day in UTC retry clusters) runs `build_location_forecasts.py`: fetches marine/weather/tide/buoy/chlorophyll data plus a JustGetWet community report, runs the frozen GBT models, and writes `model_outputs/` (`spots/la-jolla.json` is authoritative; `latest_forecast.json` and `forecast_10day.json` are what the frontend fetches) and appends `forecast_log.csv`. The build **exits non-zero if no model forecast is publishable** (`_assert_publishable`), which skips the commit and fires the Telegram alert (credentials in the `CONFIG_JSON` repo secret). Don't weaken that guard.
 2. **`camera-snapshots.yml`** (3 runs/day) captures webcam frames with Playwright and archives the day's forecast into `forecast_history.json` via `scripts/archive_latest_forecast.py`.
+3. **`update-wind-grid.yml`** (daily, 17:30 UTC) runs `scripts/build_gfs_wind_grid.py`: downloads regional GFS 10m wind subsets from NOAA NOMADS and rewrites the `data/wind-cropped/` frames + manifest the wind map reads. Daily on purpose — each refresh rewrites ~113 frame files (~0.85MB of git history per run), so don't increase the cadence without weighing repo growth.
 
 The frontend (`index.html` + `app.js` ES module, `spot-map.js` wind map) has no framework and no bundler. Two consequences:
 
