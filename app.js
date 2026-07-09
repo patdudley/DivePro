@@ -838,7 +838,7 @@ function renderForecastStrip(forecasts, activeDate) {
         },
       }));
     }
-    trackEvent(source, {
+    window.diveproTrack(source, {
       forecast_date: forecast.date,
       grade: forecast.grade,
     });
@@ -999,7 +999,7 @@ loadForecastData().then(({ latest, tenDay, gradeGuide, history }) => {
   renderGradeGuide(gradeGuide);
   renderForecastHistory(history, latest.date);
   if (!latest.is_unavailable) {
-    trackEvent("forecast_loaded", {
+    window.diveproTrack("forecast_loaded", {
       forecast_date: latest.date,
       grade: latest.grade,
       visibility_range: feet(latest.estimated_visibility_range_ft),
