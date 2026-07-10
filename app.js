@@ -364,6 +364,13 @@ function liveEmbedUrl(url) {
   return liveUrl.toString();
 }
 
+function cameraImageForGrade(grade) {
+  const letter = String(grade || "").trim().toUpperCase().match(/[ABCDF]/)?.[0] || "C";
+  if (letter === "A" || letter === "B") return "viz-best.jpg";
+  if (letter === "D" || letter === "F") return "viz-bad.jpg";
+  return "viz-mid.jpg";
+}
+
 function renderCamera(data) {
   const frame = document.getElementById("cameraFrame");
   const image = document.getElementById("cameraImage");
@@ -392,7 +399,7 @@ function renderCamera(data) {
     if (playButton) playButton.remove();
     frame.classList.remove("is-playing");
     image.hidden = false;
-    image.src = data.camera_image || "pier-screenshot.png?v=mobile-fix-33";
+    image.src = cameraImageForGrade(data.grade);
     image.alt = `${data.location || "Dive spot"} camera preview`;
   }
 
