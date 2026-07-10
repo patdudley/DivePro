@@ -1707,6 +1707,10 @@ h2::before {
   gap: 14px;
 }
 
+.chart-grid.chart-grid-single {
+  grid-template-columns: 1fr;
+}
+
 .chart {
   position: relative;
   height: 260px;
@@ -2738,8 +2742,8 @@ ul {
 
 .wave-summary {
   display: grid;
-  grid-template-columns: minmax(210px, 0.7fr) minmax(320px, 1.7fr);
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 0;
   margin-bottom: 16px;
 }
 
