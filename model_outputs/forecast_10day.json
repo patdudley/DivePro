@@ -1,6 +1,6 @@
 [
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
@@ -9,24 +9,24 @@
     "numeric_score_0_100": 57,
     "grade": "D",
     "grade_probabilities": {
-      "F": 0.007879704667561398,
-      "D": 0.5368745936688019,
-      "C": 0.4147378562587503,
-      "B": 0.040507845404886285,
+      "F": 0.014685435804722249,
+      "D": 0.5654616832958823,
+      "C": 0.3818885320001856,
+      "B": 0.03796434889920978,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.007879704667561398,
-      "D": 0.5368745936688019,
-      "C": 0.4147378562587503,
-      "B": 0.040507845404886285,
+      "F": 0.014685435804722249,
+      "D": 0.5654616832958823,
+      "C": 0.3818885320001856,
+      "B": 0.03796434889920978,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.5369
+      "probability": 0.5655
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -35,98 +35,99 @@
       9
     ],
     "estimated_visibility_mid_ft": 7.0,
-    "raw_expected_vis_ft": 9.54,
+    "raw_expected_vis_ft": 9.32,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
     "risk_factors": [
-      "Afternoon wind may texture the surface."
+      "No major model risk factors in the parsed feature set."
     ],
     "positive_factors": [
       "Overall swell load is modest.",
+      "Wind looks manageable for the morning window.",
       "Wave energy is on the lower side."
     ],
     "explanation": "Conditions score blends swell, wave energy, and wind with the open sandy shore calibration. La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md.",
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.7 ft | Wind: 9.5 mph | Water: 69.4\u00b0F | Swell: 2.4 ft @ 12s SSW",
+    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Model conditions are generally workable.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.8 ft | Wind: 7.2 mph | Water: 69.4\u00b0F | Swell: 2.5 ft @ 12s SSW",
     "features": {
       "date": "2026-07-12",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 2.69,
-      "surf_height_max_ft": 2.69,
-      "primary_swell_height_mean_ft": 2.43,
-      "primary_swell_height_max_ft": 2.43,
-      "primary_swell_period_mean_s": 11.85,
-      "primary_swell_period_max_s": 11.85,
-      "swell_wave_height_max_ft": 2.43,
-      "swell_wave_period_max_s": 11.85,
+      "surf_height_mean_ft": 2.76,
+      "surf_height_max_ft": 2.76,
+      "primary_swell_height_mean_ft": 2.49,
+      "primary_swell_height_max_ft": 2.49,
+      "primary_swell_period_mean_s": 11.8,
+      "primary_swell_period_max_s": 11.8,
+      "swell_wave_height_max_ft": 2.49,
+      "swell_wave_period_max_s": 11.8,
       "swell_wave_direction_deg": 199,
       "swell_direction_label": "SSW",
-      "wind_wave_height_max_ft": 0.13,
-      "wind_wave_period_max_s": 1.7,
-      "secondary_swell_height_ft": 1.38,
-      "secondary_swell_period_s": 7.2,
-      "secondary_swell_direction_deg": 252,
-      "secondary_swell_direction_label": "WSW",
-      "ml_p1_height_ft": 2.43,
-      "ml_p1_period_s": 11.85,
+      "wind_wave_height_max_ft": 0.2,
+      "wind_wave_period_max_s": 1.75,
+      "secondary_swell_height_ft": 1.44,
+      "secondary_swell_period_s": 4.4,
+      "secondary_swell_direction_deg": 276,
+      "secondary_swell_direction_label": "W",
+      "ml_p1_height_ft": 2.49,
+      "ml_p1_period_s": 11.8,
       "ml_p1_direction_deg": 199,
-      "ml_p2_height_ft": 1.38,
-      "ml_p2_period_s": 7.2,
-      "ml_p2_direction_deg": 252,
-      "ml_ww_height_ft": 0.13,
-      "ml_ww_period_s": 1.7,
-      "ml_wave_yesterday_ft": 2.92,
+      "ml_p2_height_ft": 1.44,
+      "ml_p2_period_s": 4.4,
+      "ml_p2_direction_deg": 276,
+      "ml_ww_height_ft": 0.2,
+      "ml_ww_period_s": 1.75,
+      "ml_wave_yesterday_ft": 2.86,
       "ml_wave_2d_ago_ft": 3.45,
       "ml_wave_3d_ago_ft": 4.13,
-      "ml_wave_7d_avg_ft": 3.7,
+      "ml_wave_7d_avg_ft": 3.69,
       "rain_target_day_forecast_in": 0.0,
       "rain_prior_3day_in": 0.0,
       "rain_prior_7day_in": 0.0,
       "rain_24h_in": 0.0,
       "ml_rain_3day_in": 0.0,
       "ml_rain_7day_in": 0.0,
-      "ml_gust_max_mph": 10.5,
+      "ml_gust_max_mph": 9.2,
       "ml_sst_f": 69.4,
       "ml_sin_doy": -0.1775,
       "ml_cos_doy": -0.9841,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 2.43,
-      "ml_buoy_per_s": 11.85,
+      "ml_buoy_ht_ft": 2.49,
+      "ml_buoy_per_s": 11.8,
       "ml_buoy_dir_deg": 199,
       "ml_buoy_exp": 0.629,
-      "ml_buoy_energy_wtd": 4.396,
-      "ml_wind_dir_deg": 248,
-      "ml_upwelling_wind": 0.139,
-      "ml_pressure_trend": 0.8,
+      "ml_buoy_energy_wtd": 4.617,
+      "ml_wind_dir_deg": 261,
+      "ml_upwelling_wind": 0.358,
+      "ml_pressure_trend": 0.6,
       "ml_sst_anomaly": 0.4,
-      "ml_wave_trend": -0.78,
-      "ml_wave_accel": -0.53,
+      "ml_wave_trend": -0.83,
+      "ml_wave_accel": -0.59,
       "ml_tide_min_ft": -1.14,
       "ml_tide_range_ft": 8.14,
       "ml_tide_morning_avg": 2.85,
-      "wave_height_max_ft": 2.69,
-      "wind_speed_mean_mph": 6.08,
-      "wind_speed_max_mph": 9.5,
-      "wind_gust_max_mph": 10.5,
-      "wave_energy_mean_kj": 61.752,
-      "wave_energy_max_kj": 61.752,
-      "total_swell_height_mean_ft": 2.43,
-      "total_swell_height_max_ft": 2.43,
-      "swell_power_proxy_mean": 61.752,
-      "swell_power_proxy_max": 61.752,
-      "short_period_swell_energy": 0.029,
-      "long_period_swell_energy": 61.722,
+      "wave_height_max_ft": 2.76,
+      "wind_speed_mean_mph": 4.61,
+      "wind_speed_max_mph": 7.2,
+      "wind_gust_max_mph": 9.2,
+      "wave_energy_mean_kj": 64.527,
+      "wave_energy_max_kj": 64.527,
+      "total_swell_height_mean_ft": 2.5,
+      "total_swell_height_max_ft": 2.5,
+      "swell_power_proxy_mean": 64.527,
+      "swell_power_proxy_max": 64.527,
+      "short_period_swell_energy": 0.068,
+      "long_period_swell_energy": 64.459,
       "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 2.119,
-      "wave_energy_wind_interaction": 586.641,
+      "wind_wave_churn_proxy": 2.48,
+      "wave_energy_wind_interaction": 464.596,
       "water_temp_estimate_f": 69.4,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 74.7,
-      "air_temp_min_f": 62.3,
+      "air_temp_max_f": 72.4,
+      "air_temp_min_f": 63.6,
       "tide_range_ft": 8.14,
       "wind_chart": [
         {
@@ -135,125 +136,125 @@
         },
         {
           "time": "01:00",
-          "speed_mph": 3.2
+          "speed_mph": 2.1
         },
         {
           "time": "02:00",
-          "speed_mph": 4.4
+          "speed_mph": 2.9
         },
         {
           "time": "03:00",
-          "speed_mph": 4.3
+          "speed_mph": 0.0
         },
         {
           "time": "04:00",
-          "speed_mph": 3.9
+          "speed_mph": 1.7
         },
         {
           "time": "05:00",
-          "speed_mph": 2.8
+          "speed_mph": 1.3
         },
         {
           "time": "06:00",
-          "speed_mph": 2.2
+          "speed_mph": 4.0
         },
         {
           "time": "07:00",
-          "speed_mph": 3.3
+          "speed_mph": 3.4
         },
         {
           "time": "08:00",
-          "speed_mph": 2.3
+          "speed_mph": 1.9
         },
         {
           "time": "09:00",
-          "speed_mph": 3.1
+          "speed_mph": 1.1
         },
         {
           "time": "10:00",
-          "speed_mph": 3.8
+          "speed_mph": 1.6
         },
         {
           "time": "11:00",
-          "speed_mph": 6.6
+          "speed_mph": 7.2
         },
         {
           "time": "12:00",
-          "speed_mph": 9.5
+          "speed_mph": 5.6
         },
         {
           "time": "13:00",
-          "speed_mph": 8.0
+          "speed_mph": 6.6
         },
         {
           "time": "14:00",
-          "speed_mph": 7.6
+          "speed_mph": 6.5
         },
         {
           "time": "15:00",
-          "speed_mph": 7.3
+          "speed_mph": 5.6
         },
         {
           "time": "16:00",
-          "speed_mph": 8.2
+          "speed_mph": 6.3
         },
         {
           "time": "17:00",
-          "speed_mph": 8.2
+          "speed_mph": 6.0
         },
         {
           "time": "18:00",
-          "speed_mph": 5.9
+          "speed_mph": 5.2
         },
         {
           "time": "19:00",
-          "speed_mph": 4.5
+          "speed_mph": 5.4
         },
         {
           "time": "20:00",
-          "speed_mph": 2.5
+          "speed_mph": 4.0
         },
         {
           "time": "21:00",
-          "speed_mph": 2.7
+          "speed_mph": 3.8
         },
         {
           "time": "22:00",
-          "speed_mph": 2.3
+          "speed_mph": 2.5
         },
         {
           "time": "23:00",
-          "speed_mph": 2.7
+          "speed_mph": 0.5
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "01:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "02:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "03:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "04:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "05:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "06:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "07:00",
@@ -424,8 +425,8 @@
       ],
       "tide_phase": "rising",
       "tide_next_event": {
-        "time": "09:24",
-        "height_ft": 3.66,
+        "time": "20:01",
+        "height_ft": 7.0,
         "type": "H"
       },
       "tide_slack_windows": [
@@ -473,33 +474,33 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-13",
-    "numeric_score_0_100": 58,
+    "numeric_score_0_100": 56,
     "grade": "D",
     "grade_probabilities": {
       "F": 0.0,
-      "D": 0.5380331472146135,
-      "C": 0.40055431567503186,
-      "B": 0.06141253711035472,
+      "D": 0.6271334050764403,
+      "C": 0.37286659492355967,
+      "B": 0.0,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
       "F": 0.0,
-      "D": 0.5380331472146135,
-      "C": 0.40055431567503186,
-      "B": 0.06141253711035472,
+      "D": 0.6271334050764403,
+      "C": 0.37286659492355967,
+      "B": 0.0,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.538
+      "probability": 0.6271
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -508,7 +509,7 @@
       9
     ],
     "estimated_visibility_mid_ft": 7.0,
-    "raw_expected_vis_ft": 9.77,
+    "raw_expected_vis_ft": 8.86,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
@@ -523,164 +524,164 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.6 ft | Wind: 9.3 mph | Water: 69.9\u00b0F | Swell: 2.4 ft @ 12s SSW",
+    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.7 ft | Wind: 9.4 mph | Water: 69.9\u00b0F | Swell: 2.5 ft @ 12s SSW",
     "features": {
       "date": "2026-07-13",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 2.62,
-      "surf_height_max_ft": 2.62,
-      "primary_swell_height_mean_ft": 2.43,
-      "primary_swell_height_max_ft": 2.43,
-      "primary_swell_period_mean_s": 11.75,
-      "primary_swell_period_max_s": 11.75,
-      "swell_wave_height_max_ft": 2.43,
-      "swell_wave_period_max_s": 11.75,
-      "swell_wave_direction_deg": 199,
+      "surf_height_mean_ft": 2.69,
+      "surf_height_max_ft": 2.69,
+      "primary_swell_height_mean_ft": 2.49,
+      "primary_swell_height_max_ft": 2.49,
+      "primary_swell_period_mean_s": 11.5,
+      "primary_swell_period_max_s": 11.5,
+      "swell_wave_height_max_ft": 2.49,
+      "swell_wave_period_max_s": 11.5,
+      "swell_wave_direction_deg": 200,
       "swell_direction_label": "SSW",
-      "wind_wave_height_max_ft": 0.52,
-      "wind_wave_period_max_s": 1.9,
-      "secondary_swell_height_ft": 1.05,
-      "secondary_swell_period_s": 11.85,
-      "secondary_swell_direction_deg": 217,
-      "secondary_swell_direction_label": "SW",
-      "ml_p1_height_ft": 2.43,
-      "ml_p1_period_s": 11.75,
-      "ml_p1_direction_deg": 199,
-      "ml_p2_height_ft": 1.05,
-      "ml_p2_period_s": 11.85,
-      "ml_p2_direction_deg": 217,
-      "ml_ww_height_ft": 0.52,
-      "ml_ww_period_s": 1.9,
-      "ml_wave_yesterday_ft": 2.63,
-      "ml_wave_2d_ago_ft": 2.92,
+      "wind_wave_height_max_ft": 0.39,
+      "wind_wave_period_max_s": 1.75,
+      "secondary_swell_height_ft": 1.31,
+      "secondary_swell_period_s": 8.15,
+      "secondary_swell_direction_deg": 181,
+      "secondary_swell_direction_label": "S",
+      "ml_p1_height_ft": 2.49,
+      "ml_p1_period_s": 11.5,
+      "ml_p1_direction_deg": 200,
+      "ml_p2_height_ft": 1.31,
+      "ml_p2_period_s": 8.15,
+      "ml_p2_direction_deg": 181,
+      "ml_ww_height_ft": 0.39,
+      "ml_ww_period_s": 1.75,
+      "ml_wave_yesterday_ft": 2.65,
+      "ml_wave_2d_ago_ft": 2.86,
       "ml_wave_3d_ago_ft": 3.45,
-      "ml_wave_7d_avg_ft": 3.63,
+      "ml_wave_7d_avg_ft": 3.62,
       "rain_target_day_forecast_in": 0.0,
       "rain_prior_3day_in": 0.0,
       "rain_prior_7day_in": 0.0,
       "rain_24h_in": 0.0,
       "ml_rain_3day_in": 0.0,
       "ml_rain_7day_in": 0.0,
-      "ml_gust_max_mph": 10.5,
+      "ml_gust_max_mph": 11.0,
       "ml_sst_f": 69.9,
       "ml_sin_doy": -0.1944,
       "ml_cos_doy": -0.9809,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 2.43,
-      "ml_buoy_per_s": 11.75,
-      "ml_buoy_dir_deg": 199,
-      "ml_buoy_exp": 0.629,
-      "ml_buoy_energy_wtd": 4.359,
-      "ml_wind_dir_deg": 305,
-      "ml_upwelling_wind": 0.906,
-      "ml_pressure_trend": 1.2,
+      "ml_buoy_ht_ft": 2.49,
+      "ml_buoy_per_s": 11.5,
+      "ml_buoy_dir_deg": 200,
+      "ml_buoy_exp": 0.643,
+      "ml_buoy_energy_wtd": 4.596,
+      "ml_wind_dir_deg": 292,
+      "ml_upwelling_wind": 0.788,
+      "ml_pressure_trend": 1.1,
       "ml_sst_anomaly": 0.9,
-      "ml_wave_trend": -1.0,
-      "ml_wave_accel": -0.29,
+      "ml_wave_trend": -0.97,
+      "ml_wave_accel": -0.2,
       "ml_tide_min_ft": -1.43,
       "ml_tide_range_ft": 8.59,
       "ml_tide_morning_avg": 2.47,
-      "wave_height_max_ft": 2.62,
-      "wind_speed_mean_mph": 5.95,
-      "wind_speed_max_mph": 9.3,
-      "wind_gust_max_mph": 10.5,
-      "wave_energy_mean_kj": 58.28,
-      "wave_energy_max_kj": 58.28,
-      "total_swell_height_mean_ft": 2.48,
-      "total_swell_height_max_ft": 2.48,
-      "swell_power_proxy_mean": 58.28,
-      "swell_power_proxy_max": 58.28,
-      "short_period_swell_energy": 0.524,
-      "long_period_swell_energy": 57.757,
+      "wave_height_max_ft": 2.69,
+      "wind_speed_mean_mph": 6.02,
+      "wind_speed_max_mph": 9.4,
+      "wind_gust_max_mph": 11.0,
+      "wave_energy_mean_kj": 59.928,
+      "wave_energy_max_kj": 59.928,
+      "total_swell_height_mean_ft": 2.52,
+      "total_swell_height_max_ft": 2.52,
+      "swell_power_proxy_mean": 59.928,
+      "swell_power_proxy_max": 59.928,
+      "short_period_swell_energy": 0.271,
+      "long_period_swell_energy": 59.657,
       "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 9.276,
-      "wave_energy_wind_interaction": 542.005,
+      "wind_wave_churn_proxy": 6.476,
+      "wave_energy_wind_interaction": 563.321,
       "water_temp_estimate_f": 69.9,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 72.4,
-      "air_temp_min_f": 66.1,
+      "air_temp_max_f": 73.3,
+      "air_temp_min_f": 66.0,
       "tide_range_ft": 8.59,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 1.6
+          "speed_mph": 2.2
         },
         {
           "time": "01:00",
-          "speed_mph": 2.1
+          "speed_mph": 1.9
         },
         {
           "time": "02:00",
-          "speed_mph": 2.5
+          "speed_mph": 3.9
         },
         {
           "time": "03:00",
-          "speed_mph": 2.0
+          "speed_mph": 3.5
         },
         {
           "time": "04:00",
-          "speed_mph": 4.1
+          "speed_mph": 1.1
         },
         {
           "time": "05:00",
-          "speed_mph": 3.4
+          "speed_mph": 2.4
         },
         {
           "time": "06:00",
-          "speed_mph": 6.8
+          "speed_mph": 1.1
         },
         {
           "time": "07:00",
-          "speed_mph": 4.7
+          "speed_mph": 1.6
         },
         {
           "time": "08:00",
-          "speed_mph": 3.4
+          "speed_mph": 1.4
         },
         {
           "time": "09:00",
-          "speed_mph": 4.3
+          "speed_mph": 3.0
         },
         {
           "time": "10:00",
-          "speed_mph": 4.1
+          "speed_mph": 3.6
         },
         {
           "time": "11:00",
-          "speed_mph": 5.0
+          "speed_mph": 5.5
         },
         {
           "time": "12:00",
-          "speed_mph": 5.6
+          "speed_mph": 6.6
         },
         {
           "time": "13:00",
-          "speed_mph": 7.2
+          "speed_mph": 7.9
         },
         {
           "time": "14:00",
-          "speed_mph": 6.5
+          "speed_mph": 6.4
         },
         {
           "time": "15:00",
-          "speed_mph": 9.3
+          "speed_mph": 5.2
         },
         {
           "time": "16:00",
-          "speed_mph": 7.6
+          "speed_mph": 6.8
         },
         {
           "time": "17:00",
-          "speed_mph": 7.8
+          "speed_mph": 5.3
         },
         {
           "time": "18:00",
-          "speed_mph": 6.5
+          "speed_mph": 9.4
         },
         {
           "time": "19:00",
-          "speed_mph": 6.8
+          "speed_mph": 8.7
         },
         {
           "time": "20:00",
@@ -692,11 +693,11 @@
         },
         {
           "time": "22:00",
-          "speed_mph": 5.0
+          "speed_mph": 4.8
         },
         {
           "time": "23:00",
-          "speed_mph": 4.0
+          "speed_mph": 5.0
         }
       ],
       "wave_chart": [
@@ -754,47 +755,47 @@
         },
         {
           "time": "13:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "14:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "15:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "16:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "17:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "18:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "19:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "20:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "21:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "22:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "23:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         }
       ],
       "tide_chart": [
@@ -917,42 +918,42 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-14",
     "numeric_score_0_100": 58,
-    "grade": "C",
+    "grade": "D",
     "grade_probabilities": {
       "F": 0.0,
-      "D": 0.4947997091213014,
-      "C": 0.4115006893437114,
-      "B": 0.09369960153498712,
+      "D": 0.5057885102174421,
+      "C": 0.4267431409395805,
+      "B": 0.06746834884297748,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
       "F": 0.0,
-      "D": 0.4947997091213014,
-      "C": 0.4115006893437114,
-      "B": 0.09369960153498712,
+      "D": 0.5057885102174421,
+      "C": 0.4267431409395805,
+      "B": 0.06746834884297748,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.4948
+      "probability": 0.5058
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
     "estimated_visibility_range_ft": [
-      10,
-      14
+      5,
+      9
     ],
-    "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 10.23,
+    "estimated_visibility_mid_ft": 7.0,
+    "raw_expected_vis_ft": 9.98,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
@@ -967,198 +968,198 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.9 ft | Wind: 10.6 mph | Water: 69.7\u00b0F | Swell: 2.4 ft @ 11s SSW",
+    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.9 ft | Wind: 11.5 mph | Water: 69.7\u00b0F | Swell: 2.4 ft @ 11s SSW",
     "features": {
       "date": "2026-07-14",
       "coherent_swell_source": "hourly_max_height_event",
       "surf_height_mean_ft": 2.89,
       "surf_height_max_ft": 2.89,
-      "primary_swell_height_mean_ft": 2.36,
-      "primary_swell_height_max_ft": 2.36,
-      "primary_swell_period_mean_s": 11.35,
-      "primary_swell_period_max_s": 11.35,
-      "swell_wave_height_max_ft": 2.36,
-      "swell_wave_period_max_s": 11.35,
+      "primary_swell_height_mean_ft": 2.43,
+      "primary_swell_height_max_ft": 2.43,
+      "primary_swell_period_mean_s": 11.4,
+      "primary_swell_period_max_s": 11.4,
+      "swell_wave_height_max_ft": 2.43,
+      "swell_wave_period_max_s": 11.4,
       "swell_wave_direction_deg": 200,
       "swell_direction_label": "SSW",
-      "wind_wave_height_max_ft": 0.85,
-      "wind_wave_period_max_s": 2.15,
-      "secondary_swell_height_ft": 1.05,
-      "secondary_swell_period_s": 16.85,
-      "secondary_swell_direction_deg": 225,
+      "wind_wave_height_max_ft": 1.05,
+      "wind_wave_period_max_s": 2.35,
+      "secondary_swell_height_ft": 1.12,
+      "secondary_swell_period_s": 16.7,
+      "secondary_swell_direction_deg": 224,
       "secondary_swell_direction_label": "SW",
-      "ml_p1_height_ft": 2.36,
-      "ml_p1_period_s": 11.35,
+      "ml_p1_height_ft": 2.43,
+      "ml_p1_period_s": 11.4,
       "ml_p1_direction_deg": 200,
-      "ml_p2_height_ft": 1.05,
-      "ml_p2_period_s": 16.85,
-      "ml_p2_direction_deg": 225,
-      "ml_ww_height_ft": 0.85,
-      "ml_ww_period_s": 2.15,
-      "ml_wave_yesterday_ft": 2.62,
-      "ml_wave_2d_ago_ft": 2.63,
-      "ml_wave_3d_ago_ft": 2.92,
+      "ml_p2_height_ft": 1.12,
+      "ml_p2_period_s": 16.7,
+      "ml_p2_direction_deg": 224,
+      "ml_ww_height_ft": 1.05,
+      "ml_ww_period_s": 2.35,
+      "ml_wave_yesterday_ft": 2.65,
+      "ml_wave_2d_ago_ft": 2.65,
+      "ml_wave_3d_ago_ft": 2.86,
       "ml_wave_7d_avg_ft": 3.48,
-      "rain_target_day_forecast_in": 0.031,
+      "rain_target_day_forecast_in": 0.0,
       "rain_prior_3day_in": 0.0,
       "rain_prior_7day_in": 0.0,
-      "rain_24h_in": 0.031,
+      "rain_24h_in": 0.0,
       "ml_rain_3day_in": 0.0,
       "ml_rain_7day_in": 0.0,
-      "ml_gust_max_mph": 9.8,
+      "ml_gust_max_mph": 12.8,
       "ml_sst_f": 69.7,
       "ml_sin_doy": -0.2113,
       "ml_cos_doy": -0.9774,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 2.36,
-      "ml_buoy_per_s": 11.35,
+      "ml_buoy_ht_ft": 2.43,
+      "ml_buoy_per_s": 11.4,
       "ml_buoy_dir_deg": 200,
       "ml_buoy_exp": 0.643,
-      "ml_buoy_energy_wtd": 4.071,
-      "ml_wind_dir_deg": 277,
-      "ml_upwelling_wind": 0.602,
-      "ml_pressure_trend": -3.4,
+      "ml_buoy_energy_wtd": 4.319,
+      "ml_wind_dir_deg": 296,
+      "ml_upwelling_wind": 0.829,
+      "ml_pressure_trend": -1.8,
       "ml_sst_anomaly": 0.7,
-      "ml_wave_trend": -0.86,
-      "ml_wave_accel": -0.01,
+      "ml_wave_trend": -0.82,
+      "ml_wave_accel": 0.0,
       "ml_tide_min_ft": -1.61,
       "ml_tide_range_ft": 8.67,
       "ml_tide_morning_avg": 1.92,
       "wave_height_max_ft": 2.89,
-      "wind_speed_mean_mph": 6.78,
-      "wind_speed_max_mph": 10.6,
-      "wind_gust_max_mph": 9.8,
-      "wave_energy_mean_kj": 68.118,
-      "wave_energy_max_kj": 68.118,
-      "total_swell_height_mean_ft": 2.51,
-      "total_swell_height_max_ft": 2.51,
-      "swell_power_proxy_mean": 68.118,
-      "swell_power_proxy_max": 68.118,
-      "short_period_swell_energy": 1.564,
-      "long_period_swell_energy": 66.554,
-      "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 19.44,
-      "wave_energy_wind_interaction": 722.054,
+      "wind_speed_mean_mph": 7.36,
+      "wind_speed_max_mph": 11.5,
+      "wind_gust_max_mph": 12.8,
+      "wave_energy_mean_kj": 68.418,
+      "wave_energy_max_kj": 68.418,
+      "total_swell_height_mean_ft": 2.65,
+      "total_swell_height_max_ft": 2.65,
+      "swell_power_proxy_mean": 68.418,
+      "swell_power_proxy_max": 68.418,
+      "short_period_swell_energy": 2.59,
+      "long_period_swell_energy": 65.828,
+      "mixed_swell_score": 2,
+      "wind_wave_churn_proxy": 28.373,
+      "wave_energy_wind_interaction": 786.811,
       "water_temp_estimate_f": 69.7,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 86.1,
-      "air_temp_min_f": 70.9,
+      "air_temp_max_f": 85.5,
+      "air_temp_min_f": 67.1,
       "tide_range_ft": 8.67,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 1.3
+          "speed_mph": 4.3
         },
         {
           "time": "01:00",
-          "speed_mph": 3.3
-        },
-        {
-          "time": "02:00",
-          "speed_mph": 4.7
-        },
-        {
-          "time": "03:00",
-          "speed_mph": 2.1
-        },
-        {
-          "time": "04:00",
-          "speed_mph": 2.7
-        },
-        {
-          "time": "05:00",
-          "speed_mph": 3.0
-        },
-        {
-          "time": "06:00",
           "speed_mph": 3.2
         },
         {
-          "time": "07:00",
+          "time": "02:00",
+          "speed_mph": 2.7
+        },
+        {
+          "time": "03:00",
+          "speed_mph": 4.0
+        },
+        {
+          "time": "04:00",
           "speed_mph": 3.9
         },
         {
+          "time": "05:00",
+          "speed_mph": 3.6
+        },
+        {
+          "time": "06:00",
+          "speed_mph": 2.1
+        },
+        {
+          "time": "07:00",
+          "speed_mph": 3.4
+        },
+        {
           "time": "08:00",
-          "speed_mph": 2.6
-        },
-        {
-          "time": "09:00",
-          "speed_mph": 3.1
-        },
-        {
-          "time": "10:00",
-          "speed_mph": 7.3
-        },
-        {
-          "time": "11:00",
-          "speed_mph": 5.2
-        },
-        {
-          "time": "12:00",
-          "speed_mph": 6.8
-        },
-        {
-          "time": "13:00",
-          "speed_mph": 9.4
-        },
-        {
-          "time": "14:00",
-          "speed_mph": 10.6
-        },
-        {
-          "time": "15:00",
-          "speed_mph": 10.0
-        },
-        {
-          "time": "16:00",
-          "speed_mph": 8.8
-        },
-        {
-          "time": "17:00",
-          "speed_mph": 8.4
-        },
-        {
-          "time": "18:00",
-          "speed_mph": 7.4
-        },
-        {
-          "time": "19:00",
-          "speed_mph": 5.9
-        },
-        {
-          "time": "20:00",
-          "speed_mph": 4.9
-        },
-        {
-          "time": "21:00",
-          "speed_mph": 4.2
-        },
-        {
-          "time": "22:00",
           "speed_mph": 3.8
         },
         {
+          "time": "09:00",
+          "speed_mph": 2.9
+        },
+        {
+          "time": "10:00",
+          "speed_mph": 4.0
+        },
+        {
+          "time": "11:00",
+          "speed_mph": 6.9
+        },
+        {
+          "time": "12:00",
+          "speed_mph": 10.7
+        },
+        {
+          "time": "13:00",
+          "speed_mph": 10.6
+        },
+        {
+          "time": "14:00",
+          "speed_mph": 11.5
+        },
+        {
+          "time": "15:00",
+          "speed_mph": 9.7
+        },
+        {
+          "time": "16:00",
+          "speed_mph": 8.3
+        },
+        {
+          "time": "17:00",
+          "speed_mph": 7.9
+        },
+        {
+          "time": "18:00",
+          "speed_mph": 8.3
+        },
+        {
+          "time": "19:00",
+          "speed_mph": 7.1
+        },
+        {
+          "time": "20:00",
+          "speed_mph": 7.0
+        },
+        {
+          "time": "21:00",
+          "speed_mph": 3.9
+        },
+        {
+          "time": "22:00",
+          "speed_mph": 3.2
+        },
+        {
           "time": "23:00",
-          "speed_mph": 3.6
+          "speed_mph": 3.2
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "01:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "02:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "03:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "04:00",
@@ -1194,7 +1195,7 @@
         },
         {
           "time": "12:00",
-          "height_ft": 2.6
+          "height_ft": 2.7
         },
         {
           "time": "13:00",
@@ -1202,7 +1203,7 @@
         },
         {
           "time": "14:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "15:00",
@@ -1222,23 +1223,23 @@
         },
         {
           "time": "19:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "20:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "21:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "22:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "23:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         }
       ],
       "tide_chart": [
@@ -1361,7 +1362,7 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
@@ -1371,23 +1372,23 @@
     "grade": "C",
     "grade_probabilities": {
       "F": 0.0,
-      "D": 0.16250380146844817,
-      "C": 0.6038265964327757,
-      "B": 0.23366960209877619,
+      "D": 0.1572925802495609,
+      "C": 0.5870016962055533,
+      "B": 0.25570572354488585,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
       "F": 0.0,
-      "D": 0.16250380146844817,
-      "C": 0.6038265964327757,
-      "B": 0.23366960209877619,
+      "D": 0.1572925802495609,
+      "C": 0.5870016962055533,
+      "B": 0.25570572354488585,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "C",
-      "probability": 0.6038
+      "probability": 0.587
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -1396,12 +1397,12 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 12.94,
+    "raw_expected_vis_ft": 13.13,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
     "risk_factors": [
-      "No major model risk factors in the parsed feature set."
+      "Afternoon wind may texture the surface."
     ],
     "positive_factors": [
       "Overall swell load is modest.",
@@ -1411,96 +1412,96 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Model conditions are generally workable.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.9 ft | Wind: 8.5 mph | Water: 70.9\u00b0F | Swell: 1.9 ft @ 10s SSW",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Afternoon wind may texture the surface.\nBest shot: early morning to late morning before wind builds.\nWaves: 2.8 ft | Wind: 9.0 mph | Water: 70.9\u00b0F | Swell: 1.9 ft @ 10s SSW",
     "features": {
       "date": "2026-07-15",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 2.89,
-      "surf_height_max_ft": 2.89,
+      "surf_height_mean_ft": 2.76,
+      "surf_height_max_ft": 2.76,
       "primary_swell_height_mean_ft": 1.9,
       "primary_swell_height_max_ft": 1.9,
-      "primary_swell_period_mean_s": 10.15,
-      "primary_swell_period_max_s": 10.15,
+      "primary_swell_period_mean_s": 10.0,
+      "primary_swell_period_max_s": 10.0,
       "swell_wave_height_max_ft": 1.9,
-      "swell_wave_period_max_s": 10.15,
-      "swell_wave_direction_deg": 198,
+      "swell_wave_period_max_s": 10.0,
+      "swell_wave_direction_deg": 197,
       "swell_direction_label": "SSW",
       "wind_wave_height_max_ft": 0.07,
-      "wind_wave_period_max_s": 0.55,
-      "secondary_swell_height_ft": 1.38,
-      "secondary_swell_period_s": 14.0,
+      "wind_wave_period_max_s": 0.25,
+      "secondary_swell_height_ft": 1.44,
+      "secondary_swell_period_s": 13.35,
       "secondary_swell_direction_deg": 221,
       "secondary_swell_direction_label": "SW",
       "ml_p1_height_ft": 1.9,
-      "ml_p1_period_s": 10.15,
-      "ml_p1_direction_deg": 198,
-      "ml_p2_height_ft": 1.38,
-      "ml_p2_period_s": 14.0,
+      "ml_p1_period_s": 10.0,
+      "ml_p1_direction_deg": 197,
+      "ml_p2_height_ft": 1.44,
+      "ml_p2_period_s": 13.35,
       "ml_p2_direction_deg": 221,
       "ml_ww_height_ft": 0.07,
-      "ml_ww_period_s": 0.55,
+      "ml_ww_period_s": 0.25,
       "ml_wave_yesterday_ft": 2.73,
-      "ml_wave_2d_ago_ft": 2.62,
-      "ml_wave_3d_ago_ft": 2.63,
+      "ml_wave_2d_ago_ft": 2.65,
+      "ml_wave_3d_ago_ft": 2.65,
       "ml_wave_7d_avg_ft": 3.29,
       "rain_target_day_forecast_in": 0.0,
-      "rain_prior_3day_in": 0.031,
-      "rain_prior_7day_in": 0.031,
+      "rain_prior_3day_in": 0.0,
+      "rain_prior_7day_in": 0.0,
       "rain_24h_in": 0.0,
-      "ml_rain_3day_in": 0.031,
-      "ml_rain_7day_in": 0.031,
-      "ml_gust_max_mph": 6.3,
+      "ml_rain_3day_in": 0.0,
+      "ml_rain_7day_in": 0.0,
+      "ml_gust_max_mph": 7.6,
       "ml_sst_f": 70.9,
       "ml_sin_doy": -0.2281,
       "ml_cos_doy": -0.9736,
       "ml_month": 7.0,
       "ml_buoy_ht_ft": 1.9,
-      "ml_buoy_per_s": 10.15,
-      "ml_buoy_dir_deg": 198,
-      "ml_buoy_exp": 0.616,
-      "ml_buoy_energy_wtd": 2.263,
-      "ml_wind_dir_deg": 254,
-      "ml_upwelling_wind": 0.242,
-      "ml_pressure_trend": -3.4,
+      "ml_buoy_per_s": 10.0,
+      "ml_buoy_dir_deg": 197,
+      "ml_buoy_exp": 0.602,
+      "ml_buoy_energy_wtd": 2.179,
+      "ml_wind_dir_deg": 246,
+      "ml_upwelling_wind": 0.105,
+      "ml_pressure_trend": -4.6,
       "ml_sst_anomaly": 1.9,
       "ml_wave_trend": -0.56,
-      "ml_wave_accel": 0.11,
+      "ml_wave_accel": 0.07,
       "ml_tide_min_ft": -1.5,
       "ml_tide_range_ft": 8.21,
       "ml_tide_morning_avg": 1.34,
-      "wave_height_max_ft": 2.89,
-      "wind_speed_mean_mph": 5.44,
-      "wind_speed_max_mph": 8.5,
-      "wind_gust_max_mph": 6.3,
-      "wave_energy_mean_kj": 60.916,
-      "wave_energy_max_kj": 60.916,
+      "wave_height_max_ft": 2.76,
+      "wind_speed_mean_mph": 5.76,
+      "wind_speed_max_mph": 9.0,
+      "wind_gust_max_mph": 7.6,
+      "wave_energy_mean_kj": 54.684,
+      "wave_energy_max_kj": 54.684,
       "total_swell_height_mean_ft": 1.9,
       "total_swell_height_max_ft": 1.9,
-      "swell_power_proxy_mean": 60.916,
-      "swell_power_proxy_max": 60.916,
+      "swell_power_proxy_mean": 54.684,
+      "swell_power_proxy_max": 54.684,
       "short_period_swell_energy": 0.004,
-      "long_period_swell_energy": 60.912,
+      "long_period_swell_energy": 54.68,
       "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 0.558,
-      "wave_energy_wind_interaction": 517.789,
+      "wind_wave_churn_proxy": 0.591,
+      "wave_energy_wind_interaction": 492.157,
       "water_temp_estimate_f": 70.9,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 89.8,
-      "air_temp_min_f": 73.3,
+      "air_temp_max_f": 89.3,
+      "air_temp_min_f": 72.9,
       "tide_range_ft": 8.21,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 2.9
+          "speed_mph": 2.8
         },
         {
           "time": "01:00",
-          "speed_mph": 3.2
+          "speed_mph": 3.1
         },
         {
           "time": "02:00",
-          "speed_mph": 3.2
+          "speed_mph": 3.4
         },
         {
           "time": "03:00",
@@ -1508,35 +1509,35 @@
         },
         {
           "time": "04:00",
-          "speed_mph": 2.6
+          "speed_mph": 2.8
         },
         {
           "time": "05:00",
-          "speed_mph": 1.9
-        },
-        {
-          "time": "06:00",
           "speed_mph": 1.7
         },
         {
-          "time": "07:00",
-          "speed_mph": 2.5
-        },
-        {
-          "time": "08:00",
-          "speed_mph": 2.4
-        },
-        {
-          "time": "09:00",
+          "time": "06:00",
           "speed_mph": 2.1
         },
         {
+          "time": "07:00",
+          "speed_mph": 2.2
+        },
+        {
+          "time": "08:00",
+          "speed_mph": 2.5
+        },
+        {
+          "time": "09:00",
+          "speed_mph": 4.6
+        },
+        {
           "time": "10:00",
-          "speed_mph": 4.7
+          "speed_mph": 4.5
         },
         {
           "time": "11:00",
-          "speed_mph": 6.8
+          "speed_mph": 6.9
         },
         {
           "time": "12:00",
@@ -1544,31 +1545,31 @@
         },
         {
           "time": "13:00",
-          "speed_mph": 8.5
-        },
-        {
-          "time": "14:00",
           "speed_mph": 7.8
         },
         {
-          "time": "15:00",
+          "time": "14:00",
           "speed_mph": 8.5
         },
         {
-          "time": "16:00",
-          "speed_mph": 8.2
+          "time": "15:00",
+          "speed_mph": 9.0
         },
         {
-          "time": "17:00",
+          "time": "16:00",
           "speed_mph": 7.6
         },
         {
+          "time": "17:00",
+          "speed_mph": 7.9
+        },
+        {
           "time": "18:00",
-          "speed_mph": 7.5
+          "speed_mph": 7.7
         },
         {
           "time": "19:00",
-          "speed_mph": 5.7
+          "speed_mph": 6.1
         },
         {
           "time": "20:00",
@@ -1576,113 +1577,113 @@
         },
         {
           "time": "21:00",
-          "speed_mph": 3.5
+          "speed_mph": 4.4
         },
         {
           "time": "22:00",
-          "speed_mph": 3.5
+          "speed_mph": 3.9
         },
         {
           "time": "23:00",
-          "speed_mph": 4.3
+          "speed_mph": 4.6
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "01:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "02:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "03:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "04:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "05:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "06:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "07:00",
-          "height_ft": 2.8
+          "height_ft": 2.6
         },
         {
           "time": "08:00",
-          "height_ft": 2.8
+          "height_ft": 2.6
         },
         {
           "time": "09:00",
-          "height_ft": 2.8
+          "height_ft": 2.6
         },
         {
           "time": "10:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "11:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "12:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "13:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "14:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "15:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "16:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "17:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "18:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "19:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "20:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "21:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "22:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         },
         {
           "time": "23:00",
-          "height_ft": 2.8
+          "height_ft": 2.7
         }
       ],
       "tide_chart": [
@@ -1805,7 +1806,7 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
@@ -1814,24 +1815,24 @@
     "numeric_score_0_100": 59,
     "grade": "C",
     "grade_probabilities": {
-      "F": 0.0,
-      "D": 0.46053161520964,
-      "C": 0.417977113264284,
-      "B": 0.12149127152607608,
+      "F": 0.014655022582359446,
+      "D": 0.45111681008627164,
+      "C": 0.412494935031268,
+      "B": 0.12173323230010098,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.0,
-      "D": 0.46053161520964,
-      "C": 0.417977113264284,
-      "B": 0.12149127152607608,
+      "F": 0.014655022582359446,
+      "D": 0.45111681008627164,
+      "C": 0.412494935031268,
+      "B": 0.12173323230010098,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.4605
+      "probability": 0.4511
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -1840,196 +1841,196 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 10.61,
+    "raw_expected_vis_ft": 10.52,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
     "risk_factors": [
       "Elevated surf can stir up the shallows.",
-      "Afternoon wind may texture the surface."
+      "Afternoon wind may texture the surface.",
+      "Recent rain can reduce nearshore clarity."
     ],
     "positive_factors": [
-      "Overall swell load is modest.",
       "Wave energy is on the lower side."
     ],
     "explanation": "Conditions score blends swell, wave energy, and wind with the open sandy shore calibration. La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md.",
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.4 ft | Wind: 10.4 mph | Water: 71.4\u00b0F | Swell: 2.6 ft @ 6s W",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.7 ft | Wind: 11.8 mph | Water: 71.4\u00b0F | Swell: 3.0 ft @ 6s W",
     "features": {
       "date": "2026-07-16",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 3.41,
-      "surf_height_max_ft": 3.41,
-      "primary_swell_height_mean_ft": 2.62,
-      "primary_swell_height_max_ft": 2.62,
-      "primary_swell_period_mean_s": 5.5,
-      "primary_swell_period_max_s": 5.5,
-      "swell_wave_height_max_ft": 2.62,
-      "swell_wave_period_max_s": 5.5,
-      "swell_wave_direction_deg": 279,
+      "surf_height_mean_ft": 3.67,
+      "surf_height_max_ft": 3.67,
+      "primary_swell_height_mean_ft": 3.02,
+      "primary_swell_height_max_ft": 3.02,
+      "primary_swell_period_mean_s": 5.55,
+      "primary_swell_period_max_s": 5.55,
+      "swell_wave_height_max_ft": 3.02,
+      "swell_wave_period_max_s": 5.55,
+      "swell_wave_direction_deg": 278,
       "swell_direction_label": "W",
-      "wind_wave_height_max_ft": 1.05,
-      "wind_wave_period_max_s": 2.3,
-      "secondary_swell_height_ft": 1.64,
-      "secondary_swell_period_s": 9.05,
-      "secondary_swell_direction_deg": 195,
-      "secondary_swell_direction_label": "SSW",
-      "ml_p1_height_ft": 2.62,
-      "ml_p1_period_s": 5.5,
-      "ml_p1_direction_deg": 279,
-      "ml_p2_height_ft": 1.64,
-      "ml_p2_period_s": 9.05,
-      "ml_p2_direction_deg": 195,
-      "ml_ww_height_ft": 1.05,
-      "ml_ww_period_s": 2.3,
-      "ml_wave_yesterday_ft": 2.77,
+      "wind_wave_height_max_ft": 1.31,
+      "wind_wave_period_max_s": 2.55,
+      "secondary_swell_height_ft": 1.84,
+      "secondary_swell_period_s": 12.8,
+      "secondary_swell_direction_deg": 217,
+      "secondary_swell_direction_label": "SW",
+      "ml_p1_height_ft": 3.02,
+      "ml_p1_period_s": 5.55,
+      "ml_p1_direction_deg": 278,
+      "ml_p2_height_ft": 1.84,
+      "ml_p2_period_s": 12.8,
+      "ml_p2_direction_deg": 217,
+      "ml_ww_height_ft": 1.31,
+      "ml_ww_period_s": 2.55,
+      "ml_wave_yesterday_ft": 2.68,
       "ml_wave_2d_ago_ft": 2.73,
-      "ml_wave_3d_ago_ft": 2.62,
-      "ml_wave_7d_avg_ft": 3.03,
-      "rain_target_day_forecast_in": 0.059,
-      "rain_prior_3day_in": 0.031,
-      "rain_prior_7day_in": 0.031,
-      "rain_24h_in": 0.059,
-      "ml_rain_3day_in": 0.031,
-      "ml_rain_7day_in": 0.031,
-      "ml_gust_max_mph": 13.0,
+      "ml_wave_3d_ago_ft": 2.65,
+      "ml_wave_7d_avg_ft": 3.02,
+      "rain_target_day_forecast_in": 0.161,
+      "rain_prior_3day_in": 0.0,
+      "rain_prior_7day_in": 0.0,
+      "rain_24h_in": 0.161,
+      "ml_rain_3day_in": 0.0,
+      "ml_rain_7day_in": 0.0,
+      "ml_gust_max_mph": 18.1,
       "ml_sst_f": 71.4,
       "ml_sin_doy": -0.2448,
       "ml_cos_doy": -0.9696,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 2.62,
-      "ml_buoy_per_s": 5.5,
-      "ml_buoy_dir_deg": 279,
-      "ml_buoy_exp": 0.875,
-      "ml_buoy_energy_wtd": 3.314,
-      "ml_wind_dir_deg": 208,
+      "ml_buoy_ht_ft": 3.02,
+      "ml_buoy_per_s": 5.55,
+      "ml_buoy_dir_deg": 278,
+      "ml_buoy_exp": 0.883,
+      "ml_buoy_energy_wtd": 4.465,
+      "ml_wind_dir_deg": 196,
       "ml_upwelling_wind": 0.0,
-      "ml_pressure_trend": -0.3,
+      "ml_pressure_trend": 0.0,
       "ml_sst_anomaly": 2.4,
-      "ml_wave_trend": -0.26,
-      "ml_wave_accel": 0.04,
+      "ml_wave_trend": -0.34,
+      "ml_wave_accel": -0.04,
       "ml_tide_min_ft": -1.1,
       "ml_tide_range_ft": 7.3,
       "ml_tide_morning_avg": 0.88,
-      "wave_height_max_ft": 3.41,
-      "wind_speed_mean_mph": 6.66,
-      "wind_speed_max_mph": 10.4,
-      "wind_gust_max_mph": 13.0,
-      "wave_energy_mean_kj": 46.103,
-      "wave_energy_max_kj": 46.103,
-      "total_swell_height_mean_ft": 2.83,
-      "total_swell_height_max_ft": 2.83,
-      "swell_power_proxy_mean": 46.103,
-      "swell_power_proxy_max": 46.103,
-      "short_period_swell_energy": 2.535,
-      "long_period_swell_energy": 43.568,
+      "wave_height_max_ft": 3.67,
+      "wind_speed_mean_mph": 7.55,
+      "wind_speed_max_mph": 11.8,
+      "wind_gust_max_mph": 18.1,
+      "wave_energy_mean_kj": 53.955,
+      "wave_energy_max_kj": 53.955,
+      "total_swell_height_mean_ft": 3.29,
+      "total_swell_height_max_ft": 3.29,
+      "swell_power_proxy_mean": 53.955,
+      "swell_power_proxy_max": 53.955,
+      "short_period_swell_energy": 4.392,
+      "long_period_swell_energy": 49.563,
       "mixed_swell_score": 2,
-      "wind_wave_churn_proxy": 25.113,
-      "wave_energy_wind_interaction": 479.474,
+      "wind_wave_churn_proxy": 39.488,
+      "wave_energy_wind_interaction": 636.669,
       "water_temp_estimate_f": 71.4,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 85.0,
-      "air_temp_min_f": 74.0,
+      "air_temp_max_f": 82.3,
+      "air_temp_min_f": 72.0,
       "tide_range_ft": 7.3,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 4.9
-        },
-        {
-          "time": "01:00",
-          "speed_mph": 4.4
-        },
-        {
-          "time": "02:00",
-          "speed_mph": 4.0
-        },
-        {
-          "time": "03:00",
-          "speed_mph": 3.2
-        },
-        {
-          "time": "04:00",
-          "speed_mph": 5.5
-        },
-        {
-          "time": "05:00",
-          "speed_mph": 4.9
-        },
-        {
-          "time": "06:00",
-          "speed_mph": 0.6
-        },
-        {
-          "time": "07:00",
-          "speed_mph": 0.2
-        },
-        {
-          "time": "08:00",
-          "speed_mph": 4.6
-        },
-        {
-          "time": "09:00",
-          "speed_mph": 6.6
-        },
-        {
-          "time": "10:00",
           "speed_mph": 6.8
         },
         {
-          "time": "11:00",
-          "speed_mph": 7.8
+          "time": "01:00",
+          "speed_mph": 7.6
         },
         {
-          "time": "12:00",
-          "speed_mph": 9.8
-        },
-        {
-          "time": "13:00",
-          "speed_mph": 9.6
-        },
-        {
-          "time": "14:00",
-          "speed_mph": 10.3
-        },
-        {
-          "time": "15:00",
-          "speed_mph": 10.4
-        },
-        {
-          "time": "16:00",
-          "speed_mph": 8.6
-        },
-        {
-          "time": "17:00",
+          "time": "02:00",
           "speed_mph": 7.4
         },
         {
+          "time": "03:00",
+          "speed_mph": 7.4
+        },
+        {
+          "time": "04:00",
+          "speed_mph": 6.8
+        },
+        {
+          "time": "05:00",
+          "speed_mph": 5.2
+        },
+        {
+          "time": "06:00",
+          "speed_mph": 4.5
+        },
+        {
+          "time": "07:00",
+          "speed_mph": 3.6
+        },
+        {
+          "time": "08:00",
+          "speed_mph": 3.4
+        },
+        {
+          "time": "09:00",
+          "speed_mph": 5.8
+        },
+        {
+          "time": "10:00",
+          "speed_mph": 9.0
+        },
+        {
+          "time": "11:00",
+          "speed_mph": 9.3
+        },
+        {
+          "time": "12:00",
+          "speed_mph": 10.5
+        },
+        {
+          "time": "13:00",
+          "speed_mph": 11.1
+        },
+        {
+          "time": "14:00",
+          "speed_mph": 10.8
+        },
+        {
+          "time": "15:00",
+          "speed_mph": 11.8
+        },
+        {
+          "time": "16:00",
+          "speed_mph": 11.0
+        },
+        {
+          "time": "17:00",
+          "speed_mph": 7.9
+        },
+        {
           "time": "18:00",
-          "speed_mph": 6.2
+          "speed_mph": 7.1
         },
         {
           "time": "19:00",
-          "speed_mph": 4.9
+          "speed_mph": 8.2
         },
         {
           "time": "20:00",
-          "speed_mph": 3.9
+          "speed_mph": 8.1
         },
         {
           "time": "21:00",
-          "speed_mph": 3.5
+          "speed_mph": 7.7
         },
         {
           "time": "22:00",
-          "speed_mph": 3.7
+          "speed_mph": 5.2
         },
         {
           "time": "23:00",
-          "speed_mph": 3.6
+          "speed_mph": 4.5
         }
       ],
       "wave_chart": [
@@ -2043,91 +2044,91 @@
         },
         {
           "time": "02:00",
-          "height_ft": 2.8
-        },
-        {
-          "time": "03:00",
           "height_ft": 2.9
         },
         {
-          "time": "04:00",
+          "time": "03:00",
           "height_ft": 3.0
+        },
+        {
+          "time": "04:00",
+          "height_ft": 3.2
         },
         {
           "time": "05:00",
-          "height_ft": 3.1
+          "height_ft": 3.3
         },
         {
           "time": "06:00",
-          "height_ft": 3.1
+          "height_ft": 3.4
         },
         {
           "time": "07:00",
-          "height_ft": 3.2
+          "height_ft": 3.5
         },
         {
           "time": "08:00",
-          "height_ft": 3.3
+          "height_ft": 3.6
         },
         {
           "time": "09:00",
-          "height_ft": 3.3
+          "height_ft": 3.6
         },
         {
           "time": "10:00",
-          "height_ft": 3.3
+          "height_ft": 3.7
         },
         {
           "time": "11:00",
-          "height_ft": 3.4
+          "height_ft": 3.7
         },
         {
           "time": "12:00",
-          "height_ft": 3.4
+          "height_ft": 3.7
         },
         {
           "time": "13:00",
-          "height_ft": 3.3
+          "height_ft": 3.6
         },
         {
           "time": "14:00",
-          "height_ft": 3.3
+          "height_ft": 3.6
         },
         {
           "time": "15:00",
-          "height_ft": 3.3
+          "height_ft": 3.5
         },
         {
           "time": "16:00",
-          "height_ft": 3.3
+          "height_ft": 3.5
         },
         {
           "time": "17:00",
-          "height_ft": 3.2
+          "height_ft": 3.5
         },
         {
           "time": "18:00",
-          "height_ft": 3.2
+          "height_ft": 3.5
         },
         {
           "time": "19:00",
-          "height_ft": 3.1
+          "height_ft": 3.4
         },
         {
           "time": "20:00",
-          "height_ft": 3.1
+          "height_ft": 3.4
         },
         {
           "time": "21:00",
-          "height_ft": 3.1
+          "height_ft": 3.4
         },
         {
           "time": "22:00",
-          "height_ft": 3.1
+          "height_ft": 3.4
         },
         {
           "time": "23:00",
-          "height_ft": 3.0
+          "height_ft": 3.4
         }
       ],
       "tide_chart": [
@@ -2250,7 +2251,7 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
@@ -2259,24 +2260,24 @@
     "numeric_score_0_100": 62,
     "grade": "C",
     "grade_probabilities": {
-      "F": 0.0,
-      "D": 0.35527933066167444,
-      "C": 0.3183683749575992,
-      "B": 0.32635229438072644,
+      "F": 0.008056790663296521,
+      "D": 0.35583463408147203,
+      "C": 0.3569797588771965,
+      "B": 0.27912881637803505,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.0,
-      "D": 0.35527933066167444,
-      "C": 0.3183683749575992,
-      "B": 0.32635229438072644,
+      "F": 0.008056790663296521,
+      "D": 0.35583463408147203,
+      "C": 0.3569797588771965,
+      "B": 0.27912881637803505,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
-      "grade": "D",
-      "probability": 0.3553
+      "grade": "C",
+      "probability": 0.357
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -2285,7 +2286,7 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 12.67,
+    "raw_expected_vis_ft": 12.24,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
@@ -2301,83 +2302,83 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.0 ft | Wind: 9.6 mph | Water: 72.6\u00b0F | Swell: 1.9 ft @ 6s WNW",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.4 ft | Wind: 12.5 mph | Water: 72.6\u00b0F | Swell: 2.4 ft @ 6s W",
     "features": {
       "date": "2026-07-17",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 3.02,
-      "surf_height_max_ft": 3.02,
-      "primary_swell_height_mean_ft": 1.9,
-      "primary_swell_height_max_ft": 1.9,
-      "primary_swell_period_mean_s": 6.25,
-      "primary_swell_period_max_s": 6.25,
-      "swell_wave_height_max_ft": 1.9,
-      "swell_wave_period_max_s": 6.25,
-      "swell_wave_direction_deg": 288,
-      "swell_direction_label": "WNW",
-      "wind_wave_height_max_ft": 0.33,
-      "wind_wave_period_max_s": 1.5,
-      "secondary_swell_height_ft": 1.51,
-      "secondary_swell_period_s": 10.6,
-      "secondary_swell_direction_deg": 188,
+      "surf_height_mean_ft": 3.41,
+      "surf_height_max_ft": 3.41,
+      "primary_swell_height_mean_ft": 2.43,
+      "primary_swell_height_max_ft": 2.43,
+      "primary_swell_period_mean_s": 5.8,
+      "primary_swell_period_max_s": 5.8,
+      "swell_wave_height_max_ft": 2.43,
+      "swell_wave_period_max_s": 5.8,
+      "swell_wave_direction_deg": 278,
+      "swell_direction_label": "W",
+      "wind_wave_height_max_ft": 0.85,
+      "wind_wave_period_max_s": 2.15,
+      "secondary_swell_height_ft": 1.57,
+      "secondary_swell_period_s": 11.1,
+      "secondary_swell_direction_deg": 187,
       "secondary_swell_direction_label": "S",
-      "ml_p1_height_ft": 1.9,
-      "ml_p1_period_s": 6.25,
-      "ml_p1_direction_deg": 288,
-      "ml_p2_height_ft": 1.51,
-      "ml_p2_period_s": 10.6,
-      "ml_p2_direction_deg": 188,
-      "ml_ww_height_ft": 0.33,
-      "ml_ww_period_s": 1.5,
-      "ml_wave_yesterday_ft": 3.16,
-      "ml_wave_2d_ago_ft": 2.77,
+      "ml_p1_height_ft": 2.43,
+      "ml_p1_period_s": 5.8,
+      "ml_p1_direction_deg": 278,
+      "ml_p2_height_ft": 1.57,
+      "ml_p2_period_s": 11.1,
+      "ml_p2_direction_deg": 187,
+      "ml_ww_height_ft": 0.85,
+      "ml_ww_period_s": 2.15,
+      "ml_wave_yesterday_ft": 3.4,
+      "ml_wave_2d_ago_ft": 2.68,
       "ml_wave_3d_ago_ft": 2.73,
-      "ml_wave_7d_avg_ft": 2.89,
+      "ml_wave_7d_avg_ft": 2.92,
       "rain_target_day_forecast_in": 0.0,
-      "rain_prior_3day_in": 0.09,
-      "rain_prior_7day_in": 0.09,
+      "rain_prior_3day_in": 0.161,
+      "rain_prior_7day_in": 0.161,
       "rain_24h_in": 0.0,
-      "ml_rain_3day_in": 0.09,
-      "ml_rain_7day_in": 0.09,
-      "ml_gust_max_mph": 13.4,
+      "ml_rain_3day_in": 0.161,
+      "ml_rain_7day_in": 0.161,
+      "ml_gust_max_mph": 21.3,
       "ml_sst_f": 72.6,
       "ml_sin_doy": -0.2614,
       "ml_cos_doy": -0.9652,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 1.9,
-      "ml_buoy_per_s": 6.25,
-      "ml_buoy_dir_deg": 288,
-      "ml_buoy_exp": 0.788,
-      "ml_buoy_energy_wtd": 1.783,
-      "ml_wind_dir_deg": 219,
+      "ml_buoy_ht_ft": 2.43,
+      "ml_buoy_per_s": 5.8,
+      "ml_buoy_dir_deg": 278,
+      "ml_buoy_exp": 0.883,
+      "ml_buoy_energy_wtd": 3.019,
+      "ml_wind_dir_deg": 199,
       "ml_upwelling_wind": 0.0,
-      "ml_pressure_trend": 3.6,
+      "ml_pressure_trend": 4.0,
       "ml_sst_anomaly": 3.6,
-      "ml_wave_trend": 0.26,
-      "ml_wave_accel": 0.39,
+      "ml_wave_trend": 0.48,
+      "ml_wave_accel": 0.71,
       "ml_tide_min_ft": -0.65,
       "ml_tide_range_ft": 6.68,
       "ml_tide_morning_avg": 0.67,
-      "wave_height_max_ft": 3.02,
-      "wind_speed_mean_mph": 6.14,
-      "wind_speed_max_mph": 9.6,
-      "wind_gust_max_mph": 13.4,
-      "wave_energy_mean_kj": 40.998,
-      "wave_energy_max_kj": 40.998,
-      "total_swell_height_mean_ft": 1.93,
-      "total_swell_height_max_ft": 1.93,
-      "swell_power_proxy_mean": 40.998,
-      "swell_power_proxy_max": 40.998,
-      "short_period_swell_energy": 0.161,
-      "long_period_swell_energy": 40.836,
-      "mixed_swell_score": 2,
-      "wind_wave_churn_proxy": 4.724,
-      "wave_energy_wind_interaction": 393.577,
+      "wave_height_max_ft": 3.41,
+      "wind_speed_mean_mph": 8.0,
+      "wind_speed_max_mph": 12.5,
+      "wind_gust_max_mph": 21.3,
+      "wave_energy_mean_kj": 48.618,
+      "wave_energy_max_kj": 48.618,
+      "total_swell_height_mean_ft": 2.57,
+      "total_swell_height_max_ft": 2.57,
+      "swell_power_proxy_mean": 48.618,
+      "swell_power_proxy_max": 48.618,
+      "short_period_swell_energy": 1.564,
+      "long_period_swell_energy": 47.054,
+      "mixed_swell_score": 1,
+      "wind_wave_churn_proxy": 22.925,
+      "wave_energy_wind_interaction": 607.725,
       "water_temp_estimate_f": 72.6,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 84.3,
-      "air_temp_min_f": 73.8,
+      "air_temp_max_f": 80.3,
+      "air_temp_min_f": 71.5,
       "tide_range_ft": 6.68,
       "wind_chart": [
         {
@@ -2386,193 +2387,193 @@
         },
         {
           "time": "01:00",
-          "speed_mph": 3.5
+          "speed_mph": 2.7
         },
         {
           "time": "02:00",
-          "speed_mph": 3.6
+          "speed_mph": 2.2
         },
         {
           "time": "03:00",
-          "speed_mph": 4.0
+          "speed_mph": 3.3
         },
         {
           "time": "04:00",
-          "speed_mph": 4.3
+          "speed_mph": 5.2
         },
         {
           "time": "05:00",
-          "speed_mph": 4.6
+          "speed_mph": 6.7
         },
         {
           "time": "06:00",
-          "speed_mph": 4.3
-        },
-        {
-          "time": "07:00",
-          "speed_mph": 3.6
-        },
-        {
-          "time": "08:00",
-          "speed_mph": 3.6
-        },
-        {
-          "time": "09:00",
-          "speed_mph": 4.7
-        },
-        {
-          "time": "10:00",
-          "speed_mph": 6.5
-        },
-        {
-          "time": "11:00",
-          "speed_mph": 8.1
-        },
-        {
-          "time": "12:00",
-          "speed_mph": 8.9
-        },
-        {
-          "time": "13:00",
-          "speed_mph": 9.5
-        },
-        {
-          "time": "14:00",
-          "speed_mph": 9.6
-        },
-        {
-          "time": "15:00",
-          "speed_mph": 9.3
-        },
-        {
-          "time": "16:00",
-          "speed_mph": 8.7
-        },
-        {
-          "time": "17:00",
-          "speed_mph": 8.1
-        },
-        {
-          "time": "18:00",
           "speed_mph": 6.9
         },
         {
+          "time": "07:00",
+          "speed_mph": 6.7
+        },
+        {
+          "time": "08:00",
+          "speed_mph": 7.0
+        },
+        {
+          "time": "09:00",
+          "speed_mph": 8.1
+        },
+        {
+          "time": "10:00",
+          "speed_mph": 9.6
+        },
+        {
+          "time": "11:00",
+          "speed_mph": 11.1
+        },
+        {
+          "time": "12:00",
+          "speed_mph": 12.0
+        },
+        {
+          "time": "13:00",
+          "speed_mph": 12.5
+        },
+        {
+          "time": "14:00",
+          "speed_mph": 12.5
+        },
+        {
+          "time": "15:00",
+          "speed_mph": 11.5
+        },
+        {
+          "time": "16:00",
+          "speed_mph": 10.0
+        },
+        {
+          "time": "17:00",
+          "speed_mph": 9.1
+        },
+        {
+          "time": "18:00",
+          "speed_mph": 8.7
+        },
+        {
           "time": "19:00",
-          "speed_mph": 5.9
+          "speed_mph": 8.7
         },
         {
           "time": "20:00",
-          "speed_mph": 5.6
+          "speed_mph": 8.4
         },
         {
           "time": "21:00",
-          "speed_mph": 5.7
+          "speed_mph": 7.0
         },
         {
           "time": "22:00",
-          "speed_mph": 6.3
+          "speed_mph": 5.6
         },
         {
           "time": "23:00",
-          "speed_mph": 6.6
+          "speed_mph": 4.3
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 3.0
+          "height_ft": 3.4
         },
         {
           "time": "01:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "02:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "03:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "04:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "05:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "06:00",
-          "height_ft": 3.0
+          "height_ft": 3.3
         },
         {
           "time": "07:00",
-          "height_ft": 2.9
+          "height_ft": 3.3
         },
         {
           "time": "08:00",
-          "height_ft": 2.9
+          "height_ft": 3.3
         },
         {
           "time": "09:00",
-          "height_ft": 2.9
+          "height_ft": 3.2
         },
         {
           "time": "10:00",
-          "height_ft": 2.8
+          "height_ft": 3.2
         },
         {
           "time": "11:00",
-          "height_ft": 2.8
+          "height_ft": 3.1
         },
         {
           "time": "12:00",
-          "height_ft": 2.8
+          "height_ft": 3.1
         },
         {
           "time": "13:00",
-          "height_ft": 2.8
+          "height_ft": 3.1
         },
         {
           "time": "14:00",
-          "height_ft": 2.8
+          "height_ft": 3.1
         },
         {
           "time": "15:00",
-          "height_ft": 2.8
+          "height_ft": 3.0
         },
         {
           "time": "16:00",
-          "height_ft": 2.7
+          "height_ft": 3.0
         },
         {
           "time": "17:00",
-          "height_ft": 2.7
+          "height_ft": 3.0
         },
         {
           "time": "18:00",
-          "height_ft": 2.7
+          "height_ft": 3.0
         },
         {
           "time": "19:00",
-          "height_ft": 2.7
+          "height_ft": 2.9
         },
         {
           "time": "20:00",
-          "height_ft": 2.7
+          "height_ft": 2.9
         },
         {
           "time": "21:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "22:00",
-          "height_ft": 2.6
+          "height_ft": 2.8
         },
         {
           "time": "23:00",
-          "height_ft": 2.6
+          "height_ft": 2.8
         }
       ],
       "tide_chart": [
@@ -2695,33 +2696,33 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-18",
-    "numeric_score_0_100": 65,
+    "numeric_score_0_100": 64,
     "grade": "C",
     "grade_probabilities": {
-      "F": 0.0,
-      "D": 0.20269499636614796,
-      "C": 0.3698506356451585,
-      "B": 0.42745436798869363,
+      "F": 0.0025448568817489164,
+      "D": 0.1794215729345804,
+      "C": 0.4464485421205317,
+      "B": 0.3715850280631391,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.0,
-      "D": 0.20269499636614796,
-      "C": 0.3698506356451585,
-      "B": 0.42745436798869363,
+      "F": 0.0025448568817489164,
+      "D": 0.1794215729345804,
+      "C": 0.4464485421205317,
+      "B": 0.3715850280631391,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
-      "grade": "B",
-      "probability": 0.4275
+      "grade": "C",
+      "probability": 0.4464
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -2730,7 +2731,7 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 14.19,
+    "raw_expected_vis_ft": 13.87,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
@@ -2739,204 +2740,205 @@
       "Afternoon wind may texture the surface."
     ],
     "positive_factors": [
-      "Longer-period swell is easier to time around than short chop."
+      "Overall swell load is modest.",
+      "Wave energy is on the lower side."
     ],
     "explanation": "Conditions score blends swell, wave energy, and wind with the open sandy shore calibration. La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md.",
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.7 ft | Wind: 10.4 mph | Water: 73.4\u00b0F | Swell: 3.1 ft @ 9s S",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.2 ft | Wind: 10.4 mph | Water: 73.4\u00b0F | Swell: 2.6 ft @ 9s S",
     "features": {
       "date": "2026-07-18",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 3.67,
-      "surf_height_max_ft": 3.67,
-      "primary_swell_height_mean_ft": 3.15,
-      "primary_swell_height_max_ft": 3.15,
-      "primary_swell_period_mean_s": 9.45,
-      "primary_swell_period_max_s": 9.45,
-      "swell_wave_height_max_ft": 3.15,
-      "swell_wave_period_max_s": 9.45,
-      "swell_wave_direction_deg": 174,
+      "surf_height_mean_ft": 3.22,
+      "surf_height_max_ft": 3.22,
+      "primary_swell_height_mean_ft": 2.62,
+      "primary_swell_height_max_ft": 2.62,
+      "primary_swell_period_mean_s": 8.75,
+      "primary_swell_period_max_s": 8.75,
+      "swell_wave_height_max_ft": 2.62,
+      "swell_wave_period_max_s": 8.75,
+      "swell_wave_direction_deg": 176,
       "swell_direction_label": "S",
-      "wind_wave_height_max_ft": 0.07,
-      "wind_wave_period_max_s": 1.2,
-      "secondary_swell_height_ft": 1.38,
-      "secondary_swell_period_s": 13.5,
-      "secondary_swell_direction_deg": 220,
+      "wind_wave_height_max_ft": 0.0,
+      "wind_wave_period_max_s": 0,
+      "secondary_swell_height_ft": 1.44,
+      "secondary_swell_period_s": 14.4,
+      "secondary_swell_direction_deg": 217,
       "secondary_swell_direction_label": "SW",
-      "ml_p1_height_ft": 3.15,
-      "ml_p1_period_s": 9.45,
-      "ml_p1_direction_deg": 174,
-      "ml_p2_height_ft": 1.38,
-      "ml_p2_period_s": 13.5,
-      "ml_p2_direction_deg": 220,
-      "ml_ww_height_ft": 0.07,
-      "ml_ww_period_s": 1.2,
-      "ml_wave_yesterday_ft": 2.81,
-      "ml_wave_2d_ago_ft": 3.16,
-      "ml_wave_3d_ago_ft": 2.77,
-      "ml_wave_7d_avg_ft": 2.8,
+      "ml_p1_height_ft": 2.62,
+      "ml_p1_period_s": 8.75,
+      "ml_p1_direction_deg": 176,
+      "ml_p2_height_ft": 1.44,
+      "ml_p2_period_s": 14.4,
+      "ml_p2_direction_deg": 217,
+      "ml_ww_height_ft": 0.0,
+      "ml_ww_period_s": 0,
+      "ml_wave_yesterday_ft": 3.13,
+      "ml_wave_2d_ago_ft": 3.4,
+      "ml_wave_3d_ago_ft": 2.68,
+      "ml_wave_7d_avg_ft": 2.87,
       "rain_target_day_forecast_in": 0.0,
-      "rain_prior_3day_in": 0.059,
-      "rain_prior_7day_in": 0.09,
+      "rain_prior_3day_in": 0.161,
+      "rain_prior_7day_in": 0.161,
       "rain_24h_in": 0.0,
-      "ml_rain_3day_in": 0.059,
-      "ml_rain_7day_in": 0.09,
-      "ml_gust_max_mph": 16.3,
+      "ml_rain_3day_in": 0.161,
+      "ml_rain_7day_in": 0.161,
+      "ml_gust_max_mph": 11.4,
       "ml_sst_f": 73.4,
       "ml_sin_doy": -0.278,
       "ml_cos_doy": -0.9606,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 3.15,
-      "ml_buoy_per_s": 9.45,
-      "ml_buoy_dir_deg": 174,
-      "ml_buoy_exp": 0.242,
-      "ml_buoy_energy_wtd": 2.268,
-      "ml_wind_dir_deg": 293,
-      "ml_upwelling_wind": 0.799,
-      "ml_pressure_trend": 2.2,
+      "ml_buoy_ht_ft": 2.62,
+      "ml_buoy_per_s": 8.75,
+      "ml_buoy_dir_deg": 176,
+      "ml_buoy_exp": 0.276,
+      "ml_buoy_energy_wtd": 1.661,
+      "ml_wind_dir_deg": 295,
+      "ml_upwelling_wind": 0.819,
+      "ml_pressure_trend": 2.0,
       "ml_sst_anomaly": 4.4,
-      "ml_wave_trend": 0.01,
-      "ml_wave_accel": -0.34,
+      "ml_wave_trend": 0.26,
+      "ml_wave_accel": -0.27,
       "ml_tide_min_ft": -0.03,
       "ml_tide_range_ft": 5.49,
       "ml_tide_morning_avg": 0.77,
-      "wave_height_max_ft": 3.67,
+      "wave_height_max_ft": 3.22,
       "wind_speed_mean_mph": 6.66,
       "wind_speed_max_mph": 10.4,
-      "wind_gust_max_mph": 16.3,
-      "wave_energy_mean_kj": 91.869,
-      "wave_energy_max_kj": 91.869,
-      "total_swell_height_mean_ft": 3.15,
-      "total_swell_height_max_ft": 3.15,
-      "swell_power_proxy_mean": 91.869,
-      "swell_power_proxy_max": 91.869,
-      "short_period_swell_energy": 0.005,
-      "long_period_swell_energy": 91.864,
+      "wind_gust_max_mph": 11.4,
+      "wave_energy_mean_kj": 65.127,
+      "wave_energy_max_kj": 65.127,
+      "total_swell_height_mean_ft": 2.62,
+      "total_swell_height_max_ft": 2.62,
+      "swell_power_proxy_mean": 65.127,
+      "swell_power_proxy_max": 65.127,
+      "short_period_swell_energy": 0.0,
+      "long_period_swell_energy": 65.127,
       "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 0.819,
-      "wave_energy_wind_interaction": 955.441,
+      "wind_wave_churn_proxy": 0.0,
+      "wave_energy_wind_interaction": 677.323,
       "water_temp_estimate_f": 73.4,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 85.0,
-      "air_temp_min_f": 73.9,
+      "air_temp_max_f": 87.1,
+      "air_temp_min_f": 72.4,
       "tide_range_ft": 5.49,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 5.5
+          "speed_mph": 3.4
         },
         {
           "time": "01:00",
-          "speed_mph": 3.9
+          "speed_mph": 2.9
         },
         {
           "time": "02:00",
-          "speed_mph": 2.5
+          "speed_mph": 2.7
         },
         {
           "time": "03:00",
-          "speed_mph": 1.8
-        },
-        {
-          "time": "04:00",
           "speed_mph": 1.6
         },
         {
+          "time": "04:00",
+          "speed_mph": 0.8
+        },
+        {
           "time": "05:00",
-          "speed_mph": 1.5
+          "speed_mph": 1.1
         },
         {
           "time": "06:00",
-          "speed_mph": 1.7
+          "speed_mph": 1.1
         },
         {
           "time": "07:00",
-          "speed_mph": 2.8
+          "speed_mph": 2.0
         },
         {
           "time": "08:00",
-          "speed_mph": 3.8
+          "speed_mph": 2.9
         },
         {
           "time": "09:00",
-          "speed_mph": 4.0
+          "speed_mph": 3.6
         },
         {
           "time": "10:00",
-          "speed_mph": 5.2
+          "speed_mph": 4.2
         },
         {
           "time": "11:00",
-          "speed_mph": 6.9
+          "speed_mph": 5.5
         },
         {
           "time": "12:00",
-          "speed_mph": 7.5
+          "speed_mph": 7.2
         },
         {
           "time": "13:00",
-          "speed_mph": 8.3
+          "speed_mph": 9.0
         },
         {
           "time": "14:00",
-          "speed_mph": 8.9
-        },
-        {
-          "time": "15:00",
-          "speed_mph": 9.7
-        },
-        {
-          "time": "16:00",
           "speed_mph": 10.2
         },
         {
-          "time": "17:00",
+          "time": "15:00",
           "speed_mph": 10.4
         },
         {
+          "time": "16:00",
+          "speed_mph": 10.1
+        },
+        {
+          "time": "17:00",
+          "speed_mph": 9.4
+        },
+        {
           "time": "18:00",
-          "speed_mph": 9.8
-        },
-        {
-          "time": "19:00",
-          "speed_mph": 8.9
-        },
-        {
-          "time": "20:00",
           "speed_mph": 8.6
         },
         {
+          "time": "19:00",
+          "speed_mph": 7.4
+        },
+        {
+          "time": "20:00",
+          "speed_mph": 6.4
+        },
+        {
           "time": "21:00",
-          "speed_mph": 8.1
+          "speed_mph": 5.7
         },
         {
           "time": "22:00",
-          "speed_mph": 7.3
+          "speed_mph": 5.6
         },
         {
           "time": "23:00",
-          "speed_mph": 6.4
+          "speed_mph": 5.3
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 2.6
+          "height_ft": 2.8
         },
         {
           "time": "01:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "02:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "03:00",
-          "height_ft": 2.7
+          "height_ft": 2.8
         },
         {
           "time": "04:00",
@@ -2956,67 +2958,67 @@
         },
         {
           "time": "08:00",
-          "height_ft": 2.9
+          "height_ft": 2.8
         },
         {
           "time": "09:00",
-          "height_ft": 3.0
+          "height_ft": 2.8
         },
         {
           "time": "10:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "11:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "12:00",
-          "height_ft": 3.1
+          "height_ft": 3.0
         },
         {
           "time": "13:00",
-          "height_ft": 3.1
+          "height_ft": 3.0
         },
         {
           "time": "14:00",
-          "height_ft": 3.2
+          "height_ft": 3.0
         },
         {
           "time": "15:00",
-          "height_ft": 3.3
+          "height_ft": 3.1
         },
         {
           "time": "16:00",
-          "height_ft": 3.3
+          "height_ft": 3.1
         },
         {
           "time": "17:00",
-          "height_ft": 3.4
+          "height_ft": 3.1
         },
         {
           "time": "18:00",
-          "height_ft": 3.5
+          "height_ft": 3.1
         },
         {
           "time": "19:00",
-          "height_ft": 3.5
+          "height_ft": 3.2
         },
         {
           "time": "20:00",
-          "height_ft": 3.6
+          "height_ft": 3.2
         },
         {
           "time": "21:00",
-          "height_ft": 3.6
+          "height_ft": 3.2
         },
         {
           "time": "22:00",
-          "height_ft": 3.7
+          "height_ft": 3.2
         },
         {
           "time": "23:00",
-          "height_ft": 3.7
+          "height_ft": 3.2
         }
       ],
       "tide_chart": [
@@ -3139,7 +3141,7 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
@@ -3148,24 +3150,24 @@
     "numeric_score_0_100": 64,
     "grade": "C",
     "grade_probabilities": {
-      "F": 0.0,
-      "D": 0.28508014627982187,
-      "C": 0.27133096144494,
-      "B": 0.4435888922752382,
+      "F": 0.003731292919094289,
+      "D": 0.20403248906142507,
+      "C": 0.44510743291391974,
+      "B": 0.34712878510556094,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.0,
-      "D": 0.28508014627982187,
-      "C": 0.27133096144494,
-      "B": 0.4435888922752382,
+      "F": 0.003731292919094289,
+      "D": 0.20403248906142507,
+      "C": 0.44510743291391974,
+      "B": 0.34712878510556094,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
-      "grade": "B",
-      "probability": 0.4436
+      "grade": "C",
+      "probability": 0.4451
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -3174,7 +3176,7 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 13.9,
+    "raw_expected_vis_ft": 13.55,
     "guardrail_applied": false,
     "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
@@ -3183,284 +3185,285 @@
       "Afternoon wind may texture the surface."
     ],
     "positive_factors": [
-      "Longer-period swell is easier to time around than short chop."
+      "Overall swell load is modest.",
+      "Wave energy is on the lower side."
     ],
     "explanation": "Conditions score blends swell, wave energy, and wind with the open sandy shore calibration. La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md.",
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.7 ft | Wind: 10.8 mph | Water: 73.7\u00b0F | Swell: 3.2 ft @ 9s S",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.2 ft | Wind: 11.1 mph | Water: 73.7\u00b0F | Swell: 2.6 ft @ 9s S",
     "features": {
       "date": "2026-07-19",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 3.74,
-      "surf_height_max_ft": 3.74,
-      "primary_swell_height_mean_ft": 3.22,
-      "primary_swell_height_max_ft": 3.22,
-      "primary_swell_period_mean_s": 8.85,
-      "primary_swell_period_max_s": 8.85,
-      "swell_wave_height_max_ft": 3.22,
-      "swell_wave_period_max_s": 8.85,
+      "surf_height_mean_ft": 3.22,
+      "surf_height_max_ft": 3.22,
+      "primary_swell_height_mean_ft": 2.62,
+      "primary_swell_height_max_ft": 2.62,
+      "primary_swell_period_mean_s": 8.6,
+      "primary_swell_period_max_s": 8.6,
+      "swell_wave_height_max_ft": 2.62,
+      "swell_wave_period_max_s": 8.6,
       "swell_wave_direction_deg": 176,
       "swell_direction_label": "S",
-      "wind_wave_height_max_ft": 0.13,
-      "wind_wave_period_max_s": 1.25,
-      "secondary_swell_height_ft": 1.9,
-      "secondary_swell_period_s": 13.2,
-      "secondary_swell_direction_deg": 219,
-      "secondary_swell_direction_label": "SW",
-      "ml_p1_height_ft": 3.22,
-      "ml_p1_period_s": 8.85,
+      "wind_wave_height_max_ft": 0.26,
+      "wind_wave_period_max_s": 1.55,
+      "secondary_swell_height_ft": 1.57,
+      "secondary_swell_period_s": 9.55,
+      "secondary_swell_direction_deg": 191,
+      "secondary_swell_direction_label": "S",
+      "ml_p1_height_ft": 2.62,
+      "ml_p1_period_s": 8.6,
       "ml_p1_direction_deg": 176,
-      "ml_p2_height_ft": 1.9,
-      "ml_p2_period_s": 13.2,
-      "ml_p2_direction_deg": 219,
-      "ml_ww_height_ft": 0.13,
-      "ml_ww_period_s": 1.25,
-      "ml_wave_yesterday_ft": 3.11,
-      "ml_wave_2d_ago_ft": 2.81,
-      "ml_wave_3d_ago_ft": 3.16,
-      "ml_wave_7d_avg_ft": 2.83,
+      "ml_p2_height_ft": 1.57,
+      "ml_p2_period_s": 9.55,
+      "ml_p2_direction_deg": 191,
+      "ml_ww_height_ft": 0.26,
+      "ml_ww_period_s": 1.55,
+      "ml_wave_yesterday_ft": 2.96,
+      "ml_wave_2d_ago_ft": 3.13,
+      "ml_wave_3d_ago_ft": 3.4,
+      "ml_wave_7d_avg_ft": 2.89,
       "rain_target_day_forecast_in": 0.0,
-      "rain_prior_3day_in": 0.059,
-      "rain_prior_7day_in": 0.09,
+      "rain_prior_3day_in": 0.161,
+      "rain_prior_7day_in": 0.161,
       "rain_24h_in": 0.0,
-      "ml_rain_3day_in": 0.059,
-      "ml_rain_7day_in": 0.09,
+      "ml_rain_3day_in": 0.161,
+      "ml_rain_7day_in": 0.161,
       "ml_gust_max_mph": 12.5,
       "ml_sst_f": 73.7,
       "ml_sin_doy": -0.2945,
       "ml_cos_doy": -0.9557,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 3.22,
-      "ml_buoy_per_s": 8.85,
+      "ml_buoy_ht_ft": 2.62,
+      "ml_buoy_per_s": 8.6,
       "ml_buoy_dir_deg": 176,
       "ml_buoy_exp": 0.276,
-      "ml_buoy_energy_wtd": 2.522,
-      "ml_wind_dir_deg": 298,
-      "ml_upwelling_wind": 0.848,
-      "ml_pressure_trend": -1.1,
+      "ml_buoy_energy_wtd": 1.633,
+      "ml_wind_dir_deg": 307,
+      "ml_upwelling_wind": 0.921,
+      "ml_pressure_trend": -1.3,
       "ml_sst_anomaly": 4.7,
-      "ml_wave_trend": 0.28,
-      "ml_wave_accel": 0.3,
+      "ml_wave_trend": 0.07,
+      "ml_wave_accel": -0.17,
       "ml_tide_min_ft": 0.7,
       "ml_tide_range_ft": 4.09,
       "ml_tide_morning_avg": 1.14,
-      "wave_height_max_ft": 3.74,
-      "wind_speed_mean_mph": 6.91,
-      "wind_speed_max_mph": 10.8,
+      "wave_height_max_ft": 3.22,
+      "wind_speed_mean_mph": 7.1,
+      "wind_speed_max_mph": 11.1,
       "wind_gust_max_mph": 12.5,
-      "wave_energy_mean_kj": 89.136,
-      "wave_energy_max_kj": 89.136,
-      "total_swell_height_mean_ft": 3.22,
-      "total_swell_height_max_ft": 3.22,
-      "swell_power_proxy_mean": 89.136,
-      "swell_power_proxy_max": 89.136,
-      "short_period_swell_energy": 0.022,
-      "long_period_swell_energy": 89.115,
+      "wave_energy_mean_kj": 64.011,
+      "wave_energy_max_kj": 64.011,
+      "total_swell_height_mean_ft": 2.64,
+      "total_swell_height_max_ft": 2.64,
+      "swell_power_proxy_mean": 64.011,
+      "swell_power_proxy_max": 64.011,
+      "short_period_swell_energy": 0.107,
+      "long_period_swell_energy": 63.904,
       "mixed_swell_score": 1,
-      "wind_wave_churn_proxy": 1.772,
-      "wave_energy_wind_interaction": 962.674,
+      "wind_wave_churn_proxy": 4.516,
+      "wave_energy_wind_interaction": 710.52,
       "water_temp_estimate_f": 73.7,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 88.3,
-      "air_temp_min_f": 75.2,
+      "air_temp_max_f": 86.4,
+      "air_temp_min_f": 75.3,
       "tide_range_ft": 4.09,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 5.3
-        },
-        {
-          "time": "01:00",
-          "speed_mph": 4.1
-        },
-        {
-          "time": "02:00",
-          "speed_mph": 3.5
-        },
-        {
-          "time": "03:00",
-          "speed_mph": 3.5
-        },
-        {
-          "time": "04:00",
-          "speed_mph": 3.8
-        },
-        {
-          "time": "05:00",
-          "speed_mph": 4.1
-        },
-        {
-          "time": "06:00",
-          "speed_mph": 3.8
-        },
-        {
-          "time": "07:00",
-          "speed_mph": 3.2
-        },
-        {
-          "time": "08:00",
-          "speed_mph": 3.0
-        },
-        {
-          "time": "09:00",
-          "speed_mph": 4.1
-        },
-        {
-          "time": "10:00",
-          "speed_mph": 5.8
-        },
-        {
-          "time": "11:00",
-          "speed_mph": 7.6
-        },
-        {
-          "time": "12:00",
-          "speed_mph": 9.0
-        },
-        {
-          "time": "13:00",
-          "speed_mph": 10.1
-        },
-        {
-          "time": "14:00",
-          "speed_mph": 10.8
-        },
-        {
-          "time": "15:00",
-          "speed_mph": 10.6
-        },
-        {
-          "time": "16:00",
-          "speed_mph": 10.2
-        },
-        {
-          "time": "17:00",
-          "speed_mph": 9.3
-        },
-        {
-          "time": "18:00",
-          "speed_mph": 8.2
-        },
-        {
-          "time": "19:00",
-          "speed_mph": 7.1
-        },
-        {
-          "time": "20:00",
-          "speed_mph": 5.9
-        },
-        {
-          "time": "21:00",
           "speed_mph": 5.0
         },
         {
-          "time": "22:00",
+          "time": "01:00",
+          "speed_mph": 4.5
+        },
+        {
+          "time": "02:00",
+          "speed_mph": 4.3
+        },
+        {
+          "time": "03:00",
           "speed_mph": 4.0
         },
         {
+          "time": "04:00",
+          "speed_mph": 3.9
+        },
+        {
+          "time": "05:00",
+          "speed_mph": 4.0
+        },
+        {
+          "time": "06:00",
+          "speed_mph": 3.9
+        },
+        {
+          "time": "07:00",
+          "speed_mph": 4.1
+        },
+        {
+          "time": "08:00",
+          "speed_mph": 4.4
+        },
+        {
+          "time": "09:00",
+          "speed_mph": 5.4
+        },
+        {
+          "time": "10:00",
+          "speed_mph": 7.0
+        },
+        {
+          "time": "11:00",
+          "speed_mph": 8.3
+        },
+        {
+          "time": "12:00",
+          "speed_mph": 9.2
+        },
+        {
+          "time": "13:00",
+          "speed_mph": 9.9
+        },
+        {
+          "time": "14:00",
+          "speed_mph": 10.4
+        },
+        {
+          "time": "15:00",
+          "speed_mph": 10.8
+        },
+        {
+          "time": "16:00",
+          "speed_mph": 11.1
+        },
+        {
+          "time": "17:00",
+          "speed_mph": 10.8
+        },
+        {
+          "time": "18:00",
+          "speed_mph": 9.7
+        },
+        {
+          "time": "19:00",
+          "speed_mph": 8.3
+        },
+        {
+          "time": "20:00",
+          "speed_mph": 6.8
+        },
+        {
+          "time": "21:00",
+          "speed_mph": 5.9
+        },
+        {
+          "time": "22:00",
+          "speed_mph": 5.1
+        },
+        {
           "time": "23:00",
-          "speed_mph": 3.4
+          "speed_mph": 4.5
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 3.7
+          "height_ft": 3.2
         },
         {
           "time": "01:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "02:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "03:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "04:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "05:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "06:00",
-          "height_ft": 3.7
+          "height_ft": 3.1
         },
         {
           "time": "07:00",
-          "height_ft": 3.7
+          "height_ft": 3.0
         },
         {
           "time": "08:00",
-          "height_ft": 3.7
+          "height_ft": 3.0
         },
         {
           "time": "09:00",
-          "height_ft": 3.6
+          "height_ft": 3.0
         },
         {
           "time": "10:00",
-          "height_ft": 3.6
+          "height_ft": 3.0
         },
         {
           "time": "11:00",
-          "height_ft": 3.5
+          "height_ft": 3.0
         },
         {
           "time": "12:00",
-          "height_ft": 3.5
+          "height_ft": 3.0
         },
         {
           "time": "13:00",
-          "height_ft": 3.5
+          "height_ft": 2.9
         },
         {
           "time": "14:00",
-          "height_ft": 3.4
+          "height_ft": 2.9
         },
         {
           "time": "15:00",
-          "height_ft": 3.4
+          "height_ft": 2.9
         },
         {
           "time": "16:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "17:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "18:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "19:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "20:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "21:00",
-          "height_ft": 3.3
+          "height_ft": 2.9
         },
         {
           "time": "22:00",
-          "height_ft": 3.3
+          "height_ft": 3.0
         },
         {
           "time": "23:00",
-          "height_ft": 3.3
+          "height_ft": 3.0
         }
       ],
       "tide_chart": [
@@ -3583,33 +3586,33 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-20",
-    "numeric_score_0_100": 60,
+    "numeric_score_0_100": 61,
     "grade": "C",
     "grade_probabilities": {
-      "F": 0.021198076400059718,
-      "D": 0.46666279227328217,
-      "C": 0.23386266520676002,
-      "B": 0.2782764661198981,
+      "F": 0.01763499928744201,
+      "D": 0.44445885222625964,
+      "C": 0.2764514041559058,
+      "B": 0.2614547443303926,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.021198076400059718,
-      "D": 0.46666279227328217,
-      "C": 0.23386266520676002,
-      "B": 0.2782764661198981,
+      "F": 0.01763499928744201,
+      "D": 0.44445885222625964,
+      "C": 0.2764514041559058,
+      "B": 0.2614547443303926,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.4667
+      "probability": 0.4445
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -3618,9 +3621,9 @@
       14
     ],
     "estimated_visibility_mid_ft": 12.0,
-    "raw_expected_vis_ft": 11.55,
+    "raw_expected_vis_ft": 11.57,
     "guardrail_applied": false,
-    "confidence": "low",
+    "confidence": "medium",
     "best_window": "Early morning to late morning before wind builds",
     "risk_factors": [
       "Elevated surf can stir up the shallows.",
@@ -3630,127 +3633,127 @@
       "Overall swell load is modest."
     ],
     "explanation": "Conditions score blends swell, wave energy, and wind with the open sandy shore calibration. La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md.",
-    "is_projected": true,
+    "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.3 ft | Wind: 11.1 mph | Water: 74.3\u00b0F | Swell: 2.2 ft @ 13s SW",
+    "report_text": "3:00 PM Update - Grade C\nViz is expected around 10-14 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.2 ft | Wind: 11.3 mph | Water: 74.3\u00b0F | Swell: 2.2 ft @ 13s SSW",
     "features": {
       "date": "2026-07-20",
       "coherent_swell_source": "hourly_max_height_event",
-      "surf_height_mean_ft": 3.28,
-      "surf_height_max_ft": 3.28,
+      "surf_height_mean_ft": 3.22,
+      "surf_height_max_ft": 3.22,
       "primary_swell_height_mean_ft": 2.23,
       "primary_swell_height_max_ft": 2.23,
-      "primary_swell_period_mean_s": 12.95,
-      "primary_swell_period_max_s": 12.95,
+      "primary_swell_period_mean_s": 12.9,
+      "primary_swell_period_max_s": 12.9,
       "swell_wave_height_max_ft": 2.23,
-      "swell_wave_period_max_s": 12.95,
-      "swell_wave_direction_deg": 214,
-      "swell_direction_label": "SW",
-      "wind_wave_height_max_ft": 0.0,
-      "wind_wave_period_max_s": 0,
+      "swell_wave_period_max_s": 12.9,
+      "swell_wave_direction_deg": 213,
+      "swell_direction_label": "SSW",
+      "wind_wave_height_max_ft": 0.26,
+      "wind_wave_period_max_s": 1.7,
       "secondary_swell_height_ft": 1.84,
-      "secondary_swell_period_s": 10.95,
-      "secondary_swell_direction_deg": 206,
-      "secondary_swell_direction_label": "SSW",
+      "secondary_swell_period_s": 10.1,
+      "secondary_swell_direction_deg": 181,
+      "secondary_swell_direction_label": "S",
       "ml_p1_height_ft": 2.23,
-      "ml_p1_period_s": 12.95,
-      "ml_p1_direction_deg": 214,
+      "ml_p1_period_s": 12.9,
+      "ml_p1_direction_deg": 213,
       "ml_p2_height_ft": 1.84,
-      "ml_p2_period_s": 10.95,
-      "ml_p2_direction_deg": 206,
-      "ml_ww_height_ft": 0.0,
-      "ml_ww_period_s": 0,
-      "ml_wave_yesterday_ft": 3.52,
-      "ml_wave_2d_ago_ft": 3.11,
-      "ml_wave_3d_ago_ft": 2.81,
-      "ml_wave_7d_avg_ft": 2.96,
+      "ml_p2_period_s": 10.1,
+      "ml_p2_direction_deg": 181,
+      "ml_ww_height_ft": 0.26,
+      "ml_ww_period_s": 1.7,
+      "ml_wave_yesterday_ft": 2.99,
+      "ml_wave_2d_ago_ft": 2.96,
+      "ml_wave_3d_ago_ft": 3.13,
+      "ml_wave_7d_avg_ft": 2.93,
       "rain_target_day_forecast_in": 0.0,
       "rain_prior_3day_in": 0.0,
-      "rain_prior_7day_in": 0.09,
+      "rain_prior_7day_in": 0.161,
       "rain_24h_in": 0.0,
       "ml_rain_3day_in": 0.0,
-      "ml_rain_7day_in": 0.09,
-      "ml_gust_max_mph": 13.0,
+      "ml_rain_7day_in": 0.161,
+      "ml_gust_max_mph": 13.2,
       "ml_sst_f": 74.3,
       "ml_sin_doy": -0.3109,
       "ml_cos_doy": -0.9505,
       "ml_month": 7.0,
       "ml_buoy_ht_ft": 2.23,
-      "ml_buoy_per_s": 12.95,
-      "ml_buoy_dir_deg": 214,
-      "ml_buoy_exp": 0.809,
-      "ml_buoy_energy_wtd": 5.215,
-      "ml_wind_dir_deg": 288,
-      "ml_upwelling_wind": 0.743,
-      "ml_pressure_trend": 0.2,
+      "ml_buoy_per_s": 12.9,
+      "ml_buoy_dir_deg": 213,
+      "ml_buoy_exp": 0.799,
+      "ml_buoy_energy_wtd": 5.128,
+      "ml_wind_dir_deg": 299,
+      "ml_upwelling_wind": 0.857,
+      "ml_pressure_trend": -0.6,
       "ml_sst_anomaly": 5.3,
-      "ml_wave_trend": 0.56,
-      "ml_wave_accel": 0.4,
+      "ml_wave_trend": 0.05,
+      "ml_wave_accel": 0.03,
       "ml_tide_min_ft": 1.34,
       "ml_tide_range_ft": 3.52,
       "ml_tide_morning_avg": 1.66,
-      "wave_height_max_ft": 3.28,
-      "wind_speed_mean_mph": 7.1,
-      "wind_speed_max_mph": 11.1,
-      "wind_gust_max_mph": 13.0,
-      "wave_energy_mean_kj": 100.373,
-      "wave_energy_max_kj": 100.373,
-      "total_swell_height_mean_ft": 2.23,
-      "total_swell_height_max_ft": 2.23,
-      "swell_power_proxy_mean": 100.373,
-      "swell_power_proxy_max": 100.373,
-      "short_period_swell_energy": 0.0,
-      "long_period_swell_energy": 100.373,
-      "mixed_swell_score": 2,
-      "wind_wave_churn_proxy": 0.0,
-      "wave_energy_wind_interaction": 1114.135,
+      "wave_height_max_ft": 3.22,
+      "wind_speed_mean_mph": 7.23,
+      "wind_speed_max_mph": 11.3,
+      "wind_gust_max_mph": 13.2,
+      "wave_energy_mean_kj": 96.016,
+      "wave_energy_max_kj": 96.016,
+      "total_swell_height_mean_ft": 2.25,
+      "total_swell_height_max_ft": 2.25,
+      "swell_power_proxy_mean": 96.016,
+      "swell_power_proxy_max": 96.016,
+      "short_period_swell_energy": 0.117,
+      "long_period_swell_energy": 95.899,
+      "mixed_swell_score": 1,
+      "wind_wave_churn_proxy": 5.042,
+      "wave_energy_wind_interaction": 1084.983,
       "water_temp_estimate_f": 74.3,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 84.9,
-      "air_temp_min_f": 74.9,
+      "air_temp_max_f": 84.4,
+      "air_temp_min_f": 75.3,
       "tide_range_ft": 3.52,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 3.4
+          "speed_mph": 4.0
         },
         {
           "time": "01:00",
-          "speed_mph": 3.4
+          "speed_mph": 3.7
         },
         {
           "time": "02:00",
-          "speed_mph": 3.4
+          "speed_mph": 3.5
         },
         {
           "time": "03:00",
-          "speed_mph": 3.1
+          "speed_mph": 3.2
         },
         {
           "time": "04:00",
-          "speed_mph": 2.7
+          "speed_mph": 3.2
         },
         {
           "time": "05:00",
-          "speed_mph": 2.5
-        },
-        {
-          "time": "06:00",
-          "speed_mph": 2.6
-        },
-        {
-          "time": "07:00",
-          "speed_mph": 2.6
-        },
-        {
-          "time": "08:00",
           "speed_mph": 3.3
         },
         {
+          "time": "06:00",
+          "speed_mph": 3.8
+        },
+        {
+          "time": "07:00",
+          "speed_mph": 4.3
+        },
+        {
+          "time": "08:00",
+          "speed_mph": 5.0
+        },
+        {
           "time": "09:00",
-          "speed_mph": 4.9
+          "speed_mph": 6.0
         },
         {
           "time": "10:00",
@@ -3758,125 +3761,153 @@
         },
         {
           "time": "11:00",
-          "speed_mph": 8.9
+          "speed_mph": 8.2
         },
         {
           "time": "12:00",
-          "speed_mph": 10.0
+          "speed_mph": 9.1
         },
         {
           "time": "13:00",
-          "speed_mph": 10.7
+          "speed_mph": 10.1
         },
         {
           "time": "14:00",
-          "speed_mph": 11.1
+          "speed_mph": 10.9
         },
         {
           "time": "15:00",
-          "speed_mph": 11.0
+          "speed_mph": 11.2
         },
         {
           "time": "16:00",
-          "speed_mph": 10.8
+          "speed_mph": 11.3
         },
         {
           "time": "17:00",
-          "speed_mph": 10.0
+          "speed_mph": 11.0
         },
         {
           "time": "18:00",
-          "speed_mph": 9.0
+          "speed_mph": 9.9
         },
         {
           "time": "19:00",
-          "speed_mph": 7.5
+          "speed_mph": 8.3
         },
         {
           "time": "20:00",
-          "speed_mph": 6.5
+          "speed_mph": 7.1
         },
         {
           "time": "21:00",
-          "speed_mph": 5.8
+          "speed_mph": 6.7
         },
         {
           "time": "22:00",
-          "speed_mph": 5.1
+          "speed_mph": 6.5
         },
         {
           "time": "23:00",
-          "speed_mph": 4.6
+          "speed_mph": 6.2
         }
       ],
       "wave_chart": [
         {
           "time": "00:00",
-          "height_ft": 3.3
+          "height_ft": 3.0
         },
         {
           "time": "01:00",
-          "height_ft": 3.2
+          "height_ft": 3.0
         },
         {
           "time": "02:00",
-          "height_ft": 3.2
+          "height_ft": 3.0
         },
         {
           "time": "03:00",
-          "height_ft": 3.2
+          "height_ft": 3.0
         },
         {
           "time": "04:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "05:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "06:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "07:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "08:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "09:00",
-          "height_ft": 3.1
+          "height_ft": 2.9
         },
         {
           "time": "10:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "11:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "12:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "13:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "14:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "15:00",
-          "height_ft": 3.0
+          "height_ft": 2.9
         },
         {
           "time": "16:00",
           "height_ft": 3.0
+        },
+        {
+          "time": "17:00",
+          "height_ft": 3.0
+        },
+        {
+          "time": "18:00",
+          "height_ft": 3.0
+        },
+        {
+          "time": "19:00",
+          "height_ft": 3.0
+        },
+        {
+          "time": "20:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "21:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "22:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "23:00",
+          "height_ft": 3.2
         }
       ],
       "tide_chart": [
@@ -3981,7 +4012,7 @@
       "tide_next_event": null,
       "tide_slack_windows": [],
       "source": "open_meteo_marine_coherent",
-      "marine_data_filled": true
+      "marine_data_filled": false
     },
     "cams": [
       {
@@ -3999,33 +4030,33 @@
     "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam."
   },
   {
-    "generated_at": "2026-07-12T09:09:26",
+    "generated_at": "2026-07-12T14:47:55",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-21",
-    "numeric_score_0_100": 60,
+    "numeric_score_0_100": 56,
     "grade": "D",
     "grade_probabilities": {
-      "F": 0.06118285014677815,
-      "D": 0.4517771716715267,
-      "C": 0.22840957574154436,
-      "B": 0.25863040244015073,
+      "F": 0.08411154305459811,
+      "D": 0.5139642022817228,
+      "C": 0.34861490801903694,
+      "B": 0.0533093466446422,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.06118285014677815,
-      "D": 0.4517771716715267,
-      "C": 0.22840957574154436,
-      "B": 0.25863040244015073,
+      "F": 0.08411154305459811,
+      "D": 0.5139642022817228,
+      "C": 0.34861490801903694,
+      "B": 0.0533093466446422,
       "A": 0.0,
       "A+": 0.0
     },
     "most_likely_grade": {
       "grade": "D",
-      "probability": 0.4518
+      "probability": 0.514
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v2-median",
@@ -4034,7 +4065,7 @@
       9
     ],
     "estimated_visibility_mid_ft": 7.0,
-    "raw_expected_vis_ft": 11.1,
+    "raw_expected_vis_ft": 9.03,
     "guardrail_applied": false,
     "confidence": "low",
     "best_window": "Early morning to late morning before wind builds",
@@ -4049,183 +4080,252 @@
     "is_projected": true,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.3 ft | Wind: 11.7 mph | Water: n/a\u00b0F | Swell: 0.0 ft @ 11s ",
+    "report_text": "3:00 PM Update - Grade D\nViz is expected around 5-9 ft. Elevated surf can stir up the shallows.\nBest shot: early morning to late morning before wind builds.\nWaves: 3.3 ft | Wind: 11.1 mph | Water: n/a\u00b0F | Swell: 2.4 ft @ 13s SSW",
     "features": {
       "date": "2026-07-21",
       "coherent_swell_source": "hourly_max_height_event",
       "surf_height_mean_ft": 3.35,
       "surf_height_max_ft": 3.35,
-      "primary_swell_height_mean_ft": 0.0,
-      "primary_swell_height_max_ft": 0.0,
-      "primary_swell_period_mean_s": 11.0,
-      "primary_swell_period_max_s": 11.0,
-      "swell_wave_height_max_ft": 0.0,
-      "swell_wave_period_max_s": 11.0,
-      "swell_wave_direction_deg": null,
-      "swell_direction_label": "",
+      "primary_swell_height_mean_ft": 2.36,
+      "primary_swell_height_max_ft": 2.36,
+      "primary_swell_period_mean_s": 12.55,
+      "primary_swell_period_max_s": 12.55,
+      "swell_wave_height_max_ft": 2.36,
+      "swell_wave_period_max_s": 12.55,
+      "swell_wave_direction_deg": 212,
+      "swell_direction_label": "SSW",
       "wind_wave_height_max_ft": 0.0,
       "wind_wave_period_max_s": 0,
-      "secondary_swell_height_ft": 0.0,
-      "secondary_swell_period_s": 0,
-      "secondary_swell_direction_deg": null,
-      "secondary_swell_direction_label": "local wind",
-      "ml_p1_height_ft": 0.0,
-      "ml_p1_period_s": 11.0,
-      "ml_p1_direction_deg": null,
-      "ml_p2_height_ft": 0.0,
-      "ml_p2_period_s": 0,
-      "ml_p2_direction_deg": null,
+      "secondary_swell_height_ft": 1.12,
+      "secondary_swell_period_s": 9.95,
+      "secondary_swell_direction_deg": 175,
+      "secondary_swell_direction_label": "S",
+      "ml_p1_height_ft": 2.36,
+      "ml_p1_period_s": 12.55,
+      "ml_p1_direction_deg": 212,
+      "ml_p2_height_ft": 1.12,
+      "ml_p2_period_s": 9.95,
+      "ml_p2_direction_deg": 175,
       "ml_ww_height_ft": 0.0,
       "ml_ww_period_s": 0,
-      "ml_wave_yesterday_ft": 3.1,
-      "ml_wave_2d_ago_ft": 3.52,
-      "ml_wave_3d_ago_ft": 3.11,
-      "ml_wave_7d_avg_ft": 3.03,
+      "ml_wave_yesterday_ft": 2.96,
+      "ml_wave_2d_ago_ft": 2.99,
+      "ml_wave_3d_ago_ft": 2.96,
+      "ml_wave_7d_avg_ft": 2.98,
       "rain_target_day_forecast_in": 0.0,
       "rain_prior_3day_in": 0.0,
-      "rain_prior_7day_in": 0.09,
+      "rain_prior_7day_in": 0.161,
       "rain_24h_in": 0.0,
       "ml_rain_3day_in": 0.0,
-      "ml_rain_7day_in": 0.09,
-      "ml_gust_max_mph": 15.2,
+      "ml_rain_7day_in": 0.161,
+      "ml_gust_max_mph": 16.1,
       "ml_sst_f": null,
       "ml_sin_doy": -0.3272,
       "ml_cos_doy": -0.945,
       "ml_month": 7.0,
-      "ml_buoy_ht_ft": 0.0,
-      "ml_buoy_per_s": 11.0,
-      "ml_buoy_dir_deg": null,
-      "ml_buoy_exp": 0.5,
-      "ml_buoy_energy_wtd": 0.0,
-      "ml_wind_dir_deg": 309,
-      "ml_upwelling_wind": 0.934,
-      "ml_pressure_trend": -0.6,
+      "ml_buoy_ht_ft": 2.36,
+      "ml_buoy_per_s": 12.55,
+      "ml_buoy_dir_deg": 212,
+      "ml_buoy_exp": 0.788,
+      "ml_buoy_energy_wtd": 5.518,
+      "ml_wind_dir_deg": 314,
+      "ml_upwelling_wind": 0.961,
+      "ml_pressure_trend": 0.5,
       "ml_sst_anomaly": null,
-      "ml_wave_trend": 0.07,
-      "ml_wave_accel": -0.42,
+      "ml_wave_trend": -0.02,
+      "ml_wave_accel": -0.03,
       "ml_tide_min_ft": 1.41,
       "ml_tide_range_ft": 3.51,
       "ml_tide_morning_avg": 2.2,
       "wave_height_max_ft": 3.35,
-      "wind_speed_mean_mph": 7.49,
-      "wind_speed_max_mph": 11.7,
-      "wind_gust_max_mph": 15.2,
-      "wave_energy_mean_kj": 88.67,
-      "wave_energy_max_kj": 88.67,
-      "total_swell_height_mean_ft": 0.0,
-      "total_swell_height_max_ft": 0.0,
-      "swell_power_proxy_mean": 88.67,
-      "swell_power_proxy_max": 88.67,
+      "wind_speed_mean_mph": 7.1,
+      "wind_speed_max_mph": 11.1,
+      "wind_gust_max_mph": 16.1,
+      "wave_energy_mean_kj": 101.164,
+      "wave_energy_max_kj": 101.164,
+      "total_swell_height_mean_ft": 2.36,
+      "total_swell_height_max_ft": 2.36,
+      "swell_power_proxy_mean": 101.164,
+      "swell_power_proxy_max": 101.164,
       "short_period_swell_energy": 0.0,
-      "long_period_swell_energy": 88.67,
-      "mixed_swell_score": 2,
+      "long_period_swell_energy": 101.164,
+      "mixed_swell_score": 1,
       "wind_wave_churn_proxy": 0.0,
-      "wave_energy_wind_interaction": 1037.44,
+      "wave_energy_wind_interaction": 1122.926,
       "water_temp_estimate_f": null,
-      "buoy_water_temp_f": 73.2,
+      "buoy_water_temp_f": 73.0,
       "buoy_water_temp_source": "ndbc_46254",
-      "air_temp_max_f": 83.4,
-      "air_temp_min_f": 74.4,
+      "air_temp_max_f": 84.4,
+      "air_temp_min_f": 74.0,
       "tide_range_ft": 3.51,
       "wind_chart": [
         {
           "time": "00:00",
-          "speed_mph": 4.3
+          "speed_mph": 5.7
         },
         {
           "time": "01:00",
-          "speed_mph": 4.1
+          "speed_mph": 5.2
         },
         {
           "time": "02:00",
-          "speed_mph": 4.0
+          "speed_mph": 5.0
         },
         {
           "time": "03:00",
-          "speed_mph": 4.0
-        },
-        {
-          "time": "04:00",
-          "speed_mph": 4.0
-        },
-        {
-          "time": "05:00",
-          "speed_mph": 4.3
-        },
-        {
-          "time": "06:00",
-          "speed_mph": 4.8
-        },
-        {
-          "time": "07:00",
           "speed_mph": 5.1
         },
         {
+          "time": "04:00",
+          "speed_mph": 5.3
+        },
+        {
+          "time": "05:00",
+          "speed_mph": 5.5
+        },
+        {
+          "time": "06:00",
+          "speed_mph": 5.5
+        },
+        {
+          "time": "07:00",
+          "speed_mph": 5.6
+        },
+        {
           "time": "08:00",
-          "speed_mph": 6.0
+          "speed_mph": 5.8
         },
         {
           "time": "09:00",
-          "speed_mph": 7.0
+          "speed_mph": 6.5
         },
         {
           "time": "10:00",
-          "speed_mph": 8.1
+          "speed_mph": 7.6
         },
         {
           "time": "11:00",
-          "speed_mph": 9.4
+          "speed_mph": 8.8
         },
         {
           "time": "12:00",
-          "speed_mph": 10.5
+          "speed_mph": 9.8
         },
         {
           "time": "13:00",
-          "speed_mph": 11.1
+          "speed_mph": 10.6
         },
         {
           "time": "14:00",
-          "speed_mph": 11.6
+          "speed_mph": 11.1
         },
         {
           "time": "15:00",
-          "speed_mph": 11.7
+          "speed_mph": 10.9
         },
         {
           "time": "16:00",
-          "speed_mph": 11.3
+          "speed_mph": 9.9
         },
         {
           "time": "17:00",
-          "speed_mph": 10.7
+          "speed_mph": 9.2
         },
         {
           "time": "18:00",
-          "speed_mph": 9.7
+          "speed_mph": 8.6
         },
         {
           "time": "19:00",
-          "speed_mph": 8.5
+          "speed_mph": 8.1
         },
         {
           "time": "20:00",
-          "speed_mph": 7.4
+          "speed_mph": 7.6
         },
         {
           "time": "21:00",
-          "speed_mph": 7.2
+          "speed_mph": 7.0
         },
         {
           "time": "22:00",
-          "speed_mph": 7.3
+          "speed_mph": 6.3
         },
         {
           "time": "23:00",
-          "speed_mph": 7.3
+          "speed_mph": 5.7
         }
       ],
-      "wave_chart": [],
+      "wave_chart": [
+        {
+          "time": "00:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "01:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "02:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "03:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "04:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "05:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "06:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "07:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "08:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "09:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "10:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "11:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "12:00",
+          "height_ft": 3.2
+        },
+        {
+          "time": "13:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "14:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "15:00",
+          "height_ft": 3.1
+        },
+        {
+          "time": "16:00",
+          "height_ft": 3.1
+        }
+      ],
       "tide_chart": [
         {
           "time": "00:00",
