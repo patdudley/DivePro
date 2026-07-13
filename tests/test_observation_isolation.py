@@ -1,5 +1,8 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
+
+import numpy as np
 
 import build_location_forecasts as blf
 
@@ -40,3 +43,36 @@ def test_collection_token_is_isolated_to_collection_workflow():
     assert "DivePro-evaluation-data" not in forecast_workflow
     collector = (ROOT / ".github" / "workflows" / "collect-evaluation-observations.yml").read_text()
     assert "permissions:\n  contents: read" in collector
+
+
+class _FixedSoftModel:
+    def predict(self, _features):
+        return np.array([[0.0, 0.53, 0.41, 0.06, 0.0, 0.0]])
+
+
+def test_community_report_variants_cannot_change_prediction_outputs():
+    base = {
+        "ml_p1_height_ft": 2.5,
+        "ml_p1_period_s": 12,
+        "ml_p1_direction_deg": 210,
+        "wind_speed_max_mph": 8,
+    }
+    reports = [
+        {"visibility_ft": [30, 30], "weight": 1.0},
+        {"visibility_ft": [2, 2], "weight": 1.0},
+        {"error": "source unavailable", "visibility_ft": None, "weight": 0.0},
+        {"visibility_ft": None, "weight": 0.0, "error": None},
+    ]
+    outputs = []
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", _FixedSoftModel()), \
+         patch.object(blf, "_LAJOLLA_SOFT_FEATURES", list(blf._build_lajolla_feat_map(base))):
+        for report in reports:
+            prediction = blf.predict_lajolla({**base, "community_report": report})
+            outputs.append({
+                "grade": prediction["display_grade"],
+                "probabilities": prediction["probabilities"],
+                "range": prediction["vis_range"],
+                "raw_expected_vis_ft": prediction["raw_expected_vis_ft"],
+                "guarded_vis_ft": prediction["guarded_vis_ft"],
+            })
+    assert outputs[1:] == [outputs[0], outputs[0], outputs[0]]
