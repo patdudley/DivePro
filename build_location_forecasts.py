@@ -881,6 +881,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
     long_range_daily  = long_range_marine["daily"]
     weather_daily     = weather["daily"]
     marine_hourly     = marine.get("hourly", {})
+    weather_hourly    = weather.get("hourly", {})
     run_ts            = run_ts or utc_timestamp_now()
 
     # ── Wave height from daily (meters → feet) ────────────────────────────────
