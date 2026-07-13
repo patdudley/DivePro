@@ -23,6 +23,7 @@ FIELDS = [
     "forecast_id", "forecast_run_ts_utc", "target_date",
     "valid_window_start_local", "valid_window_end_local", "lead_time_hours",
     "model_version_hash", "feature_schema_version", "guardrail_version",
+    "display_policy_version",
     "displayed_grade", "displayed_range_min_ft", "displayed_range_max_ft",
     "prob_F", "prob_D", "prob_C", "prob_B", "prob_A", "prob_Aplus",
     "raw_expected_vis_ft", "guardrail_applied", "guardrail_reason",
@@ -41,6 +42,7 @@ REQUIRED = {
     "forecast_id", "forecast_run_ts_utc", "target_date",
     "valid_window_start_local", "valid_window_end_local", "lead_time_hours",
     "model_version_hash", "feature_schema_version", "guardrail_version",
+    "display_policy_version",
     "displayed_grade", "displayed_range_min_ft", "displayed_range_max_ft",
     *PROB_FIELDS, "raw_expected_vis_ft", "guardrail_applied",
     "guarded_expected_vis_ft", "input_source_run_id",
@@ -98,12 +100,17 @@ def append_forecast_row(path: str | Path, row: dict) -> None:
     exists = output.exists() and output.stat().st_size > 0
     if exists:
         with output.open(newline="", encoding="utf-8") as handle:
-            for old in csv.DictReader(handle):
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != FIELDS:
+                raise ValueError(
+                    "forecast log schema mismatch; run "
+                    "scripts/migrate_forecast_log_display_policy.py before appending"
+                )
+            for old in reader:
                 if old.get("forecast_id") == str(cleaned["forecast_id"]):
                     raise ValueError(f"Duplicate forecast_id rejected: {cleaned['forecast_id']}")
     with output.open("a", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\n")
         if not exists:
             writer.writeheader()
         writer.writerow(cleaned)
-

@@ -149,7 +149,7 @@ def _stub_soft_model(prob_row):
 
 
 @pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
-def test_predict_soft_model_normalizes_probs_and_uses_argmax_grade():
+def test_predict_soft_model_normalizes_probs_and_uses_guarded_expected_visibility():
     # Unnormalized vector peaking at grade B
     model = _stub_soft_model([0.0, 0.2, 0.4, 1.0, 0.2, 0.2])
     with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
@@ -160,6 +160,43 @@ def test_predict_soft_model_normalizes_probs_and_uses_argmax_grade():
     assert result["display_grade"] == "B"
     assert result["vis_range"] == [15, 24]
     assert result["guardrail_applied"] is False
+    assert result["display_policy_version"] == "v3-guarded-expected-vis"
+
+
+@pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
+def test_predict_borderline_dc_vector_uses_continuous_d_grade():
+    model = _stub_soft_model([0.0, 0.53, 0.41, 0.06, 0.0, 0.0])
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
+         patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]):
+        result = blf.predict_lajolla({})
+    assert result["raw_expected_vis_ft"] == pytest.approx(9.8)
+    assert result["display_grade"] == "D"
+    assert result["vis_range"] == [5, 9]
+
+
+@pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
+def test_predict_expected_visibility_over_ten_displays_c_even_if_d_is_largest():
+    model = _stub_soft_model([0.0, 0.49, 0.44, 0.07, 0.0, 0.0])
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
+         patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]):
+        result = blf.predict_lajolla({})
+    assert result["most_likely_grade"]["grade"] == "D"
+    assert result["raw_expected_vis_ft"] == pytest.approx(10.07)
+    assert result["display_grade"] == "C"
+    assert result["vis_range"] == [10, 14]
+
+
+@pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
+def test_point_fallback_one_hot_grade_is_unchanged():
+    model = MagicMock()
+    model.predict.return_value = np.array([12.2])
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", None), \
+         patch.object(blf, "_LAJOLLA_MODEL", model), \
+         patch.object(blf, "_LAJOLLA_FEATURES", ["p1_h"]):
+        result = blf.predict_lajolla({})
+    assert result["model_source"] == "point_gbt_fallback"
+    assert result["display_grade"] == "C"
+    assert result["vis_range"] == [10, 14]
 
 
 @pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
@@ -240,6 +277,7 @@ SOFT_PREDICTION = {
     "guarded_vis_ft": 12.4,
     "display_grade": "C",
     "display_grade_after_guardrail": None,
+    "display_policy_version": "v3-guarded-expected-vis",
     "vis_range": [10, 14],
     "model_source": "soft_probabilistic",
 }

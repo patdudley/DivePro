@@ -1,0 +1,72 @@
+name: Collect private evaluation observations
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20 * * *"
+    - cron: "30 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collect-evaluation-observations
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    env:
+      EVAL_REPO_TOKEN: ${{ secrets.EVAL_REPO_TOKEN }}
+    steps:
+      - name: Check out public collector
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install collector dependencies
+        if: env.EVAL_REPO_TOKEN != ''
+        run: python -m pip install requests beautifulsoup4
+
+      - name: Derive observation records
+        if: env.EVAL_REPO_TOKEN != ''
+        run: >-
+          python scripts/collect_evaluation_observations.py
+          --out "$RUNNER_TEMP/observation-batch.json"
+          --run-id "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Check out private evaluation repository
+        if: env.EVAL_REPO_TOKEN != ''
+        uses: actions/checkout@v4
+        with:
+          repository: patdudley/DivePro-evaluation-data
+          token: ${{ secrets.EVAL_REPO_TOKEN }}
+          path: evaluation-data
+
+      - name: Validate and append records
+        if: env.EVAL_REPO_TOKEN != ''
+        run: >-
+          python evaluation-data/scripts/ingest_observation.py
+          evaluation-data "$RUNNER_TEMP/observation-batch.json"
+
+      - name: Commit private records
+        if: env.EVAL_REPO_TOKEN != ''
+        working-directory: evaluation-data
+        run: |
+          git config user.name "divepro-eval-bot"
+          git config user.email "divepro-eval-bot@users.noreply.github.com"
+          git add observations/
+          git diff --cached --quiet && exit 0
+          git commit -m "obs: $(date -u +%F) run ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
+
+      - name: Explain disabled collector
+        if: env.EVAL_REPO_TOKEN == ''
+        run: echo "EVAL_REPO_TOKEN is not configured; private collection is disabled."

@@ -53,6 +53,7 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "model_outputs"
 SPOT_OUT = OUT / "spots"
 FORECAST_LOG_PATH = Path(__file__).parent / "forecast_log.csv"
+SHADOW_LOG_PATH = Path(__file__).parent / "shadow_forecast_log_v2.csv"
 
 # ── Import shared production feature formulas ─────────────────────────────────
 # production_feat_bundle computes p1_energy_raw, total_energy, n_swells using
@@ -109,6 +110,17 @@ def _load_lajolla_model():
 
 _load_lajolla_soft_model()
 _load_lajolla_model()
+
+# ── Optional v2 shadow candidate (never controls public output) ───────────────
+_LAJOLLA_V2_ARTIFACT = None
+_LAJOLLA_V2_ARTIFACT_PATH = ROOT / "model_lajolla_v2.pkl"
+if _LAJOLLA_V2_ARTIFACT_PATH.exists():
+    try:
+        import joblib as _joblib_v2
+        _LAJOLLA_V2_ARTIFACT = _joblib_v2.load(_LAJOLLA_V2_ARTIFACT_PATH)
+        print("  Loaded La Jolla v2 candidate in shadow-only mode.")
+    except Exception as _v2_load_error:
+        print(f"  WARNING: v2 shadow candidate disabled: {_v2_load_error}")
 
 # ── Prospective forecast logger ───────────────────────────────────────────────
 try:
@@ -697,23 +709,51 @@ def predict_lajolla(features: dict) -> dict:
         result["display_grade_after_guardrail"] = None
 
     # ── Final grade and range ──────────────────────────────────────────────────
-    # If guardrail fired, use the guardrail grade for display.
-    # Otherwise use the median of the ordered probability distribution.
-    # raw_expected_vis_ft remains the model mean and is preserved for logging.
-    if result.get("display_grade_after_guardrail") is not None:
-        grade = result["display_grade_after_guardrail"]
-        median_vis_ft = visibility_midpoint_from_grade(grade)
-    elif result["probabilities"] is not None:
-        grade = median_grade_from_probabilities(result["probabilities"])
-        median_vis_ft = visibility_midpoint_from_grade(grade)
-    else:
-        grade = grade_from_visibility(result["guarded_vis_ft"])
-        median_vis_ft = visibility_midpoint_from_grade(grade)
+    # Display policy v3: grade always follows the guarded continuous estimate.
+    # The soft model outputs are clipped Huber regressions, not calibrated class
+    # probabilities, so a cumulative 0.5 threshold can turn a borderline D/C
+    # estimate into a full-band display miss. Preserve the raw vector for
+    # evaluation, but do not use it as a categorical CDF.
+    grade = grade_from_visibility(result["guarded_vis_ft"])
+    median_vis_ft = visibility_midpoint_from_grade(grade)
     result["display_grade"] = grade
     result["vis_range"] = visibility_range_from_grade(grade)
     result["median_expected_vis_ft"] = median_vis_ft
-    result["display_policy_version"] = "v2-median"
+    result["display_policy_version"] = "v3-guarded-expected-vis"
     return result
+
+
+def _append_v2_shadow_if_available(
+    marine_hourly: dict,
+    weather_hourly: dict,
+    tide_points: list[dict],
+    target_date: str,
+    context: dict,
+    metadata: dict,
+) -> bool:
+    """Log a parallel candidate prediction without affecting public output."""
+    if _LAJOLLA_V2_ARTIFACT is None:
+        return False
+    from shadow_visibility_v2 import append_shadow, make_shadow_row
+    from visibility_v2_features import build_v2_features
+
+    v2_features = build_v2_features(
+        marine_hourly,
+        weather_hourly,
+        tide_points,
+        target_date,
+        context,
+    )
+    append_shadow(
+        SHADOW_LOG_PATH,
+        make_shadow_row(
+            _LAJOLLA_V2_ARTIFACT_PATH,
+            _LAJOLLA_V2_ARTIFACT,
+            v2_features,
+            metadata,
+        ),
+    )
+    return True
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1225,6 +1265,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
                     "model_version_hash":       _model_hash,
                     "feature_schema_version":   _schema_hash,
                     "guardrail_version":        "v1-large-swell-rain-cap",
+                    "display_policy_version":   display_policy_version,
                     "displayed_grade":          grade,
                     "displayed_range_min_ft":   vis_range[0],
                     "displayed_range_max_ft":   vis_range[1],
@@ -1260,6 +1301,32 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
                                               else f"point_model_fallback:{model_src}",
                 }
                 append_forecast_row(FORECAST_LOG_PATH, log_row)
+                try:
+                    _append_v2_shadow_if_available(
+                        marine_hourly,
+                        weather_hourly,
+                        tide_points,
+                        target_date,
+                        {
+                            "wave_yesterday_ft": wave_yesterday_ft,
+                            "wave_3d_ago_ft": wave_3d_ago_ft,
+                            "rain_prior_3day_in": rain_prior_3day,
+                            "rain_prior_7day_in": rain_prior_7day,
+                            "sst_f": sea_temperature,
+                            "sst_anomaly_f": sst_anomaly,
+                            "pressure_trend_hpa": pressure_trend,
+                        },
+                        {
+                            "forecast_id": log_row["forecast_id"],
+                            "forecast_run_ts_utc": run_ts,
+                            "target_date": target_date,
+                            "lead_time_hours": _lead_hours,
+                            "input_source_run_id": run_ts,
+                        },
+                    )
+                except Exception as _shadow_error:
+                    # Shadow failures cannot suppress the established public model.
+                    print(f"  WARNING: v2 shadow logging failed for {target_date}: {_shadow_error}")
             except Exception as _log_err:
                 # P0-fix: unlogged forecasts are not prospective-eligible.
                 # Re-raise so build_spot marks this day unavailable instead of
@@ -1389,6 +1456,7 @@ def build_spot(spot):
     if spot.get("slug") == "la-jolla":
         hourly_fields += [
             "swell_wave_height", "swell_wave_period", "swell_wave_direction",
+            "wind_wave_height", "wind_wave_period",
         ]
 
     marine_url = api_url("https://marine-api.open-meteo.com/v1/marine", {

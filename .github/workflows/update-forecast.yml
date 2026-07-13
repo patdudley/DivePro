@@ -39,6 +39,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add forecast_log.csv model_outputs || true
+          test ! -f shadow_forecast_log_v2.csv || git add shadow_forecast_log_v2.csv
           git commit -m "Update La Jolla forecast" || echo "No forecast changes to commit"
           # Rebase onto any commits pushed while this run was in flight so the
           # push does not fail and trigger a false failure alert.
