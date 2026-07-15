@@ -387,6 +387,32 @@ function cameraImageForGrade(grade) {
 
 let scrippsCameraObservation = null;
 
+function cameraObservationDisplay(data) {
+  const observation = scrippsCameraObservation;
+  const grade = String(observation?.grade || "").trim().toUpperCase();
+  const range = observation?.visibility_range_ft;
+  const hasReviewedObservation = Boolean(
+    observation
+      && observation.status === "manual_observation"
+      && data?.date === observation.observation_date
+      && ["A+", "A", "B", "C", "D", "F"].includes(grade)
+      && Array.isArray(range)
+      && range.length === 2
+      && range.every((value) => Number.isFinite(Number(value))),
+  );
+  if (!hasReviewedObservation) return data;
+
+  const score = Number(observation.numeric_score_0_100);
+  return {
+    ...data,
+    grade,
+    estimated_visibility_range_ft: range.map(Number),
+    numeric_score_0_100: Number.isFinite(score) ? score : data.numeric_score_0_100,
+    is_camera_observation: true,
+    camera_observation_slot: observation.slot,
+  };
+}
+
 function cameraSlotLabel(slot) {
   const hour = Number(String(slot || "").split(":")[0]);
   if (Number.isNaN(hour)) return "today";
@@ -686,6 +712,11 @@ function reportText(data) {
       : "";
   const waveCopy = waveWeight(data);
 
+  if (data.is_camera_observation) {
+    const slotLabel = cameraSlotLabel(data.camera_observation_slot);
+    return `Today's ${slotLabel} Scripps Pier camera observation indicates ${range} visibility with a grade ${data.grade}. Weather context remains forecast-driven: ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
+  }
+
   if (grade === "A") {
     return `The model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
   }
@@ -813,6 +844,7 @@ function renderWeather(data) {
 }
 
 function render(data) {
+  data = cameraObservationDisplay(data);
   const range = data.estimated_visibility_range_ft || [0, 6];
   const score = data.numeric_score_0_100 ?? 0;
   setText("location", data.location || "La Jolla / Scripps Pier");
@@ -820,7 +852,14 @@ function render(data) {
   setText("visibility", feet(range));
   setText("bestWindow", data.best_window || "Early morning");
   setText("waveWeight", waveWeight(data));
-  setText("forecastSource", data.is_projected ? `Projected from ${shortDate(data.projected_from || data.date)}` : "Model prediction from parsed conditions");
+  setText(
+    "forecastSource",
+    data.is_camera_observation
+      ? `Observed at ${cameraSlotLabel(data.camera_observation_slot)} · forecast context from model`
+      : data.is_projected
+        ? `Projected from ${shortDate(data.projected_from || data.date)}`
+        : "Model prediction from parsed conditions",
+  );
   setText("dailyReport", reportText(data));
   const panel = document.querySelector(".forecast-panel");
   const grade = document.getElementById("grade");
@@ -881,14 +920,15 @@ function renderForecastStrip(forecasts, activeDate) {
   };
 
   strip.replaceChildren(...forecasts.map((forecast, index) => {
+    const displayedForecast = cameraObservationDisplay(forecast);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `forecast-day ${gradeClass(forecast.grade)}${forecast.date === activeDate ? " is-active" : ""}`;
+    button.className = `forecast-day ${gradeClass(displayedForecast.grade)}${forecast.date === activeDate ? " is-active" : ""}`;
     button.setAttribute("aria-pressed", forecast.date === activeDate ? "true" : "false");
     button.innerHTML = `
       <span>${dayLabel(forecast.date, index)}</span>
-      <strong>${forecast.grade}</strong>
-      <em>${feet(forecast.estimated_visibility_range_ft || [0, 6])}</em>
+      <strong>${displayedForecast.grade}</strong>
+      <em>${feet(displayedForecast.estimated_visibility_range_ft || [0, 6])}</em>
       <small>${forecast.is_projected ? "Projected" : shortDate(forecast.date)}</small>
     `;
     button.addEventListener("click", () => {
