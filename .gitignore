@@ -62,7 +62,9 @@ data/wind-san-diego.json
 # nothing on the site loads it. Keep the generated tiles out of the repo.
 public/wind/
 
-# The latest Scripps frame is published as a replace-in-place GitHub Release
-# asset. Never commit it into public Git history.
-camera-snapshots/scripps-pier.jpg
+# Scripps frames are published as a replace-in-place GitHub Release asset.
+# Never commit dated or latest camera images into public Git history.
+camera-snapshots/scripps-pier*.jpg
+camera-snapshots/scripps-pier*.jpeg
+camera-snapshots/scripps-pier*.png
 scripps-camera-batch.json

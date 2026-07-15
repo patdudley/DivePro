@@ -40,12 +40,18 @@ The public site retains only:
 Failed or invalid captures do not replace the release asset. Their status
 document still publishes so the UI can fall back to the algorithm reference
 image (a prior-day frame is never shown; the front end requires a same-local-day
-`capture_ok` status). `.gitignore` blocks accidental commits of
-`camera-snapshots/scripps-pier.jpg`.
+`capture_ok` status). `.gitignore` blocks accidental commits of all
+`camera-snapshots/scripps-pier*` image files.
 
-If `ANTHROPIC_API_KEY` is missing, capture and publishing still run and the
-status records `grading_skipped`; the workflow then fails loudly at its final
-step so the missing secret is visible without ever blocking the photo.
+A reviewed `manual_observation` can temporarily replace today's displayed
+grade and range. The next successful automated capture replaces the latest
+status with `grading_skipped`, refreshes the photo, and returns the grade and
+report to the algorithm. Manual grades are intentionally not sticky.
+
+With `mode: off`, capture and publishing run without grading secrets and the
+workflow finishes successfully with status `grading_skipped`. If grading is
+later enabled without `ANTHROPIC_API_KEY`, the image still publishes before the
+workflow fails loudly so the missing secret is visible.
 
 The private `patdudley/DivePro-evaluation-data` repository stores timestamped
 images, structured camera grades, and reconstructable display-coupling audits.

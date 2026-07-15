@@ -406,7 +406,7 @@ SPOTS = [
             "See PROSPECTIVE_VALIDATION_PLAN.md."
         ),
         "cams": [{"title": "Scripps Pier Live Visibility", "url": "https://coollab.ucsd.edu/pierviz/"}],
-        "camera_note": "Screenshot refreshes every few minutes from the Scripps Institution of Oceanography pier cam.",
+        "camera_note": "Updated a few times daily from the Scripps Pier cam.",
     },
     # All other spots removed: this build is La Jolla only.
     # The ML model, training data, and prospective validation plan are
