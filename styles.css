@@ -1625,6 +1625,43 @@ h2::before {
   display: none;
 }
 
+.camera-live-link {
+  position: absolute;
+  left: 50%;
+  bottom: 54px;
+  z-index: 10;
+  display: grid;
+  gap: 3px;
+  width: min(430px, calc(100% - 28px));
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(8, 30, 53, 0.88);
+  box-shadow: 0 12px 30px rgba(1, 20, 40, 0.25);
+  color: var(--text-inverse);
+  text-decoration: none;
+  transform: translateX(-50%);
+  backdrop-filter: var(--blur);
+}
+
+.camera-live-link:hover,
+.camera-live-link:focus-visible {
+  border-color: rgba(19, 186, 238, 0.9);
+  background: rgba(8, 43, 75, 0.95);
+}
+
+.camera-live-link > span,
+.camera-live-link > small {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.camera-live-link strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
 .camera-frame figcaption {
   position: absolute;
   left: 14px;
@@ -1638,6 +1675,8 @@ h2::before {
   color: var(--text-inverse);
   font-size: 0.68rem;
   font-weight: 800;
+  max-width: calc(100% - 28px);
+  line-height: 1.35;
 }
 
 .camera-frame figcaption a {
@@ -4279,6 +4318,11 @@ ul {
     right: auto;
     padding: 5px 8px;
     font-size: 0.62rem;
+  }
+
+  .camera-live-link {
+    bottom: 50px;
+    padding: 12px 14px;
   }
 
   .comments-strip {
