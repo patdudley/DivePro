@@ -24,10 +24,11 @@ coupling are deliberately independent switches:
   - `live`: camera grades may couple into today's displayed forecast, gated by
     the shadow review threshold below.
 
-The committed default is `publish_screenshots: true` with `mode: shadow`:
-the site shows the latest scheduled photo while grading remains
-evaluation-only. Moving `mode` to `live` is a separate reviewed configuration
-change after real grader results pass the validation gate below.
+The committed default is `publish_screenshots: true` with `mode: off`:
+the site shows the latest scheduled photo while automated grading is disabled.
+Moving `mode` to `shadow` begins private evaluation only; moving it to `live`
+is a separate reviewed configuration change after real grader results pass the
+validation gate below.
 
 The public site retains only:
 

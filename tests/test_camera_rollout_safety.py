@@ -35,9 +35,9 @@ def _live_config(tmp_path: Path) -> Path:
     return path
 
 
-def test_camera_rollout_defaults_to_shadow_grading_with_screenshot_publishing():
+def test_camera_rollout_defaults_to_screenshot_only_mode():
     config = json.loads((ROOT / "camera-config.json").read_text())
-    assert config["mode"] == "shadow"
+    assert config["mode"] == "off"
     assert config["publish_screenshots"] is True
     assert config["public_image_release_tag"] == "scripps-camera-latest"
     assert config["public_image_url"].endswith(
@@ -67,7 +67,7 @@ def test_workflow_never_commits_camera_jpeg_and_decouples_publish_from_grading()
     assert status < missing_secrets
 
 
-def test_frontend_displays_screenshot_without_grade_coupling():
+def test_frontend_displays_screenshot_without_automated_grade_coupling():
     source = (ROOT / "app.js").read_text()
     html = (ROOT / "index.html").read_text()
     # Display requires the publish flag plus a validated same-day capture.
@@ -77,10 +77,11 @@ def test_frontend_displays_screenshot_without_grade_coupling():
     # Grade coupling stays out until the shadow review gate is passed.
     assert "applyCameraDisplayPolicy" not in source
     assert "camera-display-policy.js" not in source
+    assert 'observation.status === "manual_observation"' in source
     assert 'id="cameraObservedBadge"' in html
 
 
-def test_preflight_passes_in_shadow_without_printing_secret_values():
+def test_preflight_passes_in_screenshot_only_mode_without_printing_secret_values():
     env = dict(os.environ)
     env.pop("ANTHROPIC_API_KEY", None)
     env.pop("EVAL_REPO_TOKEN", None)
@@ -93,7 +94,7 @@ def test_preflight_passes_in_shadow_without_printing_secret_values():
         check=True,
     )
     payload = json.loads(completed.stdout)
-    assert payload["mode"] == "shadow"
+    assert payload["mode"] == "off"
     assert payload["safe_to_change_public_display"] is False
     assert payload["required_secrets_present"] == {
         "ANTHROPIC_API_KEY": False,
