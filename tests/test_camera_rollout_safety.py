@@ -81,6 +81,28 @@ def test_frontend_displays_screenshot_without_automated_grade_coupling():
     assert 'id="cameraObservedBadge"' in html
 
 
+def test_scripps_camera_images_are_release_only():
+    ignored = (ROOT / ".gitignore").read_text()
+    assert "camera-snapshots/scripps-pier*.jpg" in ignored
+    assert "camera-snapshots/scripps-pier*.jpeg" in ignored
+    assert "camera-snapshots/scripps-pier*.png" in ignored
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "camera-snapshots/scripps-pier*"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.splitlines()
+    assert tracked == ["camera-snapshots/scripps-pier-latest.json"]
+
+
+def test_camera_note_matches_scheduled_cadence():
+    source = (ROOT / "build_location_forecasts.py").read_text()
+    assert '"camera_note": "Updated a few times daily from the Scripps Pier cam."' in source
+    assert "Screenshot refreshes every few minutes" not in source
+
+
 def test_preflight_passes_in_screenshot_only_mode_without_printing_secret_values():
     env = dict(os.environ)
     env.pop("ANTHROPIC_API_KEY", None)
