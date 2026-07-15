@@ -1651,6 +1651,28 @@ h2::before {
   background: rgba(8, 43, 75, 0.95);
 }
 
+.camera-observed-badge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  background: rgba(8, 30, 53, 0.88);
+  box-shadow: 0 8px 20px rgba(1, 20, 40, 0.22);
+  color: var(--text-inverse);
+  font-size: 0.72rem;
+  font-weight: 800;
+  backdrop-filter: var(--blur);
+}
+
+.camera-observed-badge[hidden] {
+  display: none;
+}
+
 .report-copy p {
   margin: 0;
   color: var(--text);
@@ -4276,6 +4298,11 @@ ul {
 
   .camera-live-link {
     right: 10px;
+    bottom: 10px;
+  }
+
+  .camera-observed-badge {
+    left: 10px;
     bottom: 10px;
   }
 

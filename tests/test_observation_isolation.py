@@ -38,11 +38,13 @@ def test_private_observation_keys_are_not_published():
 def test_collection_token_is_isolated_to_collection_workflow():
     workflows = list((ROOT / ".github" / "workflows").glob("*.yml"))
     references = [path.name for path in workflows if "EVAL_REPO_TOKEN" in path.read_text()]
-    assert references == ["collect-evaluation-observations.yml"]
+    assert sorted(references) == ["collect-evaluation-observations.yml", "scripps-camera-grade.yml"]
     forecast_workflow = (ROOT / ".github" / "workflows" / "update-forecast.yml").read_text()
     assert "DivePro-evaluation-data" not in forecast_workflow
     collector = (ROOT / ".github" / "workflows" / "collect-evaluation-observations.yml").read_text()
     assert "permissions:\n  contents: read" in collector
+    camera_workflow = (ROOT / ".github" / "workflows" / "scripps-camera-grade.yml").read_text()
+    assert "DivePro-evaluation-data" in camera_workflow
 
 
 class _FixedSoftModel:

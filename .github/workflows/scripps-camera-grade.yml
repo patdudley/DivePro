@@ -1,0 +1,196 @@
+name: Scripps camera grade
+
+on:
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: Scheduled local slot to label this manual capture
+        required: true
+        type: choice
+        default: "08:00"
+        options: ["08:00", "12:00", "16:00"]
+  schedule:
+    # Candidate UTC hours for 8 AM, noon, and 4 PM in both PST and PDT.
+    # The gate step below runs only the matching America/Los_Angeles hour.
+    - cron: "5 0,15,16,19,20,23 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scripps-camera-grade
+  cancel-in-progress: false
+
+jobs:
+  capture-grade-archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out DivePro
+        uses: actions/checkout@v4
+
+      - name: Read camera rollout configuration
+        id: config
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config = json.loads(Path("camera-config.json").read_text())
+          mode = str(config.get("mode", "off")).lower()
+          if mode not in {"off", "shadow", "live"}:
+              raise SystemExit(f"invalid camera mode: {mode}")
+          publish = bool(config.get("publish_screenshots", False))
+          image_url = str(config.get("public_image_url", "")).strip()
+          release_tag = str(config.get("public_image_release_tag", "")).strip()
+          if not image_url or not release_tag:
+              raise SystemExit("camera config requires public image URL and release tag")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"mode={mode}\n")
+              output.write(f"publish={str(publish).lower()}\n")
+              output.write(f"public_image_url={image_url}\n")
+              output.write(f"release_tag={release_tag}\n")
+          print(f"camera rollout mode: {mode}; screenshot publishing: {publish}")
+          PY
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install capture dependencies
+        run: |
+          python -m pip install requests pillow playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Gate candidate UTC schedules by San Diego local hour
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif python scripts/scripps_camera.py --check-slot; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Detect grading and private-archive credentials
+        id: secrets
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_REPO_TOKEN: ${{ secrets.EVAL_REPO_TOKEN }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then echo "grader=true" >> "$GITHUB_OUTPUT"; else echo "grader=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$EVAL_REPO_TOKEN" ]; then echo "eval=true" >> "$GITHUB_OUTPUT"; else echo "eval=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Capture feed and grade image
+        if: steps.gate.outputs.run == 'true' && (steps.config.outputs.mode != 'off' || steps.config.outputs.publish == 'true')
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SCRIPPS_GRADER_MODEL: ${{ vars.SCRIPPS_GRADER_MODEL }}
+          MANUAL_SLOT: ${{ inputs.slot }}
+        run: |
+          args=()
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            args+=(--force-slot "$MANUAL_SLOT")
+          fi
+          if [ -n "$SCRIPPS_GRADER_MODEL" ]; then
+            args+=(--model "$SCRIPPS_GRADER_MODEL")
+          fi
+          python scripts/scripps_camera.py "${args[@]}" \
+            --public-image "$RUNNER_TEMP/scripps-pier.jpg" \
+            --public-status "$RUNNER_TEMP/scripps-pier-latest.json" \
+            --public-image-url "${{ steps.config.outputs.public_image_url }}" \
+            --batch-output "$RUNNER_TEMP/scripps-camera-batch.json"
+
+      # Screenshot publishing is intentionally independent of grading mode.
+      # It requires only a validated capture (image_url is null otherwise).
+      - name: Replace public latest-image release asset
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
+        run: |
+          image_url="$(python -c 'import json,os; print(json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "scripps-pier-latest.json")))["image_url"] or "")')"
+          if [ -z "$image_url" ]; then
+            echo "No publishable image for this run; keeping the previous public image asset"
+            exit 0
+          fi
+          test -s "$RUNNER_TEMP/scripps-pier.jpg"
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+            gh release create "$RELEASE_TAG" --title "Latest Scripps camera observation" \
+              --notes "Replace-in-place asset used by DiveProSD." --latest=false
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber
+
+      - name: Commit public latest status only
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true'
+        run: |
+          mkdir -p camera-snapshots
+          cp "$RUNNER_TEMP/scripps-pier-latest.json" camera-snapshots/scripps-pier-latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add camera-snapshots/scripps-pier-latest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update Scripps camera observation"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
+
+      - name: Check out private evaluation repository
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.mode != 'off' && steps.secrets.outputs.eval == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: patdudley/DivePro-evaluation-data
+          token: ${{ secrets.EVAL_REPO_TOKEN }}
+          path: evaluation-data
+
+      - name: Require reviewed shadow evidence before live grade coupling
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.mode == 'live'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_REPO_TOKEN: ${{ secrets.EVAL_REPO_TOKEN }}
+          EVAL_DATA_DIR: ${{ github.workspace }}/evaluation-data
+        run: >-
+          python scripts/camera_production_preflight.py
+          --require-live
+          --require-secrets
+          --eval-data-dir "$EVAL_DATA_DIR"
+
+      - name: Append private image, grade, and coupling audit
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.mode != 'off' && steps.secrets.outputs.eval == 'true'
+        run: >-
+          python scripts/ingest_camera_evaluation.py
+          evaluation-data
+          "$RUNNER_TEMP/scripps-camera-batch.json"
+          "$RUNNER_TEMP/scripps-pier.jpg"
+
+      - name: Commit private evaluation records
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.mode != 'off' && steps.secrets.outputs.eval == 'true'
+        working-directory: evaluation-data
+        run: |
+          git config user.name "divepro-camera-eval-bot"
+          git config user.email "divepro-camera-eval-bot@users.noreply.github.com"
+          git add camera-observations coupling-audits
+          git diff --cached --quiet && exit 0
+          git commit -m "camera: $(date -u +%F) run ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
+
+      # Runs after publishing so a missing grading/eval secret is loudly
+      # visible without ever blocking the public screenshot update.
+      - name: Fail when shadow grading credentials are missing
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.mode != 'off' && (steps.secrets.outputs.grader != 'true' || steps.secrets.outputs.eval != 'true')
+        run: |
+          echo "Camera mode is '${{ steps.config.outputs.mode }}' but grading/eval secrets are missing:"
+          echo "  ANTHROPIC_API_KEY present: ${{ steps.secrets.outputs.grader }}"
+          echo "  EVAL_REPO_TOKEN present:   ${{ steps.secrets.outputs.eval }}"
+          echo "The screenshot (if captured) was still published; configure the secrets to restore shadow grading."
+          exit 1

@@ -42,13 +42,41 @@ function fallbackForecast() {
   };
 }
 
+function localTodayInLaJolla() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(new Date());
+}
+
+function isCameraObservationDisplayable(observation) {
+  // Screenshot display depends only on a validated same-day capture.
+  // Grades and grading mode never gate the photo (see SCRIPPS_CAMERA.md).
+  return Boolean(
+    observation &&
+      observation.capture_ok === true &&
+      observation.image_url &&
+      observation.observation_date === localTodayInLaJolla(),
+  );
+}
+
+async function loadCameraObservation() {
+  try {
+    const config = await fetchJson("camera-config.json");
+    if (!config || config.publish_screenshots !== true) return null;
+    const observation = await fetchJson("camera-snapshots/scripps-pier-latest.json");
+    return isCameraObservationDisplayable(observation) ? observation : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadForecastData() {
+  const cameraObservation = await loadCameraObservation();
   if (window.staticSpotReport) {
     return {
       latest: window.staticSpotReport,
       tenDay: [],
       gradeGuide: [],
       history: [],
+      cameraObservation,
     };
   }
 
@@ -69,10 +97,11 @@ async function loadForecastData() {
       tenDay: Array.isArray(tenDay) && tenDay.length ? tenDay : [latest],
       gradeGuide: Array.isArray(gradeGuide) ? gradeGuide : [],
       history: Array.isArray(history) ? history : [],
+      cameraObservation,
     };
   } catch {
     const latest = fallbackForecast();
-    return { latest, tenDay: [latest], gradeGuide: [], history: [] };
+    return { latest, tenDay: [latest], gradeGuide: [], history: [], cameraObservation };
   }
 }
 
@@ -356,6 +385,15 @@ function cameraImageForGrade(grade) {
   return "viz-mid.jpg";
 }
 
+let scrippsCameraObservation = null;
+
+function cameraSlotLabel(slot) {
+  const hour = Number(String(slot || "").split(":")[0]);
+  if (Number.isNaN(hour)) return "today";
+  if (hour === 12) return "12 PM";
+  return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+}
+
 function renderCamera(data) {
   const frame = document.getElementById("cameraFrame");
   const image = document.getElementById("cameraImage");
@@ -367,8 +405,25 @@ function renderCamera(data) {
   if (playButton) playButton.remove();
   frame.classList.remove("is-playing");
   image.hidden = false;
-  image.src = cameraImageForGrade(data.grade);
-  image.alt = `${data.location || "Dive spot"} estimated visibility reference`;
+
+  const badge = document.getElementById("cameraObservedBadge");
+  const observation = scrippsCameraObservation;
+  const showObservation = Boolean(
+    observation && (!data.date || data.date === observation.observation_date),
+  );
+  if (showObservation) {
+    const slotLabel = cameraSlotLabel(observation.slot);
+    image.src = observation.image_url;
+    image.alt = `Scripps Pier underwater camera, captured today at ${slotLabel}`;
+    if (badge) {
+      badge.textContent = `Today ${slotLabel}`;
+      badge.hidden = false;
+    }
+  } else {
+    image.src = cameraImageForGrade(data.grade);
+    image.alt = `${data.location || "Dive spot"} estimated visibility reference`;
+    if (badge) badge.hidden = true;
+  }
   frame.hidden = false;
 }
 
@@ -964,7 +1019,8 @@ function renderForecastHistory(history, currentDate) {
   };
 }
 
-loadForecastData().then(({ latest, tenDay, gradeGuide, history }) => {
+loadForecastData().then(({ latest, tenDay, gradeGuide, history, cameraObservation }) => {
+  scrippsCameraObservation = cameraObservation || null;
   render(latest);
   renderStaleNotice(latest);
   renderCommunityReport(latest);
