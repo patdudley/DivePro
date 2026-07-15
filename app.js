@@ -349,21 +349,6 @@ function defaultReport(data) {
   return `The model expects ${feet(range)} visibility based on the available wave, wind, tide, and rain inputs.`;
 }
 
-function liveEmbedUrl(url) {
-  if (!url) return "";
-  const inputUrl = new URL(url, window.location.href);
-  const videoId = inputUrl.pathname.split("/").filter(Boolean).pop();
-  const liveUrl = new URL(`https://www.youtube.com/embed/${videoId || ""}`);
-  liveUrl.searchParams.set("autoplay", "1");
-  liveUrl.searchParams.set("mute", "1");
-  liveUrl.searchParams.set("playsinline", "1");
-  liveUrl.searchParams.set("controls", "1");
-  liveUrl.searchParams.set("rel", "0");
-  liveUrl.searchParams.set("modestbranding", "1");
-  liveUrl.searchParams.set("origin", window.location.origin);
-  return liveUrl.toString();
-}
-
 function cameraImageForGrade(grade) {
   const letter = String(grade || "").trim().toUpperCase().match(/[ABCDF]/)?.[0] || "C";
   if (letter === "A" || letter === "B") return "viz-best.jpg";
@@ -376,33 +361,14 @@ function renderCamera(data) {
   const image = document.getElementById("cameraImage");
   if (!frame || !image) return;
 
-  if (data.live_embed_url) {
-    let iframe = frame.querySelector("iframe");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      frame.insertBefore(iframe, frame.querySelector("figcaption"));
-    }
-    const playButton = frame.querySelector(".camera-play-button");
-    if (playButton) playButton.remove();
-    iframe.src = liveEmbedUrl(data.live_embed_url);
-    iframe.title = `${data.location || "Dive spot"} live camera`;
-    iframe.loading = "eager";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.allowFullscreen = true;
-    frame.classList.add("is-playing");
-    image.hidden = true;
-    image.removeAttribute("src");
-  } else {
-    const iframe = frame.querySelector("iframe");
-    if (iframe) iframe.remove();
-    const playButton = frame.querySelector(".camera-play-button");
-    if (playButton) playButton.remove();
-    frame.classList.remove("is-playing");
-    image.hidden = false;
-    image.src = cameraImageForGrade(data.grade);
-    image.alt = `${data.location || "Dive spot"} camera preview`;
-  }
-
+  const iframe = frame.querySelector("iframe");
+  if (iframe) iframe.remove();
+  const playButton = frame.querySelector(".camera-play-button");
+  if (playButton) playButton.remove();
+  frame.classList.remove("is-playing");
+  image.hidden = false;
+  image.src = cameraImageForGrade(data.grade);
+  image.alt = `${data.location || "Dive spot"} estimated visibility reference`;
   frame.hidden = false;
 }
 
