@@ -18,7 +18,7 @@ def test_camera_uses_official_ucsd_link_without_embedding_streams():
     assert "data.live_embed_url" not in camera_block
 
 
-def test_camera_link_is_independent_from_grading_and_forecast_display():
+def test_camera_link_is_minimal_and_independent_from_grading():
     source = (ROOT / "app.js").read_text()
     html = (ROOT / "index.html").read_text()
     camera_block = source[source.index("function renderCamera"):source.index("function hourLabel")]
@@ -26,5 +26,6 @@ def test_camera_link_is_independent_from_grading_and_forecast_display():
     assert "camera-config" not in camera_block
     assert "camera_display" not in camera_block
     assert "cameraImageForGrade(data.grade)" in camera_block
-    assert "Forecast grade is algorithm-generated" in html
-    assert "UC San Diego / Scripps Institution of Oceanography" in html
+    assert "Scripps Pier cam" in html
+    assert "<figcaption" not in html
+    assert "Live camera &mdash; Scripps Pier" not in html
