@@ -10,10 +10,13 @@ on:
         default: "08:00"
         options: ["08:00", "12:00", "16:00"]
   schedule:
-    # Four attempts per local slot. The local-hour gate handles DST and the
-    # committed status makes later attempts for a completed slot no-ops.
-    - cron: "7,22,37,52 15,19,23 * * *" # PDT: 8 AM, noon, 4 PM
-    - cron: "7,22,37,52 0,16,20 * * *"  # PST: 8 AM, noon, 4 PM
+    # Dense attempts because GitHub delays and drops cron triggers. The
+    # local-time gate (slot hour + 2h grace) decides whether a run captures,
+    # and the committed status makes repeat runs for a completed slot no-ops.
+    # UTC 15:00-01:47 covers the 8 AM, noon, and 4 PM local slots plus their
+    # grace windows in both PST and PDT.
+    - cron: "7,27,47 15-23 * * *"
+    - cron: "7,27,47 0,1 * * *"
 
 permissions:
   contents: write
