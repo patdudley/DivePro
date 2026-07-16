@@ -176,14 +176,16 @@ def test_predict_borderline_dc_vector_uses_continuous_d_grade():
 
 @pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
 def test_predict_expected_visibility_over_ten_displays_c_even_if_d_is_largest():
-    model = _stub_soft_model([0.0, 0.49, 0.44, 0.07, 0.0, 0.0])
+    # NOTE: avoid probability vectors whose expected visibility lands exactly on
+    # a rounding boundary (e.g. [.49, .44, .07] -> 10.075): round(x, 2) then
+    # flips between 10.07 and 10.08 depending on numpy/Python float accumulation.
+    # 0.49*7 + 0.43*12 + 0.08*19.5 = 10.15 exactly, away from any boundary.
+    model = _stub_soft_model([0.0, 0.49, 0.43, 0.08, 0.0, 0.0])
     with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
          patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]):
         result = blf.predict_lajolla({})
     assert result["most_likely_grade"]["grade"] == "D"
-    # Exact probability-weighted value is 10.075 ft (0.49*7 + 0.44*12 + 0.07*19.5);
-    # IEEE-754 accumulation lands at 10.075000000000001, so round(..., 2) == 10.08.
-    assert result["raw_expected_vis_ft"] == pytest.approx(10.08)
+    assert result["raw_expected_vis_ft"] == pytest.approx(10.15)
     assert result["display_grade"] == "C"
     assert result["vis_range"] == [10, 14]
 
