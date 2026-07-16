@@ -181,7 +181,9 @@ def test_predict_expected_visibility_over_ten_displays_c_even_if_d_is_largest():
          patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]):
         result = blf.predict_lajolla({})
     assert result["most_likely_grade"]["grade"] == "D"
-    assert result["raw_expected_vis_ft"] == pytest.approx(10.07)
+    # Exact probability-weighted value is 10.075 ft (0.49*7 + 0.44*12 + 0.07*19.5);
+    # IEEE-754 accumulation lands at 10.075000000000001, so round(..., 2) == 10.08.
+    assert result["raw_expected_vis_ft"] == pytest.approx(10.08)
     assert result["display_grade"] == "C"
     assert result["vis_range"] == [10, 14]
 
