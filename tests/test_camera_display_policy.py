@@ -142,7 +142,20 @@ def test_schedule_gate_accepts_full_slot_hour_and_rejects_outside_window():
     assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 15, 0, tzinfo=dt.UTC))[0] == "08:00"
     assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 15, 59, tzinfo=dt.UTC))[0] == "08:00"
     assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 14, 59, tzinfo=dt.UTC)) is None
-    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 16, 0, tzinfo=dt.UTC)) is None
+
+
+def test_schedule_gate_allows_delayed_cron_within_grace_window():
+    # 16:38 UTC on 2026-07-16 is 9:38 AM PDT: a real delayed trigger that the
+    # old exact-hour gate skipped, leaving the site on the fallback image.
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 16, 38, tzinfo=dt.UTC))[0] == "08:00"
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 20, 59, tzinfo=dt.UTC))[0] == "12:00"
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 0, 59, tzinfo=dt.UTC))[0] == "16:00"
+
+
+def test_schedule_gate_rejects_times_past_grace_window():
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 17, 0, tzinfo=dt.UTC)) is None   # 10:00 AM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 21, 30, tzinfo=dt.UTC)) is None  # 2:30 PM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 1, 30, tzinfo=dt.UTC)) is None   # 6:30 PM PDT
 
 
 def test_redundant_runs_capture_only_once_per_date_and_slot(tmp_path, monkeypatch):
