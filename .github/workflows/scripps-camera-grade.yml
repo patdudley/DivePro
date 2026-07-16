@@ -10,9 +10,10 @@ on:
         default: "08:00"
         options: ["08:00", "12:00", "16:00"]
   schedule:
-    # Candidate UTC hours for 8 AM, noon, and 4 PM in both PST and PDT.
-    # The gate step below runs only the matching America/Los_Angeles hour.
-    - cron: "5 0,15,16,19,20,23 * * *"
+    # Four attempts per local slot. The local-hour gate handles DST and the
+    # committed status makes later attempts for a completed slot no-ops.
+    - cron: "7,22,37,52 15,19,23 * * *" # PDT: 8 AM, noon, 4 PM
+    - cron: "7,22,37,52 0,16,20 * * *"  # PST: 8 AM, noon, 4 PM
 
 permissions:
   contents: write
@@ -87,6 +88,7 @@ jobs:
           if [ -n "$EVAL_REPO_TOKEN" ]; then echo "eval=true" >> "$GITHUB_OUTPUT"; else echo "eval=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Capture feed and grade image
+        id: capture
         if: steps.gate.outputs.run == 'true' && (steps.config.outputs.mode != 'off' || steps.config.outputs.publish == 'true')
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -105,11 +107,16 @@ jobs:
             --public-status "$RUNNER_TEMP/scripps-pier-latest.json" \
             --public-image-url "${{ steps.config.outputs.public_image_url }}" \
             --batch-output "$RUNNER_TEMP/scripps-camera-batch.json"
+          if [ -s "$RUNNER_TEMP/scripps-pier-latest.json" ]; then
+            echo "produced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "produced=false" >> "$GITHUB_OUTPUT"
+          fi
 
       # Screenshot publishing is intentionally independent of grading mode.
       # It requires only a validated capture (image_url is null otherwise).
       - name: Replace public latest-image release asset
-        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
@@ -126,7 +133,7 @@ jobs:
           gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber
 
       - name: Commit public latest status only
-        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
         run: |
           mkdir -p camera-snapshots
           cp "$RUNNER_TEMP/scripps-pier-latest.json" camera-snapshots/scripps-pier-latest.json
