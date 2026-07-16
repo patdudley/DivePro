@@ -83,6 +83,18 @@ def scheduled_slot(now: dt.datetime | None = None) -> tuple[str, dt.datetime] | 
     return (slot, current) if slot else None
 
 
+def slot_already_captured(status_path: Path, observation_date: str, slot: str) -> bool:
+    try:
+        status = json.loads(status_path.read_text())
+    except (OSError, json.JSONDecodeError, TypeError):
+        return False
+    return (
+        status.get("capture_ok") is True
+        and status.get("observation_date") == observation_date
+        and status.get("slot") == slot
+    )
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -385,16 +397,25 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 def run(args: argparse.Namespace) -> int:
     now_utc = utc_now()
     local_now = now_utc.astimezone(LOCAL_TZ)
-    slot = args.force_slot or SCHEDULED_HOURS.get(local_now.hour)
+    scheduled = scheduled_slot(now_utc)
+    slot = args.force_slot or (scheduled[0] if scheduled else None)
     if not slot:
         print(f"Not a scheduled Scripps slot: {local_now.isoformat()}")
         return 3
+    observation_date = local_now.date().isoformat()
+    if slot_already_captured(Path(args.existing_status), observation_date, slot):
+        print(json.dumps({
+            "status": "already_captured",
+            "slot": slot,
+            "observation_date": observation_date,
+        }))
+        return 0
 
     status: dict[str, Any] = {
         "schema_version": "1",
         "status": "capture_failure",
         "capture_ok": False,
-        "observation_date": local_now.date().isoformat(),
+        "observation_date": observation_date,
         "captured_at_utc": now_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "captured_at_local": local_now.replace(microsecond=0).isoformat(),
         "slot": slot,
@@ -462,6 +483,7 @@ def main() -> int:
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY", ""))
     parser.add_argument("--public-image", default=str(PUBLIC_IMAGE))
     parser.add_argument("--public-status", default=str(PUBLIC_STATUS))
+    parser.add_argument("--existing-status", default=str(PUBLIC_STATUS))
     parser.add_argument("--public-image-url", default=DEFAULT_PUBLIC_IMAGE_URL)
     parser.add_argument("--forecast-json", default=str(FORECAST_JSON))
     parser.add_argument("--batch-output", default=str(ROOT / "scripps-camera-batch.json"))
@@ -469,6 +491,10 @@ def main() -> int:
     if args.check_slot:
         result = scheduled_slot()
         if result:
+            observation_date = result[1].date().isoformat()
+            if slot_already_captured(Path(args.existing_status), observation_date, result[0]):
+                print(f"already captured slot {result[0]} on {observation_date}")
+                return 4
             print(f"scheduled slot {result[0]} at {result[1].isoformat()}")
             return 0
         print(f"not scheduled at {utc_now().astimezone(LOCAL_TZ).isoformat()}")

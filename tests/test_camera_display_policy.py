@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -121,13 +122,63 @@ def test_low_confidence_capture_writes_disabled_coupling_audit():
     assert records[0]["coupling_disabled_reason"] == "low_confidence"
 
 
-def test_schedule_gate_handles_pst_and_pdt():
-    pst = camera.scheduled_slot(dt.datetime(2026, 1, 15, 16, tzinfo=dt.UTC))
-    pdt = camera.scheduled_slot(dt.datetime(2026, 7, 15, 15, tzinfo=dt.UTC))
-    assert pst and pst[0] == "08:00"
-    assert pdt and pdt[0] == "08:00"
-    assert camera.scheduled_slot(dt.datetime(2026, 1, 15, 15, tzinfo=dt.UTC)) is None
-    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 16, tzinfo=dt.UTC)) is None
+@pytest.mark.parametrize(
+    ("utc_time", "expected_slot"),
+    [
+        (dt.datetime(2026, 1, 15, 16, 7, tzinfo=dt.UTC), "08:00"),
+        (dt.datetime(2026, 1, 15, 20, 52, tzinfo=dt.UTC), "12:00"),
+        (dt.datetime(2026, 1, 16, 0, 37, tzinfo=dt.UTC), "16:00"),
+        (dt.datetime(2026, 7, 15, 15, 7, tzinfo=dt.UTC), "08:00"),
+        (dt.datetime(2026, 7, 15, 19, 52, tzinfo=dt.UTC), "12:00"),
+        (dt.datetime(2026, 7, 15, 23, 37, tzinfo=dt.UTC), "16:00"),
+    ],
+)
+def test_schedule_gate_handles_redundant_pst_and_pdt_hours(utc_time, expected_slot):
+    result = camera.scheduled_slot(utc_time)
+    assert result and result[0] == expected_slot
+
+
+def test_schedule_gate_accepts_full_slot_hour_and_rejects_outside_window():
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 15, 0, tzinfo=dt.UTC))[0] == "08:00"
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 15, 59, tzinfo=dt.UTC))[0] == "08:00"
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 14, 59, tzinfo=dt.UTC)) is None
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 16, 0, tzinfo=dt.UTC)) is None
+
+
+def test_redundant_runs_capture_only_once_per_date_and_slot(tmp_path, monkeypatch):
+    now = dt.datetime(2026, 7, 15, 23, 22, tzinfo=dt.UTC)
+    monkeypatch.setattr(camera, "utc_now", lambda: now)
+    monkeypatch.setattr(camera, "FORECAST_JSON", tmp_path / "missing-forecast.json")
+    capture_calls = 0
+
+    def fake_capture(path, attempts):
+        nonlocal capture_calls
+        capture_calls += 1
+        Image.new("RGB", (1280, 720), (20, 90, 120)).save(path)
+        return {"width": 1280, "height": 720, "motion_score": 12.0}
+
+    monkeypatch.setattr(camera, "capture_feed", fake_capture)
+    status_path = tmp_path / "scripps-pier-latest.json"
+    args = SimpleNamespace(
+        force_slot=None,
+        existing_status=str(status_path),
+        public_image=str(tmp_path / "scripps-pier.jpg"),
+        public_status=str(status_path),
+        public_image_url=camera.DEFAULT_PUBLIC_IMAGE_URL,
+        forecast_json=str(tmp_path / "missing-forecast.json"),
+        batch_output=str(tmp_path / "batch.json"),
+        attempts=1,
+        api_key="",
+        model="test-model",
+    )
+
+    assert camera.run(args) == 0
+    assert camera.run(args) == 0
+    assert capture_calls == 1
+    status = json.loads(status_path.read_text())
+    assert status["capture_ok"] is True
+    assert status["observation_date"] == "2026-07-15"
+    assert status["slot"] == "16:00"
 
 
 def test_grade_validation_rejects_bucket_mismatch_and_accepts_structured_result():
