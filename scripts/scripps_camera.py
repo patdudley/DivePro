@@ -33,6 +33,7 @@ from camera_display_policy import (
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 SCHEDULED_HOURS = {8: "08:00", 12: "12:00", 16: "16:00"}
+SLOT_GRACE_HOURS = 2
 CAMERA_PAGE_URL = "https://coollab.ucsd.edu/pierviz/"
 CAMERA_IFRAME_SELECTOR = 'iframe[src*="scripps_pier-underwater"]'
 PUBLIC_IMAGE = ROOT / "camera-snapshots" / "scripps-pier.jpg"
@@ -78,9 +79,18 @@ def utc_now() -> dt.datetime:
 
 
 def scheduled_slot(now: dt.datetime | None = None) -> tuple[str, dt.datetime] | None:
+    """Return the newest slot whose grace window contains the current local time.
+
+    GitHub Actions cron triggers are frequently delayed (or dropped and retried
+    later), so requiring the exact slot hour silently skips captures. Each slot
+    instead stays eligible for SLOT_GRACE_HOURS after it starts; the committed
+    status file keeps reruns idempotent per (date, slot).
+    """
     current = (now or utc_now()).astimezone(LOCAL_TZ)
-    slot = SCHEDULED_HOURS.get(current.hour)
-    return (slot, current) if slot else None
+    for hour in sorted(SCHEDULED_HOURS, reverse=True):
+        if hour <= current.hour < hour + SLOT_GRACE_HOURS:
+            return (SCHEDULED_HOURS[hour], current)
+    return None
 
 
 def slot_already_captured(status_path: Path, observation_date: str, slot: str) -> bool:
