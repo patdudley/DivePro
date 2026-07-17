@@ -152,10 +152,20 @@ def test_schedule_gate_allows_delayed_cron_within_grace_window():
     assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 0, 59, tzinfo=dt.UTC))[0] == "16:00"
 
 
+def test_schedule_gate_allows_throttled_cron_late_in_grace_window():
+    # GitHub throttles this repo's cron to roughly one run per 75-100 minutes,
+    # so each slot keeps a 3-hour grace window: the 2026-07-16 4 PM slot got
+    # exactly one in-window attempt (which failed on a transient API error)
+    # and the 6:13 PM retry arrived 13 minutes past the old 2-hour grace.
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 17, 1, 13, tzinfo=dt.UTC))[0] == "16:00"  # 6:13 PM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 17, 30, tzinfo=dt.UTC))[0] == "08:00"  # 10:30 AM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 21, 30, tzinfo=dt.UTC))[0] == "12:00"  # 2:30 PM PDT
+
+
 def test_schedule_gate_rejects_times_past_grace_window():
-    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 17, 0, tzinfo=dt.UTC)) is None   # 10:00 AM PDT
-    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 21, 30, tzinfo=dt.UTC)) is None  # 2:30 PM PDT
-    assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 1, 30, tzinfo=dt.UTC)) is None   # 6:30 PM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 18, 0, tzinfo=dt.UTC)) is None   # 11:00 AM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 16, 2, 30, tzinfo=dt.UTC)) is None   # 7:30 PM PDT
+    assert camera.scheduled_slot(dt.datetime(2026, 7, 15, 14, 59, tzinfo=dt.UTC)) is None  # 7:59 AM PDT
 
 
 def test_redundant_runs_capture_only_once_per_date_and_slot(tmp_path, monkeypatch):
