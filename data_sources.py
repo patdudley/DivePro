@@ -1,5 +1,7 @@
 # ABOUTME: External data fetchers for the DivePro forecast — HTTP retry plumbing,
 # ABOUTME: NOAA CoastWatch chlorophyll, NDBC buoy water temp, and NOAA CO-OPS tide H/L events.
+import csv
+import io
 import json
 import time
 import urllib.error
@@ -36,6 +38,91 @@ def _get_json_with_retry(url, timeout=25, retries=3):
                 continue
             raise
     raise last_exc
+
+
+def _get_noaa_predictions_with_retry(url, timeout=25, retries=2):
+    """Retry NOAA HTTP-200 error payloads as well as transport failures."""
+    delay = 1
+    last_error = None
+    for attempt in range(retries + 1):
+        request_url = url
+        if attempt:
+            separator = "&" if "?" in url else "?"
+            request_url = f"{url}{separator}retry_nonce={int(time.time() * 1000)}-{attempt}"
+        request = urllib.request.Request(
+            request_url,
+            headers={
+                "Accept": "application/json",
+                "Cache-Control": "no-cache",
+                "User-Agent": "DiveProSD/1.0",
+            },
+        )
+        data = _get_json_with_retry(request, timeout=timeout)
+        predictions = data.get("predictions")
+        if isinstance(predictions, list) and predictions:
+            return predictions
+
+        noaa_error = data.get("error", {}).get("message")
+        last_error = RuntimeError(
+            f"NOAA predictions unavailable: {noaa_error or 'empty response'}"
+        )
+        if attempt < retries:
+            time.sleep(delay)
+            delay *= 2
+
+    csv_predictions = _get_noaa_csv_predictions(url, timeout=timeout)
+    if csv_predictions:
+        return csv_predictions
+    raise last_error
+
+
+def _get_noaa_csv_predictions(url, timeout=25, retries=2):
+    """Use NOAA's independent CSV representation when JSON returns an error."""
+    parsed = urllib.parse.urlsplit(url)
+    base_query = dict(urllib.parse.parse_qsl(parsed.query, keep_blank_values=True))
+    delay = 1
+    for attempt in range(retries + 1):
+        query = dict(base_query)
+        query["format"] = "csv"
+        query["retry_nonce"] = f"{int(time.time() * 1000)}-{attempt}"
+        csv_url = urllib.parse.urlunsplit((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            urllib.parse.urlencode(query),
+            parsed.fragment,
+        ))
+        request = urllib.request.Request(
+            csv_url,
+            headers={
+                "Accept": "text/csv",
+                "Cache-Control": "no-cache",
+                "User-Agent": "DiveProSD/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                text = response.read().decode("utf-8")
+        except (urllib.error.HTTPError, urllib.error.URLError):
+            text = ""
+
+        predictions = []
+        for row in csv.DictReader(io.StringIO(text), skipinitialspace=True):
+            timestamp = (row.get("Date Time") or "").strip()
+            value = (row.get("Prediction") or "").strip()
+            if not timestamp or not value:
+                continue
+            prediction = {"t": timestamp, "v": value}
+            tide_type = (row.get("Type") or "").strip()
+            if tide_type:
+                prediction["type"] = tide_type
+            predictions.append(prediction)
+        if predictions:
+            return predictions
+        if attempt < retries:
+            time.sleep(delay)
+            delay *= 2
+    return []
 
 
 def api_url(base, params):
@@ -143,10 +230,7 @@ def _fetch_tide_hilo(tide_station, target_date, now_hhmm=None):
         "format": "json",
     })
     try:
-        data = _get_json_with_retry(url)
-        predictions = data.get("predictions", [])
-        if not predictions:
-            return None
+        predictions = _get_noaa_predictions_with_retry(url)
 
         schedule = []
         for p in predictions:

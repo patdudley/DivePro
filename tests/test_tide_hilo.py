@@ -63,3 +63,19 @@ def test_returns_none_on_error():
     with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")):
         result = blf._fetch_tide_hilo("9410230", "2026-05-31")
     assert result is None
+
+
+def test_retries_http_200_semantic_error():
+    semantic_error = {"error": {"message": "No Predictions data was found."}}
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[_mock_json(semantic_error), _mock_json(_HILO_RESPONSE)],
+    ) as request:
+        with patch("data_sources.time.sleep") as sleep:
+            result = blf._fetch_tide_hilo(
+                "9410230", "2026-05-31", now_hhmm="16:00"
+            )
+
+    assert result["current_phase"] == "rising"
+    assert request.call_count == 2
+    sleep.assert_called_once_with(1)
