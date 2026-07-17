@@ -11,12 +11,12 @@ on:
         options: ["08:00", "12:00", "16:00"]
   schedule:
     # Dense attempts because GitHub delays and drops cron triggers. The
-    # local-time gate (slot hour + 2h grace) decides whether a run captures,
+    # local-time gate (slot hour + 3h grace) decides whether a run captures,
     # and the committed status makes repeat runs for a completed slot no-ops.
-    # UTC 15:00-01:47 covers the 8 AM, noon, and 4 PM local slots plus their
+    # UTC 15:00-02:47 covers the 8 AM, noon, and 4 PM local slots plus their
     # grace windows in both PST and PDT.
     - cron: "7,27,47 15-23 * * *"
-    - cron: "7,27,47 0,1 * * *"
+    - cron: "7,27,47 0-2 * * *"
 
 permissions:
   contents: write
@@ -130,10 +130,21 @@ jobs:
             exit 0
           fi
           test -s "$RUNNER_TEMP/scripps-pier.jpg"
-          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+          # A transient `gh release view` failure must not trigger a hard-failing
+          # create: "Release.tag_name already exists" killed the 2026-07-16 4 PM
+          # slot. Create is best-effort; existence is re-checked afterwards.
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --title "Latest Scripps camera observation" \
-              --notes "Replace-in-place asset used by DiveProSD." --latest=false
-          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber
+              --notes "Replace-in-place asset used by DiveProSD." --latest=false || \
+              echo "release create failed (tag may already exist); continuing"
+            gh release view "$RELEASE_TAG" >/dev/null
+          fi
+          for attempt in 1 2 3; do
+            gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber && exit 0
+            echo "release upload attempt $attempt failed; retrying"
+            sleep 10
+          done
+          exit 1
 
       - name: Commit public latest status only
         if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
