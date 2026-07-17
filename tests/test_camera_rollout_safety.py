@@ -70,7 +70,7 @@ def test_workflow_never_commits_camera_jpeg_and_decouples_publish_from_grading()
 def test_workflow_retries_each_pst_and_pdt_slot_without_duplicate_publishing():
     workflow = (ROOT / ".github/workflows/scripps-camera-grade.yml").read_text()
     assert 'cron: "7,27,47 15-23 * * *"' in workflow
-    assert 'cron: "7,27,47 0,1 * * *"' in workflow
+    assert 'cron: "7,27,47 0-2 * * *"' in workflow
     assert "id: capture" in workflow
     assert 'echo "produced=false" >> "$GITHUB_OUTPUT"' in workflow
     publish_gate = "steps.capture.outputs.produced == 'true'"
