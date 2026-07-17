@@ -33,7 +33,7 @@ from camera_display_policy import (
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 SCHEDULED_HOURS = {8: "08:00", 12: "12:00", 16: "16:00"}
-SLOT_GRACE_HOURS = 2
+SLOT_GRACE_HOURS = 3
 CAMERA_PAGE_URL = "https://coollab.ucsd.edu/pierviz/"
 CAMERA_IFRAME_SELECTOR = 'iframe[src*="scripps_pier-underwater"]'
 PUBLIC_IMAGE = ROOT / "camera-snapshots" / "scripps-pier.jpg"
