@@ -93,6 +93,28 @@ def scheduled_slot(now: dt.datetime | None = None) -> tuple[str, dt.datetime] | 
     return None
 
 
+def same_day_success_text(status_path: Path, observation_date: str) -> str | None:
+    """Return the raw text of an existing same-day successful status, else None.
+
+    Used when a later slot's capture fails: overwriting the public status with a
+    capture_failure record would hide a perfectly valid earlier photo from the
+    homepage for the rest of the day. Returning the original bytes verbatim
+    keeps the workflow's commit step a no-op.
+    """
+    try:
+        text = status_path.read_text()
+        status = json.loads(text)
+    except (OSError, json.JSONDecodeError, TypeError):
+        return None
+    if (
+        status.get("capture_ok") is True
+        and status.get("image_url")
+        and status.get("observation_date") == observation_date
+    ):
+        return text
+    return None
+
+
 def slot_already_captured(status_path: Path, observation_date: str, slot: str) -> bool:
     try:
         status = json.loads(status_path.read_text())
@@ -471,7 +493,21 @@ def run(args: argparse.Namespace) -> int:
         status["failure_code"] = type(exc).__name__
         print(f"Capture failed: {exc}", file=sys.stderr)
 
-    write_json(Path(args.public_status), status)
+    preserved_text = None
+    if status["capture_ok"] is not True:
+        preserved_text = same_day_success_text(Path(args.existing_status), observation_date)
+        if preserved_text is not None:
+            print(
+                "Capture failed but a same-day successful status exists; "
+                "keeping the earlier public status instead of overwriting it.",
+            )
+
+    if preserved_text is not None:
+        public_status_path = Path(args.public_status)
+        public_status_path.parent.mkdir(parents=True, exist_ok=True)
+        public_status_path.write_text(preserved_text)
+    else:
+        write_json(Path(args.public_status), status)
     forecasts = json.loads(Path(args.forecast_json).read_text()) if Path(args.forecast_json).exists() else []
     camera_record = _camera_record(status, capture_metrics)
     batch = {
