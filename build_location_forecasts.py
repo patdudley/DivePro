@@ -149,6 +149,7 @@ except ImportError as _cr_err:
 from data_sources import (
     get_json,
     _get_json_with_retry,
+    _get_noaa_predictions_with_retry,
     api_url,
     _fetch_chla_recent,
     _fetch_ndbc_water_temp,
@@ -760,36 +761,107 @@ def _append_v2_shadow_if_available(
 # TIDE CHARTS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def tide_charts(spot, dates):
-    if not spot.get("tide_station"):
-        return {d: [] for d in dates}
-    begin = dates[0].replace("-", "")
-    end   = dates[-1].replace("-", "")
-    url = api_url("https://api.tidesandcurrents.noaa.gov/api/prod/datagetter", {
+TIDE_REQUEST_CHUNK_DAYS = 3
+MIN_TIDE_POINTS_PER_DAY = 20
+
+
+def _tide_predictions_url(tide_station, begin_date, end_date):
+    return api_url("https://api.tidesandcurrents.noaa.gov/api/prod/datagetter", {
         "product": "predictions",
         "application": "diveprousa",
-        "begin_date": begin,
-        "end_date": end,
+        "begin_date": begin_date.replace("-", ""),
+        "end_date": end_date.replace("-", ""),
         "datum": "MLLW",
-        "station": spot["tide_station"],
+        "station": tide_station,
         "time_zone": "lst_ldt",
         "units": "english",
         "interval": "h",
         "format": "json",
     })
+
+
+def _fetch_tide_predictions(tide_station, begin_date, end_date):
+    """Fetch NOAA predictions and treat HTTP-200 error payloads as failures."""
+    url = _tide_predictions_url(tide_station, begin_date, end_date)
     try:
-        data = _get_json_with_retry(url)
-        charts = {d: [] for d in dates}
-        for item in data.get("predictions", []):
+        return _get_noaa_predictions_with_retry(url)
+    except RuntimeError as error:
+        raise RuntimeError(
+            f"NOAA tide API returned no predictions for {begin_date}..{end_date}: "
+            f"{error}"
+        ) from error
+
+
+def _tide_points_by_date(predictions, dates):
+    charts = {target_date: [] for target_date in dates}
+    for item in predictions:
+        try:
             tide_date, tide_time = item["t"].split(" ")
             if tide_date in charts:
                 charts[tide_date].append({
                     "time": tide_time,
                     "height_ft": round(float(item["v"]), 2),
                 })
-        return charts
-    except Exception:
+        except (KeyError, TypeError, ValueError):
+            continue
+    return charts
+
+
+def tide_charts(spot, dates):
+    if not spot.get("tide_station"):
         return {d: [] for d in dates}
+    if not dates:
+        return {}
+
+    station = spot["tide_station"]
+    charts = {target_date: [] for target_date in dates}
+
+    # NOAA occasionally returns HTTP 200 plus an error for longer prediction
+    # ranges. Short chunks avoid that path; failed chunks fall back per day.
+    for offset in range(0, len(dates), TIDE_REQUEST_CHUNK_DAYS):
+        chunk_dates = dates[offset:offset + TIDE_REQUEST_CHUNK_DAYS]
+        try:
+            predictions = _fetch_tide_predictions(
+                station, chunk_dates[0], chunk_dates[-1]
+            )
+            chunk_charts = _tide_points_by_date(predictions, chunk_dates)
+        except Exception as chunk_error:
+            print(
+                f"  WARNING: NOAA tide chunk {chunk_dates[0]}..{chunk_dates[-1]} "
+                f"failed ({chunk_error}); retrying each date"
+            )
+            chunk_charts = {target_date: [] for target_date in chunk_dates}
+
+        for target_date in chunk_dates:
+            points = chunk_charts[target_date]
+            if len(points) >= MIN_TIDE_POINTS_PER_DAY:
+                charts[target_date] = points
+                continue
+
+            try:
+                daily_predictions = _fetch_tide_predictions(
+                    station, target_date, target_date
+                )
+                daily_points = _tide_points_by_date(
+                    daily_predictions, [target_date]
+                )[target_date]
+                if len(daily_points) < MIN_TIDE_POINTS_PER_DAY:
+                    raise RuntimeError(
+                        f"only {len(daily_points)} hourly points returned"
+                    )
+                charts[target_date] = daily_points
+            except Exception as daily_error:
+                print(
+                    f"  WARNING: NOAA tide predictions unavailable for "
+                    f"{target_date}: {daily_error}"
+                )
+
+    if len(charts[dates[0]]) < MIN_TIDE_POINTS_PER_DAY:
+        raise RuntimeError(
+            f"NOAA tide predictions unavailable for current forecast date "
+            f"{dates[0]}; refusing to publish an empty current-day tide chart"
+        )
+    return charts
 
 
 def hourly_day_points(data, key, target_date, value_key, multiplier=1.0):
