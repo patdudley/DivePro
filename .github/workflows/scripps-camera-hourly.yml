@@ -1,0 +1,109 @@
+# Hourly daylight screenshot refresh for the DiveProSD homepage.
+#
+# This publishes fresh frames only. It never grades, never writes evaluation
+# records, and never marks graded slots complete: the 8 AM / noon / 4 PM
+# pipeline in scripps-camera-grade.yml is unchanged and its slot idempotency
+# reads the slots_completed map that display refreshes carry forward.
+#
+# Primary trigger is an external dispatcher (Cloudflare Worker) because
+# GitHub throttles this repo's cron to roughly one run per 75-100 minutes.
+# The cron lines below are best-effort backup only.
+name: Scripps camera hourly refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Backup only; local daylight gating lives in the script (7 AM-6 PM PT).
+    - cron: "17 14-23 * * *"
+    - cron: "17 0-2 * * *"
+
+permissions:
+  contents: write
+
+# Shares the graded workflow's group so latest.json writes serialize.
+# cancel-in-progress stays false: an hourly refresh must never cancel a
+# graded slot run mid-publish.
+concurrency:
+  group: scripps-camera-grade
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read camera config
+        id: config
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config = json.loads(Path("camera-config.json").read_text())
+          publish = bool(config.get("publish_screenshots", False))
+          image_url = str(config.get("public_image_url", "")).strip()
+          release_tag = str(config.get("public_image_release_tag", "")).strip()
+          if not image_url or not release_tag:
+              raise SystemExit("camera config requires public image URL and release tag")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"publish={'true' if publish else 'false'}\n")
+              output.write(f"public_image_url={image_url}\n")
+              output.write(f"release_tag={release_tag}\n")
+          PY
+
+      - name: Capture display refresh frame
+        id: capture
+        if: steps.config.outputs.publish == 'true'
+        run: |
+          python scripts/scripps_camera.py --display-refresh \
+            --public-image "$RUNNER_TEMP/scripps-pier.jpg" \
+            --public-status "$RUNNER_TEMP/scripps-pier-latest.json" \
+            --public-image-url "${{ steps.config.outputs.public_image_url }}"
+          if [ -s "$RUNNER_TEMP/scripps-pier-latest.json" ]; then
+            echo "produced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "produced=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Replace public latest-image release asset
+        if: steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
+        run: |
+          image_url="$(python -c 'import json,os; print(json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "scripps-pier-latest.json")))["image_url"] or "")')"
+          if [ -z "$image_url" ] || [ ! -s "$RUNNER_TEMP/scripps-pier.jpg" ]; then
+            echo "No new frame; keeping the previous public image asset"
+            exit 0
+          fi
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --title "Latest Scripps camera observation" \
+              --notes "Replace-in-place asset used by DiveProSD." --latest=false || \
+              echo "release create failed (tag may already exist); continuing"
+            gh release view "$RELEASE_TAG" >/dev/null
+          fi
+          for attempt in 1 2 3; do
+            gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber && exit 0
+            echo "release upload attempt $attempt failed; retrying"
+            sleep 10
+          done
+          exit 1
+
+      - name: Commit public latest status only
+        if: steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
+        run: |
+          mkdir -p camera-snapshots
+          cp "$RUNNER_TEMP/scripps-pier-latest.json" camera-snapshots/scripps-pier-latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add camera-snapshots/scripps-pier-latest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update Scripps camera display refresh"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
