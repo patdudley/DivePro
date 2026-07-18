@@ -34,6 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 SCHEDULED_HOURS = {8: "08:00", 12: "12:00", 16: "16:00"}
 SLOT_GRACE_HOURS = 3
+# Daylight window (local hours, inclusive start / exclusive stop) for the
+# hourly display-refresh captures. Validation rejects dark frames anyway;
+# this gate just avoids pointless fetches outside daylight.
+DISPLAY_REFRESH_HOURS = range(7, 19)
 CAMERA_PAGE_URL = "https://coollab.ucsd.edu/pierviz/"
 CAMERA_IFRAME_SELECTOR = 'iframe[src*="scripps_pier-underwater"]'
 PUBLIC_IMAGE = ROOT / "camera-snapshots" / "scripps-pier.jpg"
@@ -115,16 +119,37 @@ def same_day_success_text(status_path: Path, observation_date: str) -> str | Non
     return None
 
 
-def slot_already_captured(status_path: Path, observation_date: str, slot: str) -> bool:
+def _same_day_status(status_path: Path, observation_date: str) -> dict[str, Any] | None:
     try:
         status = json.loads(status_path.read_text())
     except (OSError, json.JSONDecodeError, TypeError):
-        return False
-    return (
-        status.get("capture_ok") is True
-        and status.get("observation_date") == observation_date
-        and status.get("slot") == slot
-    )
+        return None
+    if status.get("observation_date") != observation_date:
+        return None
+    return status
+
+
+def completed_slots(status_path: Path, observation_date: str) -> dict[str, bool]:
+    """Graded slots already captured today, surviving hourly display refreshes.
+
+    Legacy statuses lack the slots_completed map, so a same-day successful
+    capture of a scheduled slot is inferred as completed.
+    """
+    status = _same_day_status(status_path, observation_date)
+    if not status:
+        return {}
+    slots: dict[str, bool] = {
+        key: True
+        for key, value in (status.get("slots_completed") or {}).items()
+        if value is True and key in SCHEDULED_HOURS.values()
+    }
+    if status.get("capture_ok") is True and status.get("slot") in SCHEDULED_HOURS.values():
+        slots[status["slot"]] = True
+    return slots
+
+
+def slot_already_captured(status_path: Path, observation_date: str, slot: str) -> bool:
+    return completed_slots(status_path, observation_date).get(slot, False)
 
 
 def _sha256(path: Path) -> str:
@@ -463,6 +488,7 @@ def run(args: argparse.Namespace) -> int:
         "prompt_version": PROMPT_VERSION,
         "rubric_version": GRADER_VERSION,
         "display_policy_version": POLICY_VERSION,
+        "slots_completed": completed_slots(Path(args.existing_status), observation_date),
     }
     capture_metrics = None
     batch_path = Path(args.batch_output)
@@ -471,6 +497,7 @@ def run(args: argparse.Namespace) -> int:
         image_hash = _sha256(Path(args.public_image))
         status["image_sha256"] = image_hash
         status["capture_ok"] = True
+        status["slots_completed"] = {**status["slots_completed"], slot: True}
         separator = "&" if "?" in args.public_image_url else "?"
         captured_image_url = f"{args.public_image_url}{separator}v={image_hash[:12]}"
         # Screenshot publishing depends only on capture + local validation.
@@ -520,9 +547,72 @@ def run(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_display_refresh(args: argparse.Namespace) -> int:
+    """Hourly daylight screenshot refresh: publish a fresh frame, never grade.
+
+    Produces no output files at all when it declines to capture, so the
+    workflow's produced=false gate skips publishing entirely. Never overwrites
+    a same-day status on failure, and always carries the graded-slot
+    completion map forward so slot idempotency survives hourly writes.
+    """
+    now_utc = utc_now()
+    local_now = now_utc.astimezone(LOCAL_TZ)
+    observation_date = local_now.date().isoformat()
+    hour = local_now.hour
+    if not (DISPLAY_REFRESH_HOURS.start <= hour < DISPLAY_REFRESH_HOURS.stop):
+        print(f"Outside daylight display window: {local_now.isoformat()}")
+        return 0
+    existing = _same_day_status(Path(args.existing_status), observation_date)
+    if existing and existing.get("capture_ok") is True:
+        captured_local = str(existing.get("captured_at_local") or "")
+        if captured_local[:13] == local_now.isoformat()[:13]:
+            print(f"Fresh capture already published for hour {hour:02d}: {captured_local}")
+            return 0
+    slot_label = f"{hour:02d}:00"
+    status: dict[str, Any] = {
+        "schema_version": "1",
+        "status": "display_refresh",
+        "capture_ok": True,
+        "observation_date": observation_date,
+        "captured_at_utc": now_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "captured_at_local": local_now.replace(microsecond=0).isoformat(),
+        "slot": slot_label,
+        "source_url": CAMERA_PAGE_URL,
+        "image_url": None,
+        "grade": None,
+        "visibility_range_ft": None,
+        "visibility_midpoint_ft": None,
+        "confidence": None,
+        "image_sha256": None,
+        "grader_model": args.model,
+        "grader_version": GRADER_VERSION,
+        "prompt_version": PROMPT_VERSION,
+        "rubric_version": GRADER_VERSION,
+        "display_policy_version": POLICY_VERSION,
+        "slots_completed": completed_slots(Path(args.existing_status), observation_date),
+    }
+    try:
+        capture_feed(Path(args.public_image), attempts=args.attempts)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Display refresh capture failed; keeping previous status untouched: {exc}", file=sys.stderr)
+        return 0
+    image_hash = _sha256(Path(args.public_image))
+    status["image_sha256"] = image_hash
+    separator = "&" if "?" in args.public_image_url else "?"
+    status["image_url"] = f"{args.public_image_url}{separator}v={image_hash[:12]}"
+    write_json(Path(args.public_status), status)
+    print(json.dumps({
+        "status": status["status"],
+        "slot": slot_label,
+        "observation_date": observation_date,
+    }))
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check-slot", action="store_true")
+    parser.add_argument("--display-refresh", action="store_true")
     parser.add_argument("--force-slot", choices=sorted(SCHEDULED_HOURS.values()))
     parser.add_argument("--attempts", type=int, default=3)
     parser.add_argument("--model", default=os.environ.get("SCRIPPS_GRADER_MODEL") or DEFAULT_GRADER_MODEL)
@@ -534,6 +624,8 @@ def main() -> int:
     parser.add_argument("--forecast-json", default=str(FORECAST_JSON))
     parser.add_argument("--batch-output", default=str(ROOT / "scripps-camera-batch.json"))
     args = parser.parse_args()
+    if args.display_refresh:
+        return run_display_refresh(args)
     if args.check_slot:
         result = scheduled_slot()
         if result:
