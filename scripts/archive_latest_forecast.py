@@ -28,17 +28,23 @@ def visibility_text(forecast: dict) -> str:
 def clean_report_text(forecast: dict) -> str:
     raw = str(forecast.get("report_text") or "").strip()
     if raw:
-      lines = []
+      paragraphs = []
+      current = []
       for line in raw.splitlines():
           stripped = line.strip()
           if not stripped:
+              if current:
+                  paragraphs.append(" ".join(current))
+                  current = []
               continue
           if re.match(r"^\d{1,2}:\d{2}\s*(AM|PM)\s+Update\s+-\s+Grade", stripped, re.I):
               continue
           if stripped.lower().startswith(("best shot:", "waves:")):
               continue
-          lines.append(stripped)
-      cleaned = " ".join(lines).strip()
+          current.append(stripped)
+      if current:
+          paragraphs.append(" ".join(current))
+      cleaned = "\n\n".join(paragraphs).strip()
       if cleaned:
           cleaned = re.sub(r"\bViz is expected around\b", "Viz is currently sitting around", cleaned, flags=re.I)
           return cleaned

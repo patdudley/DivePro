@@ -783,36 +783,58 @@
     };
   }
 
-  function setupSpotWindTimeline(frame, layer, manifest, frameCache, map) {
+  function ensureSpotWindTimeline(frame) {
+    let timeline = frame.querySelector(".spot-wind-timeline");
+    if (timeline) return timeline;
+
+    timeline = document.createElement("div");
+    timeline.className = "wind-timeline spot-wind-timeline is-hidden";
+    timeline.setAttribute("aria-label", "Wind forecast timeline");
+    timeline.innerHTML = `
+      <div class="spot-wind-control-row">
+        <button class="spot-wind-play" type="button" aria-label="Play wind forecast timeline">▶</button>
+        <output class="spot-wind-readout" aria-live="polite">Now</output>
+        <div class="spot-wind-axis">
+          <div class="spot-wind-slider-wrap">
+            <input class="spot-wind-slider" type="range" min="0" max="0" value="0" aria-label="Wind forecast hour">
+          </div>
+          <div class="wind-time-ticks spot-wind-ticks" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="spot-wind-days" role="tablist" aria-label="Wind forecast date"></div>
+    `;
+    frame.appendChild(timeline);
+    return timeline;
+  }
+
+  function setupSpotWindTimeline(frame, layer, manifest, frameCache, map, timelineCoordinates) {
     const frames = manifest.frames || [];
-    const timeline = frame.querySelector(".spot-wind-timeline");
+    const timeline = ensureSpotWindTimeline(frame);
     const playButton = frame.querySelector(".spot-wind-play");
-    const prevDayButton = frame.querySelector(".spot-wind-prev-day");
-    const nextDayButton = frame.querySelector(".spot-wind-next-day");
     const slider = frame.querySelector(".spot-wind-slider");
+    const sliderWrap = frame.querySelector(".spot-wind-slider-wrap");
     const ticks = frame.querySelector(".spot-wind-ticks");
-    const activeTime = frame.querySelector(".spot-wind-current-time");
-    const thumbTime = frame.querySelector(".spot-wind-thumb-time");
-    const dateBubble = frame.querySelector(".spot-wind-date-bubble");
+    const timeReadout = frame.querySelector(".spot-wind-readout");
+    const daySelector = frame.querySelector(".spot-wind-days");
     if (!timeline || !playButton || !slider || !ticks || !frames.length) {
       timeline?.classList.add("is-hidden");
       return;
     }
-
-    const currentIndex = defaultFrameIndex(frames);
-    let activeIndex = currentIndex;
-    let windowStartIndex = activeIndex;
-    let playTimer;
-    let requestToken = 0;
-    let tickResizeTimer;
-    const mobileTimelineQuery = window.matchMedia("(max-width: 640px)");
-    timeline.classList.toggle("is-hidden", frames.length < 2);
 
     frames.forEach((forecastFrame) => {
       forecastFrame.localDate = frameDate(forecastFrame);
     });
 
     const timelineDates = [...new Set(frames.map((forecastFrame) => forecastFrame.localDate).filter(Boolean))];
+    const currentIndex = defaultFrameIndex(frames);
+    let activeIndex = currentIndex;
+    let windowStartIndex = Math.max(0, frames.findIndex((forecastFrame) => forecastFrame.localDate === frames[currentIndex]?.localDate));
+    let playTimer;
+    let requestToken = 0;
+    let tickResizeTimer;
+    let tickResizeObserver;
+    let activeWindSpeed = null;
+    timeline.classList.toggle("is-hidden", frames.length < 2);
 
     function firstIndexForDate(date) {
       return frames.findIndex((forecastFrame) => forecastFrame.localDate === date);
@@ -836,20 +858,6 @@
       return frames[windowStartIndex]?.localDate || frames[activeIndex]?.localDate || timelineDates[0];
     }
 
-    function adjacentTimelineDate(offset) {
-      const dateIndex = timelineDates.indexOf(activeWindowDate());
-      if (dateIndex < 0) return null;
-      return timelineDates[dateIndex + offset] || null;
-    }
-
-    function currentTimelineDate() {
-      return pacificDate(new Date().toISOString());
-    }
-
-    function activeWindowIsFuture() {
-      return Boolean(adjacentTimelineDate(-1));
-    }
-
     function timelineDateLabel(date) {
       if (!date) return "";
       return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
@@ -857,6 +865,52 @@
         month: "short",
         day: "numeric",
       });
+    }
+
+    function timelineDayParts(date) {
+      const value = new Date(`${date}T12:00:00`);
+      return {
+        weekday: value.toLocaleDateString("en-US", { weekday: "short" }),
+        day: value.toLocaleDateString("en-US", { day: "numeric" }),
+      };
+    }
+
+    function fullTimeLabel(forecastFrame) {
+      const time = frameTime(forecastFrame);
+      if (!time) return forecastFrame?.label || "Wind";
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(time);
+    }
+
+    function sunriseFrameIndex(date) {
+      const dayIndices = frames
+        .map((forecastFrame, index) => (forecastFrame.localDate === date ? index : -1))
+        .filter((index) => index >= 0);
+      if (!dayIndices.length) return -1;
+
+      const [longitude, latitude] = timelineCoordinates || [];
+      let sunriseTime = null;
+      if (window.SunCalc?.getTimes && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        const [year, month, day] = date.split("-").map(Number);
+        const referenceDate = new Date(Date.UTC(year, month - 1, day, 20));
+        const calculatedSunrise = window.SunCalc.getTimes(referenceDate, latitude, longitude)?.sunrise;
+        if (calculatedSunrise instanceof Date && !Number.isNaN(calculatedSunrise.getTime()) && pacificDate(calculatedSunrise.toISOString()) === date) {
+          sunriseTime = calculatedSunrise.getTime();
+        }
+      }
+
+      return dayIndices.reduce((bestIndex, index) => {
+        const forecastTime = frameTime(frames[index])?.getTime();
+        const bestTime = frameTime(frames[bestIndex])?.getTime();
+        if (!Number.isFinite(forecastTime)) return bestIndex;
+        if (sunriseTime !== null) {
+          return Math.abs(forecastTime - sunriseTime) < Math.abs(bestTime - sunriseTime) ? index : bestIndex;
+        }
+        return Math.abs((pacificHour(frames[index]) ?? 6) - 6) < Math.abs((pacificHour(frames[bestIndex]) ?? 6) - 6) ? index : bestIndex;
+      }, dayIndices[0]);
     }
 
     function windowEndIndex() {
@@ -881,33 +935,42 @@
         return;
       }
 
-      const fullDay = windowFrames.length >= 24 && pacificHour(windowFrames[0]) === 0;
-      const fixedTicks = fullDay
-        ? [
-            { left: 0, label: "12AM" },
-            { left: 25, label: "6AM" },
-            { left: 50, label: "12PM" },
-            { left: 75, label: "6PM" },
-            { left: 100, label: "11PM" },
-          ]
-        : [
-            { left: 0, label: activeTimeLabel(windowFrames[0], windowStartIndex) },
-            { left: 50, label: activeTimeLabel(windowFrames[Math.round((windowFrames.length - 1) * 0.5)], windowStartIndex + Math.round((windowFrames.length - 1) * 0.5)) },
-            { left: 100, label: activeTimeLabel(windowFrames[windowFrames.length - 1], endIndex) },
-          ];
+      const firstTime = frameTime(windowFrames[0])?.getTime();
+      const lastTime = frameTime(windowFrames[windowFrames.length - 1])?.getTime();
+      const duration = Math.max(1, (lastTime || 0) - (firstTime || 0));
+      const candidates = windowFrames.map((forecastFrame, index) => {
+        const hour = pacificHour(forecastFrame);
+        const time = frameTime(forecastFrame)?.getTime() || firstTime || 0;
+        const isStart = index === 0;
+        const isEnd = index === windowFrames.length - 1;
+        const priority = isStart || isEnd ? 100 : hour === 12 ? 90 : hour % 6 === 0 ? 70 : hour % 3 === 0 ? 50 : hour % 2 === 0 ? 30 : 10;
+        return {
+          label: pacificHourLabel(forecastFrame),
+          left: ((time - (firstTime || time)) / duration) * 100,
+          priority,
+          hour,
+          isStart,
+          isEnd,
+          index,
+        };
+      }).filter((candidate) => candidate.isStart || candidate.isEnd || candidate.hour % 3 === 0);
 
-      const seen = new Set();
-      ticks.innerHTML = fixedTicks
-        .filter(({ label }) => {
-          if (!label || seen.has(label)) return false;
-          seen.add(label);
-          return true;
-        })
-        .map(({ left, label }, index, allTicks) => {
-          const edgeClass = index === 0 ? " is-start" : index === allTicks.length - 1 ? " is-end" : "";
-          return `<span class="is-visible${edgeClass}" style="left:${left}%">${label}</span>`;
-        })
-        .join("");
+      ticks.innerHTML = candidates.map((candidate) => {
+        const edgeClass = candidate.isStart ? " is-start" : candidate.isEnd ? " is-end" : "";
+        return `<span class="is-candidate${edgeClass}" data-priority="${candidate.priority}" data-index="${candidate.index}" style="left:${candidate.left}%">${candidate.label}</span>`;
+      }).join("");
+
+      const tickBounds = ticks.getBoundingClientRect();
+      const accepted = [];
+      Array.from(ticks.children)
+        .sort((a, b) => Number(b.dataset.priority) - Number(a.dataset.priority) || Number(a.dataset.index) - Number(b.dataset.index))
+        .forEach((tick) => {
+          const rect = tick.getBoundingClientRect();
+          const bounds = { left: rect.left - tickBounds.left - 2, right: rect.right - tickBounds.left + 2 };
+          if (accepted.some((item) => bounds.left < item.right && bounds.right > item.left)) return;
+          accepted.push(bounds);
+          tick.classList.add("is-visible");
+        });
     }
 
     function scheduleTickRender() {
@@ -915,18 +978,13 @@
       tickResizeTimer = window.setTimeout(renderTicks, 120);
     }
 
-    function activeTimeLabel(forecastFrame) {
-      return isCurrentWindFrame(forecastFrame) ? "Now" : pacificHourLabel(forecastFrame);
-    }
-
-    function updateActiveTime() {
-      const label = activeTimeLabel(frames[activeIndex], activeIndex);
-      if (activeTime) activeTime.textContent = label;
-      if (!thumbTime) return;
-      const max = Math.max(1, Number(slider.max || 0));
-      const value = Math.max(0, Math.min(max, Number(slider.value || 0)));
-      thumbTime.textContent = label;
-      thumbTime.style.left = `${(value / max) * 100}%`;
+    function updateActiveTime(speedMph = null) {
+      activeWindSpeed = speedMph;
+      const forecastFrame = frames[activeIndex];
+      const label = isCurrentWindFrame(forecastFrame) ? "Now" : fullTimeLabel(forecastFrame);
+      const windLabel = Number.isFinite(speedMph) ? `${Math.round(speedMph)} mph` : "…";
+      if (timeReadout) timeReadout.textContent = label;
+      slider.setAttribute("aria-valuetext", `${timelineDateLabel(forecastFrame.localDate)}, ${label}, ${Number.isFinite(speedMph) ? windLabel : "wind loading"}`);
     }
 
     function syncForecastDate(forecastFrame) {
@@ -940,33 +998,65 @@
       }));
     }
 
-    function setTimelineDayButton(button, isAvailable) {
-      if (!button) return;
-      button.classList.toggle("is-unavailable", !isAvailable);
-      button.disabled = !isAvailable;
-      button.setAttribute("aria-hidden", isAvailable ? "false" : "true");
+    function keepActiveDayVisible(activeButton) {
+      if (!activeButton || !daySelector) return;
+      const left = activeButton.offsetLeft;
+      const right = left + activeButton.offsetWidth;
+      const visibleLeft = daySelector.scrollLeft;
+      const visibleRight = visibleLeft + daySelector.clientWidth;
+      if (left < visibleLeft) daySelector.scrollTo({ left, behavior: "auto" });
+      else if (right > visibleRight) daySelector.scrollTo({ left: right - daySelector.clientWidth, behavior: "auto" });
     }
 
-    function updateDayButtons() {
-      setTimelineDayButton(
-        prevDayButton,
-        Boolean(activeWindowIsFuture() && adjacentTimelineDate(-1))
-      );
-      setTimelineDayButton(nextDayButton, Boolean(adjacentTimelineDate(1)));
+    function updateDaySelector() {
+      if (!daySelector) return;
+      const activeDate = activeWindowDate();
+      let activeButton = null;
+      daySelector.querySelectorAll("button[data-wind-date]").forEach((button) => {
+        const isActive = button.dataset.windDate === activeDate;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        button.tabIndex = isActive ? 0 : -1;
+        if (isActive) activeButton = button;
+      });
+      window.requestAnimationFrame(() => keepActiveDayVisible(activeButton));
     }
 
-    function updateDateBubble() {
-      if (!dateBubble) return;
-      const show = activeWindowIsFuture();
-      dateBubble.hidden = !show;
-      if (show) dateBubble.textContent = timelineDateLabel(activeWindowDate());
+    function renderDaySelector() {
+      if (!daySelector) return;
+      daySelector.innerHTML = timelineDates.map((date) => {
+        const parts = timelineDayParts(date);
+        return `<button type="button" role="tab" data-wind-date="${date}" aria-label="${timelineDateLabel(date)}" aria-selected="false"><span>${parts.weekday}</span><b>${parts.day}</b></button>`;
+      }).join("");
+
+      daySelector.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-wind-date]");
+        if (!button) return;
+        stopPlayback();
+        moveToTimelineDate(button.dataset.windDate, true);
+      });
+      daySelector.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        const buttons = Array.from(daySelector.querySelectorAll("button[data-wind-date]"));
+        const current = buttons.indexOf(document.activeElement);
+        let next = current;
+        if (event.key === "ArrowLeft") next = Math.max(0, current - 1);
+        if (event.key === "ArrowRight") next = Math.min(buttons.length - 1, current + 1);
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = buttons.length - 1;
+        if (next < 0 || next === current) return;
+        event.preventDefault();
+        buttons[next].focus();
+        stopPlayback();
+        moveToTimelineDate(buttons[next].dataset.windDate, true);
+      });
     }
 
     updateSliderBounds();
     updateActiveTime();
     renderTicks();
-    updateDayButtons();
-    updateDateBubble();
+    renderDaySelector();
+    updateDaySelector();
 
     async function applyFrame(index) {
       activeIndex = Math.max(0, Math.min(frames.length - 1, index));
@@ -980,8 +1070,7 @@
       updateSliderBounds();
       updateActiveTime();
       syncForecastDate(forecastFrame);
-      updateDayButtons();
-      updateDateBubble();
+      updateDaySelector();
       renderTicks();
       const frameIsCached = frameCache?.has(forecastFrame.path);
       if (!frameIsCached) {
@@ -996,6 +1085,8 @@
         if (token !== requestToken) return;
         if (map) map.__diveProSpotWindGrid = nextGrid;
         layer.setGrid(nextGrid);
+        const timelineWind = windAtLngLat(nextGrid, timelineCoordinates);
+        updateActiveTime(timelineWind?.speedMph);
         if (map) updateSpotProbe(map);
       } catch (error) {
         stopPlayback();
@@ -1015,24 +1106,20 @@
       playButton.setAttribute("aria-label", "Pause wind forecast timeline");
       playTimer = window.setInterval(() => {
         const nextIndex = activeIndex + 1;
-        if (nextIndex > windowEndIndex()) {
-          const nextDate = adjacentTimelineDate(1);
-          if (!nextDate) {
-            stopPlayback();
-            return;
-          }
-          moveToTimelineDate(nextDate);
+        if (nextIndex >= frames.length) {
+          stopPlayback();
           return;
         }
         applyFrame(nextIndex);
       }, 1300);
     }
 
-    function moveToTimelineDate(date) {
+    function moveToTimelineDate(date, preferSunrise = false) {
       const startIndex = startIndexForDate(date);
       if (startIndex < 0) return false;
       windowStartIndex = startIndex;
-      applyFrame(startIndex);
+      const targetIndex = preferSunrise ? sunriseFrameIndex(date) : startIndex;
+      applyFrame(targetIndex >= 0 ? targetIndex : startIndex);
       return true;
     }
 
@@ -1044,25 +1131,28 @@
       if (playTimer) stopPlayback();
       else startPlayback();
     });
-    prevDayButton?.addEventListener("click", () => {
-      stopPlayback();
-      const previousDate = adjacentTimelineDate(-1);
-      if (previousDate) moveToTimelineDate(previousDate);
-    });
-    nextDayButton?.addEventListener("click", () => {
-      stopPlayback();
-      const nextDate = adjacentTimelineDate(1);
-      if (nextDate) moveToTimelineDate(nextDate);
-    });
     window.addEventListener("divepro:forecastDateSelected", (event) => {
       const date = event.detail?.date;
-      if (!date || date === activeWindowDate()) return;
+      if (!date) return;
       stopPlayback();
-      moveToTimelineDate(date);
+      moveToTimelineDate(date, true);
     });
-    window.addEventListener("resize", scheduleTickRender);
-    mobileTimelineQuery.addEventListener?.("change", renderTicks);
+    function scheduleResponsiveTimeline() {
+      scheduleTickRender();
+      window.requestAnimationFrame(() => {
+        updateActiveTime(activeWindSpeed);
+        updateDaySelector();
+      });
+    }
+
+    window.addEventListener("resize", scheduleResponsiveTimeline);
+    if (typeof ResizeObserver === "function") {
+      tickResizeObserver = new ResizeObserver(scheduleResponsiveTimeline);
+      tickResizeObserver.observe(ticks);
+      if (sliderWrap) tickResizeObserver.observe(sliderWrap);
+    }
     applyFrame(activeIndex);
+    window.requestAnimationFrame(scheduleResponsiveTimeline);
   }
 
   function positionSpotProbe(map) {
@@ -1225,7 +1315,7 @@
     setLayer("wind");
   }
 
-  async function addWindLayer(map, mapEl) {
+  async function addWindLayer(map, mapEl, config) {
     const frameCache = new Map();
     const [manifest, waterResponse] = await Promise.all([
       loadWindManifest(),
@@ -1240,7 +1330,8 @@
     frame?.querySelector(".spot-wind-legend")?.classList.remove("is-hidden");
     map.__diveProSpotWindGrid = grid;
     const layer = createWindCanvasLayer(map, grid, waterMask);
-    if (layer && frame) setupSpotWindTimeline(frame, layer, manifest, frameCache, map);
+    const timelineCoordinates = config?.pins?.[0]?.lngLat || config?.center || [-117.255, 32.866];
+    if (layer && frame) setupSpotWindTimeline(frame, layer, manifest, frameCache, map, timelineCoordinates);
     return layer;
   }
 
@@ -1271,20 +1362,6 @@
           <span>Depth</span>
           <div class="depth-legend-gradient"></div>
           <div class="depth-legend-labels"><b>Shallow</b><b>Deep</b></div>
-        </div>
-        <div class="wind-date-bubble spot-wind-date-bubble" hidden></div>
-        <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
-          <button class="spot-wind-prev-day" type="button" aria-label="Previous day wind forecast">‹</button>
-          <div class="spot-wind-play-stack">
-            <button class="spot-wind-play" type="button" aria-label="Play wind forecast timeline">▶</button>
-            <span class="spot-wind-current-time">Now</span>
-          </div>
-          <div class="spot-wind-slider-wrap">
-            <input class="spot-wind-slider" type="range" min="0" max="0" value="0" aria-label="Wind forecast hour">
-            <span class="spot-wind-thumb-time" aria-hidden="true">Now</span>
-          </div>
-          <button class="spot-wind-next-day" type="button" aria-label="Next day wind forecast">›</button>
-          <div class="wind-time-ticks spot-wind-ticks"></div>
         </div>
       </div>
     `;
@@ -1327,7 +1404,7 @@
         addDepthLayer(map);
         setupMapLayerToggle(map, mapEl.closest(".spot-map-frame"));
         try {
-          await addWindLayer(map, mapEl);
+          await addWindLayer(map, mapEl, config);
         } catch (error) {
           mapEl.closest(".spot-map-frame")?.querySelector(".spot-wind-legend")?.classList.add("is-hidden");
         }

@@ -374,6 +374,191 @@ def direction_label(degrees):
     return labels[round(float(degrees) / 22.5) % 16]
 
 
+def format_user_time(value) -> str:
+    """Return a forecast clock value in user-facing 12-hour time."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    clock = text.rsplit("T", 1)[-1].rsplit(" ", 1)[-1][:5]
+    try:
+        hour_text, minute_text = clock.split(":", 1)
+        hour = int(hour_text)
+        minute = int(minute_text)
+    except (TypeError, ValueError):
+        return ""
+    if not 0 <= hour <= 23 or not 0 <= minute <= 59:
+        return ""
+    suffix = "AM" if hour < 12 else "PM"
+    display_hour = hour % 12 or 12
+    return f"{display_hour}:{minute:02d} {suffix}"
+
+
+def _narrative_number(features: dict, *keys):
+    for key in keys:
+        value = features.get(key)
+        if value is None:
+            continue
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(number):
+            return number
+    return None
+
+
+def _join_narrative_items(items: list[str]) -> str:
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return f"{', '.join(items[:-1])} and {items[-1]}"
+
+
+def _narrative_drivers(features: dict) -> tuple[list[str], list[str]]:
+    """Derive qualitative drivers only from the public per-day feature payload."""
+    negative = []
+    positive = []
+    surf = _narrative_number(features, "surf_height_max_ft", "wave_height_max_ft")
+    swell_energy = _narrative_number(features, "swell_power_proxy_max", "wave_energy_max_kj")
+    short_energy = _narrative_number(features, "short_period_swell_energy")
+    wind = _narrative_number(features, "wind_speed_max_mph")
+    rain = _narrative_number(features, "rain_target_day_forecast_in", "rain_24h_in")
+    prior_rain = _narrative_number(features, "rain_prior_3day_in", "ml_rain_3day_in")
+    wave_trend = _narrative_number(features, "ml_wave_trend")
+
+    if swell_energy is not None:
+        if swell_energy >= 70:
+            negative.append("swell energy")
+        elif swell_energy <= 40:
+            positive.append("lower swell energy")
+    if surf is not None:
+        if surf >= 3:
+            negative.append("surface movement")
+        elif surf <= 2.25:
+            positive.append("limited surface movement")
+    if short_energy is not None and short_energy >= 18:
+        negative.append("short-period wind-wave churn")
+    if wind is not None:
+        if wind >= 8:
+            negative.append("wind-driven mixing")
+        elif wind <= 6:
+            positive.append("lighter winds")
+    if (rain is not None and rain >= 0.1) or (prior_rain is not None and prior_rain >= 0.1):
+        negative.append("rain-related nearshore mixing")
+    elif rain is not None and prior_rain is not None and rain < 0.05 and prior_rain < 0.05:
+        positive.append("dry recent conditions")
+    if wave_trend is not None:
+        if wave_trend >= 0.2:
+            negative.append("a building wave trend")
+        elif wave_trend <= -0.2:
+            positive.append("an easing wave trend")
+
+    return negative, positive
+
+
+def build_lajolla_narrative(forecast: dict) -> str:
+    """Build a three-paragraph narrative from one canonical per-day forecast."""
+    features = forecast.get("features") or {}
+    visibility = forecast.get("estimated_visibility_range_ft") or [0, 4]
+    grade = str(forecast.get("grade") or "F").upper()
+    try:
+        low, high = visibility[:2]
+    except (TypeError, ValueError):
+        low, high = 0, 4
+    low_text = f"{float(low):g}"
+    high_text = f"{float(high):g}"
+    negative, positive = _narrative_drivers(features)
+    # Keep the report explanatory without turning the first paragraph into a data dump.
+    negative_copy = _join_narrative_items(negative[:3])
+    positive_copy = _join_narrative_items(positive[:3])
+
+    opening = f"The model expects {low_text}-{high_text} ft of visibility, resulting in a {grade} grade."
+    if grade in {"A", "A+"}:
+        support = positive_copy or "relatively settled conditions in the available inputs"
+        driver_copy = f"Conditions are very favorable overall, supported by {support}."
+        if negative_copy:
+            driver_copy += f" The remaining {negative_copy} are not strong enough to displace the high-clarity result."
+    elif grade == "B":
+        support = positive_copy or "a generally manageable disturbance profile"
+        driver_copy = f"Conditions are favorable overall, with {support} supporting useful clarity."
+        driver_copy += (
+            f" Some {negative_copy} keep the forecast below exceptional A-grade conditions."
+            if negative_copy
+            else " Residual uncertainty keeps the forecast below exceptional A-grade conditions."
+        )
+    elif grade == "C":
+        constraints = negative_copy or "a mixed set of swell, surface, and wind signals"
+        driver_copy = (
+            f"Conditions are moderately favorable overall, but the algorithm is seeing enough {constraints} "
+            "to prevent a clearer B-grade forecast."
+        )
+    elif grade == "D":
+        constraints = negative_copy or "multiple unsettled physical signals"
+        driver_copy = f"Conditions are marginal, with {constraints} creating significant pressure on visibility."
+    else:
+        constraints = negative_copy or "strongly unsettled physical signals"
+        driver_copy = f"Conditions are poor, and {constraints} point to very limited underwater clarity."
+    paragraph_one = f"{opening} {driver_copy}"
+
+    tide_phase = str(features.get("tide_phase") or "unknown").strip().lower()
+    next_tide = features.get("tide_next_event") if isinstance(features.get("tide_next_event"), dict) else None
+    next_time = format_user_time(next_tide.get("time")) if next_tide else ""
+    next_type = str(next_tide.get("type") or "").upper() if next_tide else ""
+    event_name = "high tide" if next_type == "H" else "low tide" if next_type == "L" else "tide change"
+    event_copy = f" at {next_time}" if next_time else ""
+    if tide_phase == "rising":
+        paragraph_two = (
+            f"The rising tide is a favorable signal. As water moves toward the next {event_name}{event_copy}, "
+            "cleaner offshore water may move into La Jolla and support improving visibility."
+        )
+    elif tide_phase == "falling":
+        paragraph_two = (
+            f"The falling tide is an additional negative signal. As water moves toward the next {event_name}{event_copy}, "
+            "visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla."
+        )
+    elif tide_phase in {"slack", "near slack", "near-slack"}:
+        paragraph_two = (
+            f"The tide is near slack and is a more neutral visibility signal. The next {event_name}{event_copy} may change "
+            "water movement, but the current tide offers limited directional support either way."
+        )
+    else:
+        paragraph_two = (
+            f"The tide contribution is more neutral because a reliable direction is not available. The next {event_name}{event_copy} "
+            "could still change nearshore water movement, so local clarity may vary."
+        )
+
+    if grade in {"A", "A+"}:
+        paragraph_three = (
+            "Overall, conditions look very favorable for productive diving, though clarity can still vary around sandy bottoms "
+            "and surge-prone sections of exposed reef."
+        )
+    elif grade == "B":
+        paragraph_three = (
+            "Overall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, "
+            "while exposed coastline and sandy entries could be less consistent."
+        )
+    elif grade == "C":
+        paragraph_three = (
+            "Overall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, "
+            "sandy bottoms and areas exposed to surge."
+        )
+    elif grade == "D":
+        paragraph_three = (
+            "Overall, visibility looks marginal. Divers should confirm local conditions before committing and favor sheltered coves "
+            "or deeper water over shallow, sandy, or surge-exposed areas."
+        )
+    else:
+        paragraph_three = (
+            "Overall, conditions look poor and are unlikely to support productive diving. Consider postponing or verifying a "
+            "substantially clearer sheltered site before entering the water."
+        )
+
+    return "\n\n".join((paragraph_one, paragraph_two, paragraph_three))
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SPOTS CONFIGURATION
 # P0-4: Scope restricted to La Jolla; San Diego County label removed.
@@ -1504,6 +1689,9 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "calibration_note": spot["calibration_note"],
         "camera_note":  spot.get("camera_note", ""),
     }
+    if spot.get("slug") == "la-jolla":
+        day_out["report_text"] = build_lajolla_narrative(day_out)
+        day_out["report_text_version"] = "v2-explanatory-three-paragraph"
     return day_out
 
 

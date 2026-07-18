@@ -46,6 +46,94 @@ def test_visibility_range_unknown_grade_defaults_to_f_band():
     assert blf.visibility_range_from_grade("?") == [0, 4]
 
 
+def _narrative_payload(grade="C", visibility=None, tide_phase="falling", tide_time="19:12", **features):
+    defaults = {
+        "surf_height_max_ft": 3.2,
+        "swell_power_proxy_max": 82,
+        "short_period_swell_energy": 4,
+        "wind_speed_max_mph": 8,
+        "rain_target_day_forecast_in": 0,
+        "rain_prior_3day_in": 0,
+        "ml_wave_trend": 0.25,
+        "tide_phase": tide_phase,
+        "tide_next_event": {"type": "H" if tide_phase == "rising" else "L", "time": tide_time},
+    }
+    defaults.update(features)
+    return {
+        "date": "2026-07-18",
+        "grade": grade,
+        "estimated_visibility_range_ft": visibility or blf.visibility_range_from_grade(grade),
+        "features": defaults,
+    }
+
+
+def test_lajolla_narrative_rising_tide_is_favorable():
+    text = blf.build_lajolla_narrative(_narrative_payload(tide_phase="rising", tide_time="10:35"))
+    assert "rising tide is a favorable signal" in text
+    assert "10:35 AM" in text
+
+
+def test_lajolla_narrative_falling_tide_is_unfavorable():
+    text = blf.build_lajolla_narrative(_narrative_payload(tide_phase="falling", tide_time="19:12"))
+    assert "falling tide is an additional negative signal" in text
+    assert "7:12 PM" in text
+
+
+@pytest.mark.parametrize("clock,expected", [
+    ("19:12", "7:12 PM"),
+    ("06:05", "6:05 AM"),
+    ("12:00", "12:00 PM"),
+    ("00:30", "12:30 AM"),
+])
+def test_user_facing_time_uses_twelve_hour_clock(clock, expected):
+    assert blf.format_user_time(clock) == expected
+
+
+def test_narrative_uses_the_selected_day_payload():
+    today = _narrative_payload("C", [10, 14], tide_phase="rising", tide_time="06:05")
+    future = _narrative_payload("B", [15, 24], tide_phase="falling", tide_time="21:08")
+    today_text = blf.build_lajolla_narrative(today)
+    future_text = blf.build_lajolla_narrative(future)
+    assert "10-14 ft" in today_text and "C grade" in today_text and "6:05 AM" in today_text
+    assert "15-24 ft" in future_text and "B grade" in future_text and "9:08 PM" in future_text
+    assert "9:08 PM" not in today_text
+    assert "6:05 AM" not in future_text
+
+
+def test_narrative_does_not_cite_unverified_numeric_swell_detail():
+    payload = _narrative_payload(swell_wave_height_max_ft=9.9, swell_wave_period_max_s=17)
+    text = blf.build_lajolla_narrative(payload)
+    assert "9.9" not in text
+    assert "17s" not in text
+
+
+def test_c_grade_narrative_has_three_paragraphs_and_matching_result():
+    payload = _narrative_payload("C", [10, 14])
+    text = blf.build_lajolla_narrative(payload)
+    assert text.split("\n\n") == [paragraph for paragraph in text.split("\n\n") if paragraph]
+    assert len(text.split("\n\n")) == 3
+    assert text.startswith("The model expects 10-14 ft of visibility, resulting in a C grade.")
+    assert "Conditions are moderately favorable overall" in text
+    assert "swell energy, surface movement and wind-driven mixing" in text
+    assert "to prevent a clearer B-grade forecast" in text
+    assert "**" not in text
+
+
+@pytest.mark.parametrize("grade,range_ft", [("D", [5, 9]), ("F", [0, 4])])
+def test_low_grade_narrative_does_not_overstate_diveability(grade, range_ft):
+    text = blf.build_lajolla_narrative(_narrative_payload(grade, range_ft)).lower()
+    assert "comfortably diveable" not in text
+    assert "forecast remains diveable" not in text
+    assert "marginal" in text if grade == "D" else "unlikely to support productive diving" in text
+
+
+def test_narrative_generation_does_not_mutate_forecast_values():
+    payload = _narrative_payload("B", [15, 24])
+    before = json.loads(json.dumps(payload))
+    blf.build_lajolla_narrative(payload)
+    assert payload == before
+
+
 # ── Date-keyed lookups (P0-1 / P1-3) ──────────────────────────────────────────
 
 DAILY = {
@@ -307,7 +395,9 @@ def test_build_day_output_shape_and_values(tmp_path):
     assert day["estimated_visibility_range_ft"] == [10, 14]
     assert day["estimated_visibility_mid_ft"] == pytest.approx(12.0)
     assert day["grade_probabilities"]["C"] == pytest.approx(0.5)
-    assert day["report_text"].startswith("3:00 PM Update - Grade C")
+    assert day["report_text"].startswith("The model expects 10-14 ft of visibility, resulting in a C grade.")
+    assert day["report_text_version"] == "v2-explanatory-three-paragraph"
+    assert len(day["report_text"].split("\n\n")) == 3
     assert day["features"]["rain_prior_3day_in"] == 0.0
     assert day["features"]["ml_tide_range_ft"] == pytest.approx(2.5)
     assert isinstance(day["risk_factors"], list) and day["risk_factors"]

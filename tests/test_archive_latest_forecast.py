@@ -34,3 +34,10 @@ def test_archive_appends_history(tmp_path, monkeypatch):
     history = json.loads((tmp_path / "forecast_history.json").read_text())
     assert history[0]["grade"] == "B"
     assert (tmp_path / "forecast-history" / "2026-07-01.json").exists()
+
+
+def test_archive_preserves_narrative_paragraphs():
+    mod = _load_module()
+    report = "Result paragraph.\n\nTide paragraph.\n\nPractical paragraph."
+    cleaned = mod.clean_report_text({"report_text": report})
+    assert cleaned == report

@@ -708,8 +708,142 @@ function renderWaveComponents(data) {
   `;
 }
 
+function formatUserTime(value) {
+  const match = String(value || "").match(/(?:T|\s|^)(\d{1,2}):(\d{2})/);
+  if (!match) return "";
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) return "";
+  return `${hour % 12 || 12}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+}
+
+const REPORT_TEXT_VERSION = "v2-explanatory-three-paragraph";
+
+function narrativeNumber(features, ...keys) {
+  for (const key of keys) {
+    const number = Number(features[key]);
+    if (features[key] !== null && features[key] !== "" && Number.isFinite(number)) return number;
+  }
+  return null;
+}
+
+function joinNarrativeItems(items) {
+  if (!items.length) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+function narrativeDrivers(features) {
+  const negative = [];
+  const positive = [];
+  const surf = narrativeNumber(features, "surf_height_max_ft", "wave_height_max_ft");
+  const swellEnergy = narrativeNumber(features, "swell_power_proxy_max", "wave_energy_max_kj");
+  const shortEnergy = narrativeNumber(features, "short_period_swell_energy");
+  const wind = narrativeNumber(features, "wind_speed_max_mph");
+  const rain = narrativeNumber(features, "rain_target_day_forecast_in", "rain_24h_in");
+  const priorRain = narrativeNumber(features, "rain_prior_3day_in", "ml_rain_3day_in");
+  const waveTrend = narrativeNumber(features, "ml_wave_trend");
+
+  if (swellEnergy !== null) {
+    if (swellEnergy >= 70) negative.push("swell energy");
+    else if (swellEnergy <= 40) positive.push("lower swell energy");
+  }
+  if (surf !== null) {
+    if (surf >= 3) negative.push("surface movement");
+    else if (surf <= 2.25) positive.push("limited surface movement");
+  }
+  if (shortEnergy !== null && shortEnergy >= 18) negative.push("short-period wind-wave churn");
+  if (wind !== null) {
+    if (wind >= 8) negative.push("wind-driven mixing");
+    else if (wind <= 6) positive.push("lighter winds");
+  }
+  if ((rain !== null && rain >= 0.1) || (priorRain !== null && priorRain >= 0.1)) {
+    negative.push("rain-related nearshore mixing");
+  } else if (rain !== null && priorRain !== null && rain < 0.05 && priorRain < 0.05) {
+    positive.push("dry recent conditions");
+  }
+  if (waveTrend !== null) {
+    if (waveTrend >= 0.2) negative.push("a building wave trend");
+    else if (waveTrend <= -0.2) positive.push("an easing wave trend");
+  }
+
+  return {
+    negative: negative.slice(0, 3),
+    positive: positive.slice(0, 3),
+  };
+}
+
+function buildLajollaNarrative(data) {
+  const features = data.features || {};
+  const visibility = data.estimated_visibility_range_ft || [0, 4];
+  const low = Number.isFinite(Number(visibility[0])) ? Number(visibility[0]) : 0;
+  const high = Number.isFinite(Number(visibility[1])) ? Number(visibility[1]) : 4;
+  const grade = String(data.grade || "F").toUpperCase();
+  const { negative, positive } = narrativeDrivers(features);
+  const negativeCopy = joinNarrativeItems(negative);
+  const positiveCopy = joinNarrativeItems(positive);
+  const opening = `The model expects ${low}-${high} ft of visibility, resulting in a ${grade} grade.`;
+  let driverCopy;
+
+  if (grade === "A" || grade === "A+") {
+    const support = positiveCopy || "relatively settled conditions in the available inputs";
+    driverCopy = `Conditions are very favorable overall, supported by ${support}.`;
+    if (negativeCopy) driverCopy += ` The remaining ${negativeCopy} are not strong enough to displace the high-clarity result.`;
+  } else if (grade === "B") {
+    const support = positiveCopy || "a generally manageable disturbance profile";
+    driverCopy = `Conditions are favorable overall, with ${support} supporting useful clarity.`;
+    driverCopy += negativeCopy
+      ? ` Some ${negativeCopy} keep the forecast below exceptional A-grade conditions.`
+      : " Residual uncertainty keeps the forecast below exceptional A-grade conditions.";
+  } else if (grade === "C") {
+    const constraints = negativeCopy || "a mixed set of swell, surface and wind signals";
+    driverCopy = `Conditions are moderately favorable overall, but the algorithm is seeing enough ${constraints} to prevent a clearer B-grade forecast.`;
+  } else if (grade === "D") {
+    const constraints = negativeCopy || "multiple unsettled physical signals";
+    driverCopy = `Conditions are marginal, with ${constraints} creating significant pressure on visibility.`;
+  } else {
+    const constraints = negativeCopy || "strongly unsettled physical signals";
+    driverCopy = `Conditions are poor, and ${constraints} point to very limited underwater clarity.`;
+  }
+
+  const tidePhase = String(features.tide_phase || "unknown").trim().toLowerCase();
+  const nextTide = features.tide_next_event && typeof features.tide_next_event === "object"
+    ? features.tide_next_event
+    : null;
+  const nextTime = nextTide ? formatUserTime(nextTide.time) : "";
+  const nextType = String(nextTide?.type || "").toUpperCase();
+  const eventName = nextType === "H" ? "high tide" : nextType === "L" ? "low tide" : "tide change";
+  const eventCopy = nextTime ? ` at ${nextTime}` : "";
+  let tideParagraph;
+
+  if (tidePhase === "rising") {
+    tideParagraph = `The rising tide is a favorable signal. As water moves toward the next ${eventName}${eventCopy}, cleaner offshore water may move into La Jolla and support improving visibility.`;
+  } else if (tidePhase === "falling") {
+    tideParagraph = `The falling tide is an additional negative signal. As water moves toward the next ${eventName}${eventCopy}, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.`;
+  } else if (["slack", "near slack", "near-slack"].includes(tidePhase)) {
+    tideParagraph = `The tide is near slack and is a more neutral visibility signal. The next ${eventName}${eventCopy} may change water movement, but the current tide offers limited directional support either way.`;
+  } else {
+    tideParagraph = `The tide contribution is more neutral because a reliable direction is not available. The next ${eventName}${eventCopy} could still change nearshore water movement, so local clarity may vary.`;
+  }
+
+  let practicalParagraph;
+  if (grade === "A" || grade === "A+") {
+    practicalParagraph = "Overall, conditions look very favorable for productive diving, though clarity can still vary around sandy bottoms and surge-prone sections of exposed reef.";
+  } else if (grade === "B") {
+    practicalParagraph = "Overall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.";
+  } else if (grade === "C") {
+    practicalParagraph = "Overall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, sandy bottoms and areas exposed to surge.";
+  } else if (grade === "D") {
+    practicalParagraph = "Overall, visibility looks marginal. Divers should confirm local conditions before committing and favor sheltered coves or deeper water over shallow, sandy, or surge-exposed areas.";
+  } else {
+    practicalParagraph = "Overall, conditions look poor and are unlikely to support productive diving. Consider postponing or verifying a substantially clearer sheltered site before entering the water.";
+  }
+
+  return [`${opening} ${driverCopy}`, tideParagraph, practicalParagraph].join("\n\n");
+}
+
 function reportText(data) {
-  if (window.staticSpotReport && data.report_text) return data.report_text;
 
   const features = data.features || {};
   const range = feet(data.estimated_visibility_range_ft || [0, 6]);
@@ -735,7 +869,7 @@ function reportText(data) {
   if (Number.isFinite(priorRain) && priorRain >= 0.05) rainParts.push(`${priorRain.toFixed(1)} in recent 72-hour rain`);
   const rainCopy = rainParts.length ? `, and ${rainParts.join(" plus ")}` : "";
   const tideCopy = nextTide
-    ? `The tide signal is ${tidePhase || "mixed"}, with the next ${nextTide.type === "H" ? "high" : "low"} near ${Number(nextTide.height_ft).toFixed(1)} ft at ${nextTide.time}.`
+    ? `The tide signal is ${tidePhase || "mixed"}, with the next ${nextTide.type === "H" ? "high" : "low"} near ${Number(nextTide.height_ft).toFixed(1)} ft at ${formatUserTime(nextTide.time) || "an unavailable time"}.`
     : tidePhase
       ? `The tide signal is ${tidePhase}.`
       : "";
@@ -746,15 +880,9 @@ function reportText(data) {
     return `Today's ${slotLabel} Scripps Pier camera observation indicates ${range} visibility with a grade ${data.grade}. Weather context remains forecast-driven: ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
   }
 
-  if (grade === "A") {
-    return `The model expects strong La Jolla visibility around ${range} with a grade ${data.grade || "A"}. The forecast is supported by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
-  }
-
-  if (grade === "F" || grade === "D") {
-    return `The model expects poor La Jolla visibility around ${range} with a grade ${data.grade || grade}. The main drag is ${swellCopy} with ${waveCopy.toLowerCase()}, plus ${windCopy}${rainCopy}. ${tideCopy}`.trim();
-  }
-
-  return `The model expects moderate La Jolla visibility around ${range} with a grade ${data.grade || grade}. The forecast is mainly driven by ${swellCopy}, ${waveCopy.toLowerCase()}, and ${windCopy}${rainCopy}. ${tideCopy}`.trim();
+  if (data.is_unavailable) return data.report_text || "Forecast data unavailable.";
+  if (data.report_text_version === REPORT_TEXT_VERSION && data.report_text) return data.report_text;
+  return buildLajollaNarrative(data);
 }
 
 function waveWeight(data) {
@@ -961,8 +1089,7 @@ function renderForecastStrip(forecasts, activeDate) {
       <small>${forecast.is_projected ? "Projected" : shortDate(forecast.date)}</small>
     `;
     button.addEventListener("click", () => {
-      render(forecast);
-      renderForecastStrip(forecasts, forecast.date);
+      selectForecast(forecast);
     });
     return button;
   }));

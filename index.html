@@ -50,7 +50,7 @@
       })(window, document, "clarity", "script", "x999tjkohl");
     </script>
     <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css?v=map-1">
-    <link rel="stylesheet" href="styles.css?v=camera-link-minimal-20260715">
+    <link rel="stylesheet" href="styles.css?v=ui-review-3-20260718">
     <link rel="stylesheet" href="ui-polish.css?v=beta-ui-12">
   </head>
   <body>
@@ -94,7 +94,7 @@
 
           <section class="daily-report-card">
             <article class="report-copy">
-              <h2>Daily Dive Forecast</h2>
+              <h2>Daily Dive Report</h2>
               <p id="dailyReport"></p>
             </article>
           </section>
@@ -129,20 +129,6 @@
             <span>Depth</span>
             <div class="depth-legend-gradient"></div>
             <div class="depth-legend-labels"><b>Shallow</b><b>Deep</b></div>
-          </div>
-          <div class="wind-date-bubble spot-wind-date-bubble" hidden></div>
-          <div class="wind-timeline spot-wind-timeline is-hidden" aria-label="Wind forecast timeline">
-            <button class="spot-wind-prev-day" type="button" aria-label="Previous day wind forecast">‹</button>
-            <div class="spot-wind-play-stack">
-              <button class="spot-wind-play" type="button" aria-label="Play wind forecast timeline">▶</button>
-              <span class="spot-wind-current-time">Now</span>
-            </div>
-            <div class="spot-wind-slider-wrap">
-              <input class="spot-wind-slider" type="range" min="0" max="0" value="0" aria-label="Wind forecast hour">
-              <span class="spot-wind-thumb-time" aria-hidden="true">Now</span>
-            </div>
-            <button class="spot-wind-next-day" type="button" aria-label="Next day wind forecast">›</button>
-            <div class="wind-time-ticks spot-wind-ticks"></div>
           </div>
         </div>
       </section>
@@ -197,10 +183,11 @@
     </main>
     <script src="analytics-config.js?v=analytics-2"></script>
     <script src="analytics.js?v=analytics-2"></script>
-    <script type="module" src="app.js?v=manual-camera-observation-20260715"></script>
+    <script type="module" src="app.js?v=daily-report-20260718"></script>
     <script type="module" src="ui-polish.js?v=beta-ui-13"></script>
     <script src="vendor/maplibre/maplibre-gl.js?v=map-1"></script>
+    <script src="vendor/suncalc/suncalc.js?v=1.9.0"></script>
     <script src="map-config.js?v=map-1"></script>
-    <script src="spot-map.js?v=map-restore-20260708"></script>
+    <script src="spot-map.js?v=wind-timeline-review-3-20260718"></script>
   </body>
 </html>
