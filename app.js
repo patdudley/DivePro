@@ -57,13 +57,31 @@ function isCameraObservationDisplayable(observation) {
   );
 }
 
+// Why the reference image (not a live frame) is on screen. Set by
+// loadCameraObservation before first render; renderCamera turns it into a
+// visible label so the fallback is never mistaken for a live capture.
+//   "pending"     -> no same-day record yet (before the first slot lands)
+//   "offline"     -> a same-day capture was attempted but failed / unusable
+//   "unavailable" -> status feed unreachable or screenshot publishing off
+let scrippsCameraFallbackReason = "unavailable";
+
 async function loadCameraObservation() {
   try {
     const config = await fetchJson("camera-config.json");
-    if (!config || config.publish_screenshots !== true) return null;
+    if (!config || config.publish_screenshots !== true) {
+      scrippsCameraFallbackReason = "unavailable";
+      return null;
+    }
     const observation = await fetchJson("camera-snapshots/scripps-pier-latest.json");
-    return isCameraObservationDisplayable(observation) ? observation : null;
+    if (isCameraObservationDisplayable(observation)) return observation;
+    if (observation && observation.observation_date === localTodayInLaJolla()) {
+      scrippsCameraFallbackReason = "offline";
+    } else {
+      scrippsCameraFallbackReason = "pending";
+    }
+    return null;
   } catch {
+    scrippsCameraFallbackReason = "unavailable";
     return null;
   }
 }
@@ -443,12 +461,23 @@ function renderCamera(data) {
     image.alt = `Scripps Pier underwater camera, captured today at ${slotLabel}`;
     if (badge) {
       badge.textContent = `Today ${slotLabel}`;
+      badge.classList.remove("is-reference");
       badge.hidden = false;
     }
   } else {
     image.src = cameraImageForGrade(data.grade);
     image.alt = `${data.location || "Dive spot"} estimated visibility reference`;
-    if (badge) badge.hidden = true;
+    if (badge) {
+      const fallbackLabels = {
+        pending: "Reference image \u00b7 live photo pending",
+        offline: "Camera offline \u00b7 reference image",
+        unavailable: "Reference image \u00b7 not live",
+      };
+      badge.textContent =
+        fallbackLabels[scrippsCameraFallbackReason] || fallbackLabels.unavailable;
+      badge.classList.add("is-reference");
+      badge.hidden = false;
+    }
   }
   frame.hidden = false;
 }
