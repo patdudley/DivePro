@@ -824,7 +824,7 @@ function buildLajollaNarrative(data) {
   } else if (["slack", "near slack", "near-slack"].includes(tidePhase)) {
     tideParagraph = `The tide is near slack and is a more neutral visibility signal. The next ${eventName}${eventCopy} may change water movement, but the current tide offers limited directional support either way.`;
   } else {
-    tideParagraph = `The tide contribution is more neutral because a reliable direction is not available. The next ${eventName}${eventCopy} could still change nearshore water movement, so local clarity may vary.`;
+    tideParagraph = `The next ${eventName}${eventCopy} could still change nearshore water movement, so local clarity may vary.`;
   }
 
   let practicalParagraph;
