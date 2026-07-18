@@ -17,6 +17,16 @@ on:
     # grace windows in both PST and PDT.
     - cron: "7,27,47 15-23 * * *"
     - cron: "7,27,47 0-2 * * *"
+  # This repo's crons are throttled to roughly one run per 75-100 minutes and
+  # entire slot windows have been dropped (all three 8 AM attempts on
+  # 2026-07-17). Completed runs of the other scheduled workflows double as
+  # trigger attempts; the slot gate below makes redundant triggers no-ops.
+  workflow_run:
+    workflows:
+      - "Camera snapshots"
+      - "Update La Jolla Forecast"
+      - "Update Wind Grid"
+    types: [completed]
 
 permissions:
   contents: write
@@ -129,7 +139,13 @@ jobs:
             echo "No publishable image for this run; keeping the previous public image asset"
             exit 0
           fi
-          test -s "$RUNNER_TEMP/scripps-pier.jpg"
+          # A failed capture that preserved an earlier same-day status carries the
+          # earlier image_url but no freshly captured frame. Keep the existing
+          # release asset instead of hard-failing the run.
+          if [ ! -s "$RUNNER_TEMP/scripps-pier.jpg" ]; then
+            echo "No new frame captured this run; keeping the previous public image asset"
+            exit 0
+          fi
           # A transient `gh release view` failure must not trigger a hard-failing
           # create: "Release.tag_name already exists" killed the 2026-07-16 4 PM
           # slot. Create is best-effort; existence is re-checked afterwards.
