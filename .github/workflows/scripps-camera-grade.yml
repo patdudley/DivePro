@@ -128,6 +128,33 @@ jobs:
 
       # Screenshot publishing is intentionally independent of grading mode.
       # It requires only a validated capture (image_url is null otherwise).
+      - name: Archive validated capture
+        id: archive
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
+        run: |
+          if [ ! -s "$RUNNER_TEMP/scripps-pier.jpg" ]; then
+            echo "No new frame captured this run; nothing to archive"
+            exit 0
+          fi
+          archive_path="$(python scripts/archive_scripps_capture.py \
+            "$RUNNER_TEMP/scripps-pier.jpg" \
+            "$RUNNER_TEMP/scripps-pier-latest.json")"
+          echo "path=$archive_path" >> "$GITHUB_OUTPUT"
+
+      - name: Commit immutable capture archive
+        if: steps.archive.outputs.path != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.archive.outputs.path }}"
+          git diff --cached --quiet && exit 0
+          git commit -m "Archive Scripps camera capture"
+          for attempt in 1 2 3; do
+            git push && exit 0
+            git pull --rebase origin main
+          done
+          exit 1
+
       - name: Replace public latest-image release asset
         if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
         env:
@@ -162,7 +189,7 @@ jobs:
           done
           exit 1
 
-      - name: Commit public latest status only
+      - name: Commit public latest status
         if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
         run: |
           mkdir -p camera-snapshots

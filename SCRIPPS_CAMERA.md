@@ -12,8 +12,9 @@ screenshot the UCSD page header and player controls.
 Rollout is controlled by `camera-config.json`. Screenshot publishing and grade
 coupling are deliberately independent switches:
 
-- `publish_screenshots` (boolean): when true, every validated capture replaces
-  the public Release asset and commits the small status document. This depends
+- `publish_screenshots` (boolean): when true, every validated capture is first
+  committed to the immutable public archive, then replaces the public Release
+  asset and commits the small latest-status document. This depends
   only on capture success plus local image validation (dimensions, playback
   advancement, blank-frame checks) — never on grading results, grading mode, or
   grading secrets. The grader can veto only a frame it judges `unusable`.
@@ -30,10 +31,12 @@ Moving `mode` to `shadow` begins private evaluation only; moving it to `live`
 is a separate reviewed configuration change after real grader results pass the
 validation gate below.
 
-The public site retains only:
+The public repository retains:
 
-- a single replace-in-place GitHub Release asset at the URL in
-  `camera-config.json`; old frames are not committed to public Git history;
+- every validated frame under
+  `camera-snapshot-history/scripps-pier/YYYY-MM-DD/scripps-pier-HHMMSS-{sha12}.jpg`;
+- a replace-in-place GitHub Release asset at the URL in `camera-config.json`
+  for the site's fast latest-image path;
 - `camera-snapshots/scripps-pier-latest.json`, a small latest-status document
   committed whenever screenshot publishing is enabled.
 

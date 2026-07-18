@@ -45,18 +45,21 @@ def test_camera_rollout_defaults_to_screenshot_only_mode():
     )
 
 
-def test_workflow_never_commits_camera_jpeg_and_decouples_publish_from_grading():
+def test_workflow_archives_camera_jpeg_and_decouples_publish_from_grading():
     workflow = (ROOT / ".github/workflows/scripps-camera-grade.yml").read_text()
     assert "git add camera-snapshots/scripps-pier.jpg" not in workflow
+    assert "scripts/archive_scripps_capture.py" in workflow
+    assert 'git add "${{ steps.archive.outputs.path }}"' in workflow
     assert 'gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber' in workflow
     assert "git add camera-snapshots/scripps-pier-latest.json" in workflow
     # Screenshot publishing is gated only by the publish flag, never by grading mode.
-    assert workflow.count("steps.config.outputs.publish == 'true'") >= 2
+    assert workflow.count("steps.config.outputs.publish == 'true'") >= 3
     assert workflow.count("steps.config.outputs.mode == 'live'") == 1
+    archive = workflow.index("Commit immutable capture archive")
     release = workflow.index("Replace public latest-image release asset")
-    status = workflow.index("Commit public latest status only")
+    status = workflow.index("Commit public latest status")
     live_gate = workflow.index("Require reviewed shadow evidence before live grade coupling")
-    assert release < status < live_gate
+    assert archive < release < status < live_gate
     assert "--require-live" in workflow[live_gate:]
     assert "--require-secrets" in workflow[live_gate:]
     assert "--eval-data-dir \"$EVAL_DATA_DIR\"" in workflow[live_gate:]
@@ -74,7 +77,7 @@ def test_workflow_retries_each_pst_and_pdt_slot_without_duplicate_publishing():
     assert "id: capture" in workflow
     assert 'echo "produced=false" >> "$GITHUB_OUTPUT"' in workflow
     publish_gate = "steps.capture.outputs.produced == 'true'"
-    assert workflow.count(publish_gate) == 2
+    assert workflow.count(publish_gate) >= 3
 
 
 def test_frontend_displays_screenshot_without_automated_grade_coupling():
@@ -91,7 +94,7 @@ def test_frontend_displays_screenshot_without_automated_grade_coupling():
     assert 'id="cameraObservedBadge"' in html
 
 
-def test_scripps_camera_images_are_release_only():
+def test_scripps_latest_camera_images_are_ignored_but_archive_is_tracked():
     ignored = (ROOT / ".gitignore").read_text()
     assert "camera-snapshots/scripps-pier*.jpg" in ignored
     assert "camera-snapshots/scripps-pier*.jpeg" in ignored
@@ -105,6 +108,8 @@ def test_scripps_camera_images_are_release_only():
         check=True,
     ).stdout.splitlines()
     assert tracked == ["camera-snapshots/scripps-pier-latest.json"]
+
+    assert "camera-snapshot-history/scripps-pier" not in ignored
 
 
 def test_camera_note_matches_scheduled_cadence():
