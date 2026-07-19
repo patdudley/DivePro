@@ -382,18 +382,29 @@
     return hour < 12 ? `${hour}AM` : `${hour - 12}PM`;
   }
 
-  function defaultFrameIndex(frames) {
-    const now = Date.now();
-    const firstCurrentOrFuture = frames.findIndex((frame) => {
+  function nearestCurrentFrameIndex(frames, now = Date.now()) {
+    let nearestIndex = -1;
+    let nearestDelta = Infinity;
+    frames.forEach((frame, index) => {
       const time = frameTime(frame);
-      return time && time.getTime() >= now - NOW_FRAME_TOLERANCE_MS;
+      if (!time) return;
+      const delta = Math.abs(time.getTime() - now);
+      if (delta < nearestDelta) {
+        nearestIndex = index;
+        nearestDelta = delta;
+      }
     });
-    return firstCurrentOrFuture >= 0 ? firstCurrentOrFuture : 0;
+    return nearestDelta <= NOW_FRAME_TOLERANCE_MS ? nearestIndex : -1;
   }
 
-  function isCurrentWindFrame(frame) {
-    const time = frameTime(frame);
-    return Boolean(time && Math.abs(time.getTime() - Date.now()) <= NOW_FRAME_TOLERANCE_MS);
+  function defaultFrameIndex(frames, now = Date.now()) {
+    const currentIndex = nearestCurrentFrameIndex(frames, now);
+    if (currentIndex >= 0) return currentIndex;
+    const firstCurrentOrFuture = frames.findIndex((frame) => {
+      const time = frameTime(frame);
+      return time && time.getTime() >= now;
+    });
+    return firstCurrentOrFuture >= 0 ? firstCurrentOrFuture : 0;
   }
 
   async function loadWindManifest() {
@@ -981,7 +992,7 @@
     function updateActiveTime(speedMph = null) {
       activeWindSpeed = speedMph;
       const forecastFrame = frames[activeIndex];
-      const label = isCurrentWindFrame(forecastFrame) ? "Now" : fullTimeLabel(forecastFrame);
+      const label = activeIndex === nearestCurrentFrameIndex(frames) ? "Now" : fullTimeLabel(forecastFrame);
       const windLabel = Number.isFinite(speedMph) ? `${Math.round(speedMph)} mph` : "…";
       if (timeReadout) timeReadout.textContent = label;
       slider.setAttribute("aria-valuetext", `${timelineDateLabel(forecastFrame.localDate)}, ${label}, ${Number.isFinite(speedMph) ? windLabel : "wind loading"}`);
