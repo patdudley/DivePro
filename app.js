@@ -136,9 +136,24 @@ function shortDate(date) {
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-function dayLabel(date, index) {
-  if (index === 0) return "Latest";
+function dayLabel(date) {
+  if (!date) return "Projected";
+  if (date === localTodayInLaJolla()) return "Today";
   return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+}
+
+function currentForecastWindow(forecasts, today = localTodayInLaJolla()) {
+  const currentAndFuture = forecasts.filter((forecast) => (
+    forecast && (!forecast.date || forecast.date >= today)
+  ));
+  return currentAndFuture.length ? currentAndFuture : forecasts.slice(-1);
+}
+
+function initialForecastForToday(forecasts, fallbackForecast, today = localTodayInLaJolla()) {
+  return forecasts.find((forecast) => forecast.date === today)
+    || forecasts.find((forecast) => forecast.date && forecast.date > today)
+    || forecasts[0]
+    || fallbackForecast;
 }
 
 function list(id, values) {
@@ -1076,14 +1091,14 @@ function renderForecastStrip(forecasts, activeDate) {
     return true;
   };
 
-  strip.replaceChildren(...forecasts.map((forecast, index) => {
+  strip.replaceChildren(...forecasts.map((forecast) => {
     const displayedForecast = cameraObservationDisplay(forecast);
     const button = document.createElement("button");
     button.type = "button";
     button.className = `forecast-day ${gradeClass(displayedForecast.grade)}${forecast.date === activeDate ? " is-active" : ""}`;
     button.setAttribute("aria-pressed", forecast.date === activeDate ? "true" : "false");
     button.innerHTML = `
-      <span>${dayLabel(forecast.date, index)}</span>
+      <span>${dayLabel(forecast.date)}</span>
       <strong>${displayedForecast.grade}</strong>
       <em>${feet(displayedForecast.estimated_visibility_range_ft || [0, 6])}</em>
       <small>${forecast.is_projected ? "Projected" : shortDate(forecast.date)}</small>
@@ -1217,18 +1232,20 @@ function renderForecastHistory(history, currentDate) {
 
 loadForecastData().then(({ latest, tenDay, gradeGuide, history, cameraObservation }) => {
   scrippsCameraObservation = cameraObservation || null;
-  render(latest);
-  renderStaleNotice(latest);
-  renderCommunityReport(latest);
-  renderForecastStrip(tenDay, latest.date);
+  const visibleForecasts = currentForecastWindow(tenDay);
+  const initialForecast = initialForecastForToday(visibleForecasts, latest);
+  render(initialForecast);
+  renderStaleNotice(initialForecast);
+  renderCommunityReport(initialForecast);
+  renderForecastStrip(visibleForecasts, initialForecast.date);
   renderGradeGuide(gradeGuide);
-  renderForecastHistory(history, latest.date);
-  if (!latest.is_unavailable) {
+  renderForecastHistory(history, initialForecast.date);
+  if (!initialForecast.is_unavailable) {
     window.diveproTrack("forecast_loaded", {
-      forecast_date: latest.date,
-      grade: latest.grade,
-      visibility_range: feet(latest.estimated_visibility_range_ft),
-      surf_range: waveHeightValue(latest),
+      forecast_date: initialForecast.date,
+      grade: initialForecast.grade,
+      visibility_range: feet(initialForecast.estimated_visibility_range_ft),
+      surf_range: waveHeightValue(initialForecast),
     });
   }
   window.addEventListener("divepro:selectForecastDate", (event) => {

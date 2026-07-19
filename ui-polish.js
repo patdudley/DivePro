@@ -48,19 +48,11 @@ function polishWaveRows() {
   });
 }
 
-function relabelTodayChip() {
-  const firstChipLabel = document.querySelector("#forecastStrip .forecast-day:first-child span");
-  if (firstChipLabel && firstChipLabel.textContent.trim() === "Latest") {
-    firstChipLabel.textContent = "Today";
-  }
-}
-
 let polishQueued = false;
 const runPolish = () => {
   polishQueued = false;
   relabelRainRows();
   polishWaveRows();
-  relabelTodayChip();
 };
 
 const queuePolish = () => {
