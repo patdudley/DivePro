@@ -1040,8 +1040,6 @@ function render(data) {
   document.getElementById("scoreFill").style.width = `${data.is_unavailable ? 0 : score}%`;
   const featureEl = document.getElementById("featureRows");
   if (featureEl) featureEl.innerHTML = data.is_unavailable ? "" : featureRows(data.features || {});
-  const fishGrid = document.getElementById("fishGrid");
-  if (fishGrid && data.is_unavailable) fishGrid.replaceChildren();
   if (data.is_unavailable) {
     document.getElementById("tideChart").textContent = "Forecast data unavailable.";
     document.getElementById("windChart").textContent = "Forecast data unavailable.";
@@ -1055,7 +1053,6 @@ function render(data) {
   renderWindChart(data);
   renderWaveSwell(data);
   renderWeather(data);
-  renderFishRadar(data);
 }
 
 function renderForecastStrip(forecasts, activeDate) {
