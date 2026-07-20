@@ -157,6 +157,7 @@ jobs:
 
       - name: Replace public latest-image release asset
         if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
@@ -190,7 +191,7 @@ jobs:
           exit 1
 
       - name: Commit public latest status
-        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.config.outputs.publish == 'true' && steps.archive.outputs.path != ''
         run: |
           mkdir -p camera-snapshots
           cp "$RUNNER_TEMP/scripps-pier-latest.json" camera-snapshots/scripps-pier-latest.json

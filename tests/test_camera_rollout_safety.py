@@ -60,6 +60,8 @@ def test_workflow_archives_camera_jpeg_and_decouples_publish_from_grading():
     status = workflow.index("Commit public latest status")
     live_gate = workflow.index("Require reviewed shadow evidence before live grade coupling")
     assert archive < release < status < live_gate
+    assert "continue-on-error: true" in workflow[release:status]
+    assert "steps.archive.outputs.path != ''" in workflow[status:live_gate]
     assert "--require-live" in workflow[live_gate:]
     assert "--require-secrets" in workflow[live_gate:]
     assert "--eval-data-dir \"$EVAL_DATA_DIR\"" in workflow[live_gate:]
@@ -77,7 +79,8 @@ def test_workflow_retries_each_pst_and_pdt_slot_without_duplicate_publishing():
     assert "id: capture" in workflow
     assert 'echo "produced=false" >> "$GITHUB_OUTPUT"' in workflow
     publish_gate = "steps.capture.outputs.produced == 'true'"
-    assert workflow.count(publish_gate) >= 3
+    assert workflow.count(publish_gate) >= 2
+    assert "steps.archive.outputs.path != ''" in workflow
 
 
 def test_frontend_displays_screenshot_without_automated_grade_coupling():

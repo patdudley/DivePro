@@ -11,7 +11,12 @@ from datetime import datetime
 from pathlib import Path
 
 
-def archive_capture(image_path: Path, status_path: Path, archive_root: Path) -> Path:
+def archive_capture(
+    image_path: Path,
+    status_path: Path,
+    archive_root: Path,
+    public_url_prefix: str = "/camera-snapshot-history/scripps-pier",
+) -> Path:
     status = json.loads(status_path.read_text())
     if status.get("capture_ok") is not True:
         raise ValueError("refusing to archive a capture whose status is not capture_ok")
@@ -36,6 +41,12 @@ def archive_capture(image_path: Path, status_path: Path, archive_root: Path) -> 
             raise ValueError(f"archive collision at {destination}")
     else:
         shutil.copyfile(image_path, destination)
+
+    relative_path = destination.relative_to(archive_root).as_posix()
+    status["image_url"] = (
+        f"{public_url_prefix.rstrip('/')}/{relative_path}?v={actual_hash[:12]}"
+    )
+    status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n")
     return destination
 
 

@@ -37,6 +37,13 @@ def test_archives_with_timestamp_and_hash_without_overwriting(tmp_path):
         f"{hashlib.sha256(image_bytes).hexdigest()[:12]}.jpg"
     )
     assert archived.read_bytes() == image_bytes
+    updated_status = json.loads(status.read_text())
+    assert updated_status["image_url"] == (
+        "/camera-snapshot-history/scripps-pier/2026-07-18/"
+        "scripps-pier-190957-"
+        f"{hashlib.sha256(image_bytes).hexdigest()[:12]}.jpg"
+        f"?v={hashlib.sha256(image_bytes).hexdigest()[:12]}"
+    )
     assert archive_capture(image, status, tmp_path / "history") == archived
 
 
