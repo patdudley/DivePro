@@ -47,13 +47,13 @@ function localTodayInLaJolla() {
 }
 
 function isCameraObservationDisplayable(observation) {
-  // Screenshot display depends only on a validated same-day capture.
+  // Keep the latest validated capture visible until a newer one replaces it.
   // Grades and grading mode never gate the photo (see SCRIPPS_CAMERA.md).
   return Boolean(
     observation &&
       observation.capture_ok === true &&
       observation.image_url &&
-      observation.observation_date === localTodayInLaJolla(),
+      observation.observation_date,
   );
 }
 
@@ -453,6 +453,20 @@ function cameraSlotLabel(slot) {
   return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
 }
 
+function cameraObservationDayLabel(observationDate) {
+  const today = localTodayInLaJolla();
+  if (observationDate === today) return "Today";
+  const observation = new Date(`${observationDate}T12:00:00Z`);
+  const current = new Date(`${today}T12:00:00Z`);
+  const ageDays = Math.round((current - observation) / 86400000);
+  if (ageDays === 1) return "Yesterday";
+  return observation.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function renderCamera(data) {
   const frame = document.getElementById("cameraFrame");
   const image = document.getElementById("cameraImage");
@@ -467,15 +481,14 @@ function renderCamera(data) {
 
   const badge = document.getElementById("cameraObservedBadge");
   const observation = scrippsCameraObservation;
-  const showObservation = Boolean(
-    observation && (!data.date || data.date === observation.observation_date),
-  );
+  const showObservation = Boolean(observation);
   if (showObservation) {
     const slotLabel = cameraSlotLabel(observation.slot);
+    const dayLabel = cameraObservationDayLabel(observation.observation_date);
     image.src = observation.image_url;
-    image.alt = `Scripps Pier underwater camera, captured today at ${slotLabel}`;
+    image.alt = `Scripps Pier underwater camera, captured ${dayLabel.toLowerCase()} at ${slotLabel}`;
     if (badge) {
-      badge.textContent = `Today ${slotLabel}`;
+      badge.textContent = `${dayLabel} ${slotLabel}`;
       badge.classList.remove("is-reference");
       badge.hidden = false;
     }
