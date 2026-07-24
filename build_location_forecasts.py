@@ -54,6 +54,13 @@ OUT = ROOT / "model_outputs"
 SPOT_OUT = OUT / "spots"
 FORECAST_LOG_PATH = Path(__file__).parent / "forecast_log.csv"
 SHADOW_LOG_PATH = Path(__file__).parent / "shadow_forecast_log_v2.csv"
+FORECAST_CONFIG_PATH = ROOT / "forecast-config.json"
+FORECAST_POLICY_HISTORY_DIR = ROOT / "forecast-policy-history"
+
+from forecast_display_policy import evaluate_display_policy, load_display_policy
+from forecast_policy_audit import append_audit_record, make_audit_record
+
+_ACTIVE_DISPLAY_POLICY = load_display_policy(FORECAST_CONFIG_PATH)
 
 # ── Import shared production feature formulas ─────────────────────────────────
 # production_feat_bundle computes p1_energy_raw, total_energy, n_swells using
@@ -800,6 +807,7 @@ def predict_lajolla(features: dict) -> dict:
         "display_grade": None,
         "vis_range": [0, 4],
         "model_source": "none",
+        "display_policy_audit": None,
     }
 
     feat_map = _build_lajolla_feat_map(features)
@@ -895,17 +903,28 @@ def predict_lajolla(features: dict) -> dict:
         result["display_grade_after_guardrail"] = None
 
     # ── Final grade and range ──────────────────────────────────────────────────
-    # Display policy v3: grade always follows the guarded continuous estimate.
-    # The soft model outputs are clipped Huber regressions, not calibrated class
-    # probabilities, so a cumulative 0.5 threshold can turn a borderline D/C
-    # estimate into a full-band display miss. Preserve the raw vector for
-    # evaluation, but do not use it as a categorical CDF.
-    grade = grade_from_visibility(result["guarded_vis_ft"])
+    # Both v3 and v4 are computed every run. The config selects publication only.
+    policy = evaluate_display_policy(
+        probabilities=result["probabilities"],
+        raw_expected_vis_ft=result["raw_expected_vis_ft"],
+        guarded_vis_ft=result["guarded_vis_ft"],
+        guardrail_fired=result["guardrail_applied"],
+        active_policy=_ACTIVE_DISPLAY_POLICY,
+        grade_from_visibility=grade_from_visibility,
+        visibility_range_from_grade=visibility_range_from_grade,
+    )
+    if policy["reason"] == "malformed_scores_fallback":
+        print(
+            "  WARNING: malformed La Jolla class scores; "
+            "display policy fell back to v3"
+        )
+    grade = policy["display_grade"]
     median_vis_ft = visibility_midpoint_from_grade(grade)
     result["display_grade"] = grade
-    result["vis_range"] = visibility_range_from_grade(grade)
+    result["vis_range"] = policy["vis_range"]
     result["median_expected_vis_ft"] = median_vis_ft
-    result["display_policy_version"] = "v3-guarded-expected-vis"
+    result["display_policy_version"] = policy["display_policy_version"]
+    result["display_policy_audit"] = policy
     return result
 
 
@@ -1468,6 +1487,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         raw_vis_ft  = prediction["raw_expected_vis_ft"]
         median_vis_ft = prediction.get("median_expected_vis_ft")
         display_policy_version = prediction.get("display_policy_version")
+        display_policy_audit = prediction.get("display_policy_audit")
         most_likely_grade = prediction.get("most_likely_grade")
         guarded_vis = prediction["guarded_vis_ft"]
         guardrail   = prediction["guardrail_applied"]
@@ -1559,6 +1579,16 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
                                               else f"point_model_fallback:{model_src}",
                 }
                 append_forecast_row(FORECAST_LOG_PATH, log_row)
+                append_audit_record(
+                    FORECAST_POLICY_HISTORY_DIR,
+                    make_audit_record(
+                        forecast_id=log_row["forecast_id"],
+                        forecast_run_ts_utc=run_ts,
+                        target_date=target_date,
+                        lead_time_hours=_lead_hours,
+                        policy=display_policy_audit,
+                    ),
+                )
                 try:
                     _append_v2_shadow_if_available(
                         marine_hourly,
@@ -1660,8 +1690,20 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "estimated_visibility_mid_ft":      median_vis_ft if median_vis_ft is not None else (min_viz + max_viz) / 2,
         "raw_expected_vis_ft":              raw_vis_ft,
         "guardrail_applied":                guardrail,
-        "confidence": ("medium" if component_available and spot["slug"] == "la-jolla"
-                       else ("experimental" if component_available else "low")),
+        "confidence": (
+            "low"
+            if (
+                spot["slug"] == "la-jolla"
+                and _ACTIVE_DISPLAY_POLICY == "v4"
+                and display_policy_audit
+                and display_policy_audit["is_bimodal"]
+            )
+            else (
+                "medium"
+                if component_available and spot["slug"] == "la-jolla"
+                else ("experimental" if component_available else "low")
+            )
+        ),
         "best_window":    "Early morning to late morning before wind builds",
         "risk_factors":   risks or ["No major model risk factors in the parsed feature set."],
         "positive_factors": upsides,
