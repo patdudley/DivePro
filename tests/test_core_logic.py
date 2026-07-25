@@ -279,6 +279,33 @@ def test_predict_expected_visibility_over_ten_displays_c_even_if_d_is_largest():
 
 
 @pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
+def test_predict_v4_config_publishes_bimodal_mode():
+    model = _stub_soft_model([0.0, 0.4311, 0.1953, 0.3735, 0.0, 0.0])
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
+         patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]), \
+         patch.object(blf, "_ACTIVE_DISPLAY_POLICY", "v4"):
+        result = blf.predict_lajolla({})
+    assert result["display_grade"] == "D"
+    assert result["vis_range"] == [5, 9]
+    assert result["display_policy_version"] == "v4-bimodal-aware"
+    assert result["display_policy_audit"]["v3_grade"] == "C"
+    assert result["display_policy_audit"]["v4_grade"] == "D"
+
+
+@pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
+def test_predict_v3_config_keeps_existing_grade_while_computing_v4():
+    model = _stub_soft_model([0.0, 0.4311, 0.1953, 0.3735, 0.0, 0.0])
+    with patch.object(blf, "_LAJOLLA_SOFT_MODEL", model), \
+         patch.object(blf, "_LAJOLLA_SOFT_FEATURES", SOFT_SCHEMA["features"]), \
+         patch.object(blf, "_ACTIVE_DISPLAY_POLICY", "v3"):
+        result = blf.predict_lajolla({})
+    assert result["display_grade"] == "C"
+    assert result["vis_range"] == [10, 14]
+    assert result["display_policy_version"] == "v3-guarded-expected-vis"
+    assert result["display_policy_audit"]["v4_grade"] == "D"
+
+
+@pytest.mark.skipif(not HAVE_NUMPY, reason="numpy not installed (model env only)")
 def test_point_fallback_one_hot_grade_is_unchanged():
     model = MagicMock()
     model.predict.return_value = np.array([12.2])
@@ -370,6 +397,24 @@ SOFT_PREDICTION = {
     "display_grade": "C",
     "display_grade_after_guardrail": None,
     "display_policy_version": "v3-guarded-expected-vis",
+    "display_policy_audit": {
+        "raw_class_scores": {"F": 0.05, "D": 0.2, "C": 0.5, "B": 0.2, "A": 0.05, "A+": 0.0},
+        "raw_expected_vis_ft": 12.4,
+        "guarded_vis_ft": 12.4,
+        "v3_grade": "C",
+        "v4_grade": "C",
+        "top1_idx": 2,
+        "top1_p": 0.5,
+        "top2_idx": 1,
+        "top2_p": 0.2,
+        "class_gap": 1,
+        "is_bimodal": False,
+        "guardrail_fired": False,
+        "confidence": "standard",
+        "active_policy": "v3",
+        "display_policy_version": "v3-guarded-expected-vis",
+        "reason": "v3_unchanged",
+    },
     "vis_range": [10, 14],
     "model_source": "soft_probabilistic",
 }
@@ -379,7 +424,8 @@ def _build_day(marine, long_range, weather, tide_points, tmp_path):
     # Stub the model prediction (no sklearn/numpy needed locally) and keep the
     # prospective log out of the real append-only forecast_log.csv.
     with patch.object(blf, "predict_lajolla", return_value=dict(SOFT_PREDICTION)), \
-         patch.object(blf, "FORECAST_LOG_PATH", tmp_path / "forecast_log.csv"):
+         patch.object(blf, "FORECAST_LOG_PATH", tmp_path / "forecast_log.csv"), \
+         patch.object(blf, "FORECAST_POLICY_HISTORY_DIR", tmp_path / "forecast-policy-history"):
         return blf.build_day(blf.SPOTS[0], marine, long_range, weather, TARGET, tide_points)
 
 
