@@ -1,5 +1,6 @@
 # ABOUTME: Characterization tests for the forecast core — grade bands, date-keyed
 # ABOUTME: lookups, ML feature map (frozen schema contract), prediction guardrail, build_day shape.
+import csv
 import json
 import pathlib
 import sys
@@ -448,6 +449,31 @@ def test_build_day_output_shape_and_values(tmp_path):
     assert day["features"]["ml_tide_range_ft"] == pytest.approx(2.5)
     assert isinstance(day["risk_factors"], list) and day["risk_factors"]
     assert isinstance(day["positive_factors"], list)
+
+
+def test_display_override_changes_public_output_but_not_immutable_log(tmp_path):
+    marine, long_range, weather, tide_points = _fixture_inputs()
+    override = {
+        TARGET: {
+            "grade": "D",
+            "reason": "Test owner correction.",
+        }
+    }
+    with patch.object(blf, "_FORECAST_OVERRIDES", override):
+        day = _build_day(marine, long_range, weather, tide_points, tmp_path)
+
+    assert day["grade"] == "D"
+    assert day["estimated_visibility_range_ft"] == [5, 9]
+    assert day["estimated_visibility_mid_ft"] == pytest.approx(7.0)
+    assert day["display_override"] == {
+        "active": True,
+        "source": "owner_manual",
+        "reason": "Test owner correction.",
+    }
+
+    with (tmp_path / "forecast_log.csv").open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert rows[-1]["displayed_grade"] == "C"
 
 
 def test_build_day_writes_prospective_log_row(tmp_path):

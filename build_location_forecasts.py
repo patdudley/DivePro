@@ -55,12 +55,34 @@ SPOT_OUT = OUT / "spots"
 FORECAST_LOG_PATH = Path(__file__).parent / "forecast_log.csv"
 SHADOW_LOG_PATH = Path(__file__).parent / "shadow_forecast_log_v2.csv"
 FORECAST_CONFIG_PATH = ROOT / "forecast-config.json"
+FORECAST_OVERRIDES_PATH = ROOT / "forecast-overrides.json"
 FORECAST_POLICY_HISTORY_DIR = ROOT / "forecast-policy-history"
 
 from forecast_display_policy import evaluate_display_policy, load_display_policy
 from forecast_policy_audit import append_audit_record, make_audit_record
 
 _ACTIVE_DISPLAY_POLICY = load_display_policy(FORECAST_CONFIG_PATH)
+
+
+def load_forecast_overrides(path: Path) -> dict:
+    """Load date-scoped public display overrides without changing model output."""
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    overrides = payload.get("overrides", {})
+    if not isinstance(overrides, dict):
+        raise ValueError("forecast overrides must be an object keyed by target date")
+    valid_grades = {"F", "D", "C", "B", "A", "A+"}
+    for target_date, override in overrides.items():
+        _date_cls.fromisoformat(target_date)
+        if not isinstance(override, dict):
+            raise ValueError(f"forecast override for {target_date} must be an object")
+        if override.get("grade") not in valid_grades:
+            raise ValueError(f"invalid forecast override grade for {target_date}")
+    return overrides
+
+
+_FORECAST_OVERRIDES = load_forecast_overrides(FORECAST_OVERRIDES_PATH)
 
 # ── Import shared production feature formulas ─────────────────────────────────
 # production_feat_bundle computes p1_energy_raw, total_energy, n_swells using
@@ -1639,6 +1661,18 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         guardrail_reason = ""
         model_src = "heuristic"
 
+    display_override = None
+    if spot.get("slug") == "la-jolla" and target_date in _FORECAST_OVERRIDES:
+        configured_override = _FORECAST_OVERRIDES[target_date]
+        grade = configured_override["grade"]
+        vis_range = visibility_range_from_grade(grade)
+        median_vis_ft = visibility_midpoint_from_grade(grade)
+        display_override = {
+            "active": True,
+            "source": "owner_manual",
+            "reason": configured_override.get("reason", ""),
+        }
+
     # ── Report text ───────────────────────────────────────────────────────────
     min_viz, max_viz = vis_range
     risks = []
@@ -1686,6 +1720,7 @@ def build_day(spot, marine, long_range_marine, weather, target_date, tide_points
         "most_likely_grade":                most_likely_grade,
         "model_source":                     model_src,
         "display_policy_version":           display_policy_version,
+        "display_override":                 display_override,
         "estimated_visibility_range_ft":    vis_range,
         "estimated_visibility_mid_ft":      median_vis_ft if median_vis_ft is not None else (min_viz + max_viz) / 2,
         "raw_expected_vis_ft":              raw_vis_ft,

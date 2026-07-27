@@ -7,7 +7,7 @@
     "region": "California",
     "date": "2026-07-27",
     "numeric_score_0_100": 60,
-    "grade": "B",
+    "grade": "D",
     "grade_probabilities": {
       "F": 0.17202550546926113,
       "D": 0.2969625549622154,
@@ -30,11 +30,16 @@
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v4-bimodal-aware",
+    "display_override": {
+      "active": true,
+      "source": "owner_manual",
+      "reason": "Observed visibility was D; owner correction."
+    },
     "estimated_visibility_range_ft": [
-      15,
-      24
+      5,
+      9
     ],
-    "estimated_visibility_mid_ft": 19.5,
+    "estimated_visibility_mid_ft": 7.0,
     "raw_expected_vis_ft": 11.28,
     "guardrail_applied": false,
     "confidence": "low",
@@ -49,7 +54,7 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with dry recent conditions and an easing wave trend supporting useful clarity. Some swell energy and surface movement keep the forecast below exceptional A-grade conditions.\n\nThe rising tide is a favorable signal. As water moves toward the next high tide at 8:31 PM, cleaner offshore water may move into La Jolla and support improving visibility.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
+    "report_text": "The model expects 5-9 ft of visibility, resulting in a D grade. Conditions are poor for visibility overall, with enough swell energy and surface movement to keep clarity limited despite dry recent conditions and an easing wave trend.\n\nThe rising tide is a favorable signal. As water moves toward the next high tide at 8:31 PM, cleaner offshore water may move into La Jolla and support improving visibility.\n\nOverall, visibility is likely to remain limited and inconsistent. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be worse.",
     "features": {
       "date": "2026-07-27",
       "coherent_swell_source": "hourly_max_height_event",
@@ -480,7 +485,7 @@
     "region": "California",
     "date": "2026-07-28",
     "numeric_score_0_100": 61,
-    "grade": "B",
+    "grade": "D",
     "grade_probabilities": {
       "F": 0.10598408778714836,
       "D": 0.3545027848459098,
@@ -503,11 +508,16 @@
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v4-bimodal-aware",
+    "display_override": {
+      "active": true,
+      "source": "owner_manual",
+      "reason": "Owner near-term continuity correction."
+    },
     "estimated_visibility_range_ft": [
-      15,
-      24
+      5,
+      9
     ],
-    "estimated_visibility_mid_ft": 19.5,
+    "estimated_visibility_mid_ft": 7.0,
     "raw_expected_vis_ft": 12.05,
     "guardrail_applied": false,
     "confidence": "low",
@@ -523,7 +533,7 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with dry recent conditions and an easing wave trend supporting useful clarity. Some swell energy, surface movement and wind-driven mixing keep the forecast below exceptional A-grade conditions.\n\nThe tide contribution is more neutral because a reliable direction is not available. The next tide change could still change nearshore water movement, so local clarity may vary.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
+    "report_text": "The model expects 5-9 ft of visibility, resulting in a D grade. Elevated surf, swell energy, surface movement and wind-driven mixing are expected to keep visibility limited.\n\nThe next tide change could still change nearshore water movement, so local clarity may vary.\n\nOverall, visibility is likely to remain limited and inconsistent. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be worse.",
     "features": {
       "date": "2026-07-28",
       "coherent_swell_source": "hourly_max_height_event",
