@@ -75,7 +75,7 @@ jobs:
             --existing-status "camera-snapshots/scripps-pier-last-valid.json" \
             --public-image-url "${{ steps.config.outputs.public_image_url }}" \
             --openai-api-key "$OPENAI_API_KEY" \
-            --openai-model "gpt-4.1-mini-2025-04-14" \
+            --openai-model "gpt-4.1-2025-04-14" \
             --reference-image "camera-reference/scripps-piling-distance-reference.png"
           if [ -s "$RUNNER_TEMP/scripps-pier-latest.json" ]; then
             echo "attempted=true" >> "$GITHUB_OUTPUT"

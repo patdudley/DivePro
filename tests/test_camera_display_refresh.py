@@ -204,7 +204,7 @@ def test_hourly_workflow_grades_without_coupling_and_serializes_with_shadow_job(
     assert "group: scripps-camera-grade" in workflow
     assert "cancel-in-progress: false" in workflow
     assert "secrets.OPENAI_API_KEY" in workflow
-    assert "gpt-4.1-mini-2025-04-14" in workflow
+    assert "gpt-4.1-2025-04-14" in workflow
     assert "scripps-piling-distance-reference.png" in workflow
     # Hourly refresh must not run coupling or private eval collection.
     assert "--force-slot" not in workflow

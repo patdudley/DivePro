@@ -87,11 +87,12 @@ def run(
     output_dir: Path,
     api_key: str,
     model: str = DEFAULT_MODEL,
+    selected_images: list[Path] | None = None,
 ) -> tuple[list[dict], dict[str, dict]]:
-    images = sorted(
+    images = sorted(selected_images or (
         path for path in archive_root.rglob("*")
         if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg", ".png"}
-    )
+    ))
     captures = [capture_record(path, archive_root) for path in images]
     existing_path = output_dir / "grades.json"
     grades = {}
@@ -141,6 +142,7 @@ def main() -> int:
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--image", action="append", type=Path)
     args = parser.parse_args()
     captures, grades = run(
         args.archive_root,
@@ -148,6 +150,7 @@ def main() -> int:
         args.output_dir,
         os.environ.get("OPENAI_API_KEY", ""),
         args.model,
+        args.image,
     )
     counts: dict[str, int] = {}
     for record in grades.values():

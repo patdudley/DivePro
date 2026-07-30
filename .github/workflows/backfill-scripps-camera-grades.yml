@@ -2,6 +2,14 @@ name: Backfill Scripps camera grades
 
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Images to grade
+        type: choice
+        options:
+          - latest
+          - all
+        default: latest
 
 permissions:
   contents: read
@@ -25,8 +33,15 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           test -n "$OPENAI_API_KEY"
+          IMAGE_ARGS=()
+          if [ "${{ inputs.scope }}" = "latest" ]; then
+            latest_image="$(find camera-snapshot-history/scripps-pier -type f -name '*.jpg' | sort | tail -1)"
+            test -n "$latest_image"
+            IMAGE_ARGS+=(--image "$latest_image")
+          fi
           python scripts/backfill_openai_camera_grades.py \
-            --output-dir "$RUNNER_TEMP/scripps-camera-grades"
+            --output-dir "$RUNNER_TEMP/scripps-camera-grades" \
+            "${IMAGE_ARGS[@]}"
 
       - name: Upload private review artifact
         uses: actions/upload-artifact@v4

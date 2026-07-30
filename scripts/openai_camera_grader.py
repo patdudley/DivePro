@@ -13,10 +13,10 @@ from typing import Any
 import requests
 
 OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
-DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14"
-GRADER_VERSION = "openai-scripps-pylon-v2"
-PROMPT_VERSION = "openai-scripps-pylon-reference-v2"
-RUBRIC_VERSION = "scripps-pylon-distances-v2"
+DEFAULT_MODEL = "gpt-4.1-2025-04-14"
+GRADER_VERSION = "openai-scripps-pylon-v3"
+PROMPT_VERSION = "openai-scripps-pylon-reference-v3"
+RUBRIC_VERSION = "scripps-pylon-distances-v3"
 C_BOUNDARY_REFERENCE_NAME = "scripps-grade-c-faint-left-pylons.png"
 PYLON_STATES = {"not_visible", "faint", "visible", "clear"}
 GRADE_ORDER = ("F", "D", "C", "B", "A", "A+")
@@ -39,6 +39,15 @@ Use these fixed visual anchors:
 - The middle-right/back pylon is about 11 ft away.
 - The left pylon is about 14 ft away.
 - The back-center pylon is about 30 ft away.
+
+The camera framing is fixed. Locate structures by image position as well as contrast:
+- The 4 ft pylon fills the extreme right edge.
+- The 11 ft pylon is the large vertical structure just left of the 4 ft pylon.
+- The 14 ft evidence is on the LEFT side of the frame. It may appear only as one or
+  two broad, dark vertical silhouettes blending into green water.
+- The 30 ft pylon is the narrow back-center structure shown by the annotated arrow.
+Do not call the 14 ft pylon absent merely because its silhouette is dark, cropped by
+the left edge, low contrast, or lacks visible surface texture.
 
 Canonical grades:
 - F = 0-4 ft: even the nearest 4 ft pylon is not reliably resolved.
