@@ -76,6 +76,28 @@ def test_request_sends_reference_first_and_current_frame_second(tmp_path, monkey
     assert observed["headers"]["Authorization"] == "Bearer test-key"
 
 
+def test_request_includes_labeled_c_boundary_before_current_frame(tmp_path, monkeypatch):
+    reference = tmp_path / "reference.png"
+    boundary = tmp_path / grader.C_BOUNDARY_REFERENCE_NAME
+    current = tmp_path / "current.jpg"
+    reference.write_bytes(b"distance-reference")
+    boundary.write_bytes(b"faint-left-pylons")
+    current.write_bytes(b"current-frame")
+    observed = {}
+
+    def fake_post(url, **kwargs):
+        observed["json"] = kwargs["json"]
+        return _Response(_valid_payload())
+
+    monkeypatch.setattr(grader.requests, "post", fake_post)
+    grader.grade_image_with_openai(current, reference, "test-key", attempts=1)
+
+    content = observed["json"]["messages"][0]["content"]
+    assert "grade C" in content[2]["text"]
+    assert content[3]["image_url"]["url"].startswith("data:image/png;base64,")
+    assert content[4]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
 def test_pylon_constraints_reject_inconsistent_high_grades():
     with pytest.raises(ValueError, match="invisible 30 ft"):
         grader.validate_openai_grade(_valid_payload(grade="B", visibility_midpoint_ft=20))

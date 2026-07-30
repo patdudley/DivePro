@@ -1,0 +1,37 @@
+name: Backfill Scripps camera grades
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install grader dependency
+        run: python -m pip install requests
+
+      - name: Grade archived Scripps images
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          python scripts/backfill_openai_camera_grades.py \
+            --output-dir "$RUNNER_TEMP/scripps-camera-grades"
+
+      - name: Upload private review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scripps-camera-grade-backfill
+          path: ${{ runner.temp }}/scripps-camera-grades/
+          if-no-files-found: error
+          retention-days: 30
