@@ -20,6 +20,8 @@ def archive_capture(
     status = json.loads(status_path.read_text())
     if status.get("capture_ok") is not True:
         raise ValueError("refusing to archive a capture whose status is not capture_ok")
+    if status.get("source_freshness_verified") is not True:
+        raise ValueError("refusing to archive a capture without verified source freshness")
 
     expected_hash = str(status.get("image_sha256") or "")
     actual_hash = hashlib.sha256(image_path.read_bytes()).hexdigest()

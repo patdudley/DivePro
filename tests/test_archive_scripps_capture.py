@@ -15,6 +15,7 @@ from archive_scripps_capture import archive_capture  # noqa: E402
 def _status(image: bytes, **updates):
     payload = {
         "capture_ok": True,
+        "source_freshness_verified": True,
         "observation_date": "2026-07-18",
         "captured_at_utc": "2026-07-18T19:09:57Z",
         "image_sha256": hashlib.sha256(image).hexdigest(),
@@ -57,4 +58,8 @@ def test_rejects_failed_or_hash_mismatched_capture(tmp_path):
 
     status.write_text(json.dumps(_status(b"frame", capture_ok=False)))
     with pytest.raises(ValueError, match="capture_ok"):
+        archive_capture(image, status, tmp_path / "history")
+
+    status.write_text(json.dumps(_status(b"frame", source_freshness_verified=False)))
+    with pytest.raises(ValueError, match="freshness"):
         archive_capture(image, status, tmp_path / "history")

@@ -5,9 +5,11 @@
 `.github/workflows/scripps-camera-grade.yml` evaluates candidate UTC schedules
 against `America/Los_Angeles` and runs at the 08:00, 12:00, and 16:00 local
 slots. The capture opens `https://coollab.ucsd.edu/pierviz/`, enters the camera
-frame embedded by that UCSD page, verifies that playback advances, and saves
-only the 16:9 video pixels. It does not navigate directly to a vendor stream or
-screenshot the UCSD page header and player controls.
+frame embedded by that UCSD page, rejects finite prerecorded fallback clips,
+seeks a live stream to its live edge, verifies that playback and frame pixels
+advance, and saves only the 16:9 video pixels. HLS program timestamps are also
+checked when the stream exposes them. It does not navigate directly to a vendor
+stream or screenshot the UCSD page header and player controls.
 
 Rollout is controlled by `camera-config.json`. Screenshot publishing and grade
 coupling are deliberately independent switches:
@@ -40,10 +42,12 @@ The public repository retains:
 - `camera-snapshots/scripps-pier-latest.json`, a small latest-status document
   committed whenever screenshot publishing is enabled.
 
-Failed or invalid captures do not replace the release asset. Their status
-document still publishes so the UI can fall back to the algorithm reference
-image (a prior-day frame is never shown; the front end requires a same-local-day
-`capture_ok` status). `.gitignore` blocks accidental commits of all
+Failed, frozen, behind-live, or invalid captures do not enter the archive or
+replace the release asset. The UI requires a same-local-day status with verified
+source freshness for newly generated statuses. It keeps the latest successful
+same-day image visible until midnight, regardless of capture age, and accepts
+legacy same-day statuses that predate the freshness field. A prior-day frame is
+never shown. `.gitignore` blocks accidental commits of all
 `camera-snapshots/scripps-pier*` image files.
 
 A reviewed `manual_observation` can temporarily replace today's displayed

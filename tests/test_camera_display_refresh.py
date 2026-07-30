@@ -23,7 +23,15 @@ def _fixed_utc(monkeypatch, local_hour, minute=5):
 def _capture_writes_frame(monkeypatch, payload=b"jpegbytes-fresh"):
     def fake_capture(output, attempts=3):
         pathlib.Path(output).write_bytes(payload)
-        return {"width": 1920, "height": 1081}
+        return {
+            "width": 1920,
+            "height": 1081,
+            "source_freshness_verified": True,
+            "live_edge_lag_seconds": 1.0,
+            "frame_motion_score": 4.0,
+            "source_timestamp_verified": True,
+            "source_timestamp_age_seconds": 8.0,
+        }
 
     monkeypatch.setattr(camera, "capture_feed", fake_capture)
 
@@ -63,6 +71,9 @@ def test_display_refresh_publishes_frame_and_carries_slot_map(tmp_path, monkeypa
     written = json.loads(pathlib.Path(args.public_status).read_text())
     assert written["status"] == "display_refresh"
     assert written["capture_ok"] is True
+    assert written["source_freshness_verified"] is True
+    assert written["live_edge_lag_seconds"] == 1.0
+    assert written["frame_motion_score"] == 4.0
     assert written["slot"] == "10:00"
     assert written["image_url"].startswith("https://example.com/scripps-pier.jpg?v=")
     # Graded-slot completion survives the hourly overwrite (legacy inference).

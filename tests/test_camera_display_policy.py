@@ -178,7 +178,15 @@ def test_redundant_runs_capture_only_once_per_date_and_slot(tmp_path, monkeypatc
         nonlocal capture_calls
         capture_calls += 1
         Image.new("RGB", (1280, 720), (20, 90, 120)).save(path)
-        return {"width": 1280, "height": 720, "motion_score": 12.0}
+        return {
+            "width": 1280,
+            "height": 720,
+            "source_freshness_verified": True,
+            "live_edge_lag_seconds": 1.0,
+            "frame_motion_score": 12.0,
+            "source_timestamp_verified": True,
+            "source_timestamp_age_seconds": 5.0,
+        }
 
     monkeypatch.setattr(camera, "capture_feed", fake_capture)
     status_path = tmp_path / "scripps-pier-latest.json"

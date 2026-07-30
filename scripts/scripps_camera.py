@@ -17,7 +17,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import requests
-from PIL import Image, ImageStat
+from PIL import Image, ImageChops, ImageStat
 
 from camera_display_policy import (
     LEAD_WEIGHTS,
@@ -38,6 +38,10 @@ SLOT_GRACE_HOURS = 3
 # hourly display-refresh captures. Validation rejects dark frames anyway;
 # this gate just avoids pointless fetches outside daylight.
 DISPLAY_REFRESH_HOURS = range(7, 19)
+MAX_LIVE_EDGE_LAG_SECONDS = 15.0
+MAX_SOURCE_TIMESTAMP_AGE_SECONDS = 120.0
+MAX_SOURCE_TIMESTAMP_FUTURE_SECONDS = 30.0
+MIN_FRAME_MOTION_SCORE = 0.8
 CAMERA_PAGE_URL = "https://coollab.ucsd.edu/pierviz/"
 CAMERA_IFRAME_SELECTOR = 'iframe[src*="scripps_pier-underwater"]'
 PUBLIC_IMAGE = ROOT / "camera-snapshots" / "scripps-pier.jpg"
@@ -102,8 +106,8 @@ def same_day_success_text(status_path: Path, observation_date: str) -> str | Non
 
     Used when a later slot's capture fails: overwriting the public status with a
     capture_failure record would hide a perfectly valid earlier photo from the
-    homepage for the rest of the day. Returning the original bytes verbatim
-    keeps the workflow's commit step a no-op.
+    archive. Returning the original bytes verbatim keeps the workflow's commit
+    step a no-op; the frontend independently hides that status when it ages out.
     """
     try:
         text = status_path.read_text()
@@ -160,6 +164,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def apply_capture_freshness(status: dict[str, Any], metrics: dict[str, Any]) -> None:
+    if metrics.get("source_freshness_verified") is not True:
+        raise RuntimeError("capture did not provide verified source freshness")
+    status.update({
+        "source_freshness_verified": True,
+        "live_edge_lag_seconds": metrics.get("live_edge_lag_seconds"),
+        "frame_motion_score": metrics.get("frame_motion_score"),
+        "source_timestamp_verified": metrics.get("source_timestamp_verified") is True,
+        "source_timestamp_age_seconds": metrics.get("source_timestamp_age_seconds"),
+    })
+
+
 def validate_feed_image(path: Path) -> dict[str, Any]:
     with Image.open(path) as image:
         image.verify()
@@ -190,17 +206,108 @@ def validate_feed_image(path: Path) -> dict[str, Any]:
         }
 
 
+def frame_motion_score(first_path: Path, second_path: Path) -> float:
+    """Return mean grayscale pixel movement between two normalized frames."""
+    with Image.open(first_path) as first_image, Image.open(second_path) as second_image:
+        first = first_image.convert("L").resize((160, 90))
+        second = second_image.convert("L").resize((160, 90))
+        difference = ImageChops.difference(first, second)
+        return round(float(ImageStat.Stat(difference).mean[0]), 3)
+
+
+def parse_hls_program_datetimes(manifest_text: str) -> list[dt.datetime]:
+    timestamps: list[dt.datetime] = []
+    prefix = "#EXT-X-PROGRAM-DATE-TIME:"
+    for line in manifest_text.splitlines():
+        if not line.startswith(prefix):
+            continue
+        value = line[len(prefix):].strip()
+        try:
+            parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if parsed.tzinfo is not None:
+            timestamps.append(parsed.astimezone(dt.UTC))
+    return timestamps
+
+
+def source_timestamp_age_seconds(
+    program_time: dt.datetime,
+    now: dt.datetime | None = None,
+) -> float:
+    current = (now or utc_now()).astimezone(dt.UTC)
+    age = (current - program_time.astimezone(dt.UTC)).total_seconds()
+    if age > MAX_SOURCE_TIMESTAMP_AGE_SECONDS:
+        raise RuntimeError(f"HLS source timestamp is stale by {age:.1f}s")
+    if age < -MAX_SOURCE_TIMESTAMP_FUTURE_SECONDS:
+        raise RuntimeError(f"HLS source timestamp is {abs(age):.1f}s in the future")
+    return round(max(0.0, age), 3)
+
+
+def validate_live_video_states(
+    first_state: dict[str, Any],
+    second_state: dict[str, Any],
+) -> float:
+    require_live_stream_state(second_state)
+    before = float(first_state["current_time"])
+    after = float(second_state["current_time"])
+    if after - before < 0.75:
+        raise RuntimeError(f"video did not advance ({before:.2f}s to {after:.2f}s)")
+    seekable_end = second_state.get("seekable_end")
+    if seekable_end is None:
+        raise RuntimeError("video does not expose a seekable live edge")
+    lag = float(seekable_end) - after
+    if lag < -2.0 or lag > MAX_LIVE_EDGE_LAG_SECONDS:
+        raise RuntimeError(f"video is {lag:.1f}s behind its live edge")
+    return round(max(0.0, lag), 3)
+
+
+def require_live_stream_state(state: dict[str, Any]) -> None:
+    if state.get("is_live_stream") is not True:
+        duration = state.get("duration")
+        raise RuntimeError(f"player is a finite prerecorded clip ({duration}s)")
+
+
+def _video_state(video: Any) -> dict[str, Any]:
+    return video.evaluate(
+        """el => ({
+            current_time: el.currentTime,
+            duration: Number.isFinite(el.duration) ? el.duration : null,
+            is_live_stream: !Number.isFinite(el.duration),
+            seekable_start: el.seekable.length
+                ? el.seekable.start(el.seekable.length - 1)
+                : null,
+            seekable_end: el.seekable.length
+                ? el.seekable.end(el.seekable.length - 1)
+                : null
+        })"""
+    )
+
+
 def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
     from playwright.sync_api import sync_playwright
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    temp = output.with_name(f".{output.stem}.capture{output.suffix}")
+    first_temp = output.with_name(f".{output.stem}.motion-first{output.suffix}")
+    second_temp = output.with_name(f".{output.stem}.motion-second{output.suffix}")
     failures: list[str] = []
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(args=["--autoplay-policy=no-user-gesture-required"])
         try:
             for attempt in range(1, attempts + 1):
                 page = browser.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=1)
+                manifest_program_times: list[dt.datetime] = []
+
+                def inspect_manifest(response: Any) -> None:
+                    content_type = str(response.headers.get("content-type", "")).lower()
+                    if ".m3u8" not in response.url.lower() and "mpegurl" not in content_type:
+                        return
+                    try:
+                        manifest_program_times.extend(parse_hls_program_datetimes(response.text()))
+                    except Exception:  # noqa: BLE001
+                        return
+
+                page.on("response", inspect_manifest)
                 try:
                     page.goto(CAMERA_PAGE_URL, wait_until="domcontentloaded", timeout=90_000)
                     iframe = page.locator(CAMERA_IFRAME_SELECTOR).first
@@ -218,29 +325,63 @@ def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
                     video = videos.nth(best_index)
                     video.evaluate("el => { el.controls = false; el.muted = true; return el.play(); }")
                     camera_frame.wait_for_function(
-                        "el => el.readyState >= 3 && el.videoWidth >= 640 && el.videoHeight >= 360",
+                        """el => el.readyState >= 3 &&
+                            el.videoWidth >= 640 &&
+                            el.videoHeight >= 360 &&
+                            el.seekable.length > 0""",
                         arg=video.element_handle(),
                         timeout=45_000,
                     )
-                    before = float(video.evaluate("el => el.currentTime"))
+                    initial_state = _video_state(video)
+                    require_live_stream_state(initial_state)
+                    live_edge = initial_state.get("seekable_end")
+                    if live_edge is None:
+                        raise RuntimeError("video does not expose a seekable live edge")
+                    video.evaluate(
+                        """(el, edge) => {
+                            el.currentTime = Math.max(0, edge - 1);
+                            el.controls = false;
+                            el.muted = true;
+                            return el.play();
+                        }""",
+                        float(live_edge),
+                    )
+                    page.wait_for_timeout(1500)
+                    first_state = _video_state(video)
+                    video.screenshot(path=str(first_temp), type="jpeg", quality=90)
+                    validate_feed_image(first_temp)
                     page.wait_for_timeout(2500)
-                    after = float(video.evaluate("el => el.currentTime"))
-                    if after - before < 0.75:
-                        raise RuntimeError(f"video did not advance ({before:.2f}s to {after:.2f}s)")
-                    video.screenshot(path=str(temp), type="jpeg", quality=90)
-                    metrics = validate_feed_image(temp)
-                    temp.replace(output)
+                    second_state = _video_state(video)
+                    live_edge_lag = validate_live_video_states(first_state, second_state)
+                    video.screenshot(path=str(second_temp), type="jpeg", quality=90)
+                    metrics = validate_feed_image(second_temp)
+                    motion_score = frame_motion_score(first_temp, second_temp)
+                    if motion_score < MIN_FRAME_MOTION_SCORE:
+                        raise RuntimeError(
+                            f"video pixels did not move enough ({motion_score:.3f})"
+                        )
+                    source_age = None
+                    if manifest_program_times:
+                        source_age = source_timestamp_age_seconds(max(manifest_program_times))
+                    second_temp.replace(output)
+                    first_temp.unlink(missing_ok=True)
                     return {
                         **metrics,
-                        "video_time_before": round(before, 3),
-                        "video_time_after": round(after, 3),
+                        "video_time_before": round(float(first_state["current_time"]), 3),
+                        "video_time_after": round(float(second_state["current_time"]), 3),
+                        "live_edge_lag_seconds": live_edge_lag,
+                        "frame_motion_score": motion_score,
+                        "source_timestamp_age_seconds": source_age,
+                        "source_timestamp_verified": source_age is not None,
+                        "source_freshness_verified": True,
                         "capture_attempt": attempt,
                         "capture_source": CAMERA_PAGE_URL,
                         "capture_method": "playwright_ucsd_embedded_video_element_screenshot",
                     }
                 except Exception as exc:  # noqa: BLE001
                     failures.append(f"attempt {attempt}: {exc}")
-                    temp.unlink(missing_ok=True)
+                    first_temp.unlink(missing_ok=True)
+                    second_temp.unlink(missing_ok=True)
                     if attempt < attempts:
                         time.sleep(attempt * 2)
                 finally:
@@ -488,12 +629,18 @@ def run(args: argparse.Namespace) -> int:
         "prompt_version": PROMPT_VERSION,
         "rubric_version": GRADER_VERSION,
         "display_policy_version": POLICY_VERSION,
+        "source_freshness_verified": False,
+        "live_edge_lag_seconds": None,
+        "frame_motion_score": None,
+        "source_timestamp_verified": False,
+        "source_timestamp_age_seconds": None,
         "slots_completed": completed_slots(Path(args.existing_status), observation_date),
     }
     capture_metrics = None
     batch_path = Path(args.batch_output)
     try:
         capture_metrics = capture_feed(Path(args.public_image), attempts=args.attempts)
+        apply_capture_freshness(status, capture_metrics)
         image_hash = _sha256(Path(args.public_image))
         status["image_sha256"] = image_hash
         status["capture_ok"] = True
@@ -589,10 +736,16 @@ def run_display_refresh(args: argparse.Namespace) -> int:
         "prompt_version": PROMPT_VERSION,
         "rubric_version": GRADER_VERSION,
         "display_policy_version": POLICY_VERSION,
+        "source_freshness_verified": False,
+        "live_edge_lag_seconds": None,
+        "frame_motion_score": None,
+        "source_timestamp_verified": False,
+        "source_timestamp_age_seconds": None,
         "slots_completed": completed_slots(Path(args.existing_status), observation_date),
     }
     try:
-        capture_feed(Path(args.public_image), attempts=args.attempts)
+        capture_metrics = capture_feed(Path(args.public_image), attempts=args.attempts)
+        apply_capture_freshness(status, capture_metrics)
     except Exception as exc:  # noqa: BLE001
         print(f"Display refresh capture failed; keeping previous status untouched: {exc}", file=sys.stderr)
         return 0

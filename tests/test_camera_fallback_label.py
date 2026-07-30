@@ -54,7 +54,7 @@ def test_capture_failure_preserves_same_day_success(tmp_path, monkeypatch):
     assert camera.run(args) == 0
 
     # Public status is byte-identical to the earlier success so the workflow
-    # commit step is a no-op and the homepage keeps the valid morning photo.
+    # commit step is a no-op; the frontend applies its own age limit.
     assert pathlib.Path(args.public_status).read_text() == original_text
     # The failure is still recorded for evaluation.
     batch = json.loads(pathlib.Path(args.batch_output).read_text())
