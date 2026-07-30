@@ -95,7 +95,10 @@ def run(
         "screenshot publish gate": "steps.config.outputs.publish == 'true'",
         "release replacement": "gh release upload",
         "replace-in-place upload": "--clobber",
-        "status-only commit": "git add camera-snapshots/scripps-pier-latest.json",
+        "status publisher": "scripts/publish_scripps_status.py",
+        "attempt-status commit": "git add camera-snapshots/scripps-pier-latest-attempt.json",
+        "last-valid commit": "git add camera-snapshots/scripps-pier-last-valid.json",
+        "legacy-status commit": "git add camera-snapshots/scripps-pier-latest.json",
     }
     missing = [label for label, fragment in required_fragments.items() if fragment not in workflow]
     if missing:

@@ -43,7 +43,7 @@ def _fail_capture(monkeypatch):
     monkeypatch.setattr(camera, "capture_feed", boom)
 
 
-def test_capture_failure_preserves_same_day_success(tmp_path, monkeypatch):
+def test_capture_failure_records_attempt_even_with_same_day_success(tmp_path, monkeypatch):
     _fail_capture(monkeypatch)
     today = camera.utc_now().astimezone(camera.LOCAL_TZ).date().isoformat()
     existing = tmp_path / "existing-status.json"
@@ -53,15 +53,16 @@ def test_capture_failure_preserves_same_day_success(tmp_path, monkeypatch):
     args = _run_args(tmp_path, existing)
     assert camera.run(args) == 0
 
-    # Public status is byte-identical to the earlier success so the workflow
-    # commit step is a no-op; the frontend applies its own age limit.
-    assert pathlib.Path(args.public_status).read_text() == original_text
+    attempt = json.loads(pathlib.Path(args.public_status).read_text())
+    assert attempt["capture_ok"] is False
+    assert attempt["status"] == "capture_failure"
+    assert attempt["image_url"] is None
     # The failure is still recorded for evaluation.
     batch = json.loads(pathlib.Path(args.batch_output).read_text())
     assert batch["camera_record"]["status"] == "capture_failure"
 
 
-def test_capture_failure_overwrites_stale_or_failed_status(tmp_path, monkeypatch):
+def test_capture_failure_is_recorded_for_stale_or_failed_existing_status(tmp_path, monkeypatch):
     _fail_capture(monkeypatch)
     today = camera.utc_now().astimezone(camera.LOCAL_TZ).date().isoformat()
 
@@ -109,8 +110,11 @@ def test_homepage_labels_reference_image_when_not_live():
     assert "is-reference" in camera_block
     assert "live photo pending" in camera_block
     assert "Camera offline" in camera_block
+    assert "last available" in camera_block
     # Live captures must not carry the reference styling.
     assert 'badge.classList.remove("is-reference")' in camera_block
     # The load path distinguishes pending vs offline vs unavailable.
     assert "scrippsCameraFallbackReason" in source
+    assert "scripps-pier-last-valid.json?t=${requestToken}" in source
+    assert "scripps-pier-latest-attempt.json?t=${requestToken}" in source
     assert ".camera-observed-badge.is-reference" in styles

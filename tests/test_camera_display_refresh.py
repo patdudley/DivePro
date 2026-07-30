@@ -106,7 +106,7 @@ def test_display_refresh_skips_outside_daylight_and_same_hour(tmp_path, monkeypa
     assert not pathlib.Path(args.public_status).exists()
 
 
-def test_display_refresh_failure_produces_nothing(tmp_path, monkeypatch):
+def test_display_refresh_failure_records_attempt_without_an_image(tmp_path, monkeypatch):
     _fixed_utc(monkeypatch, 10)
 
     def boom(output, attempts=3):
@@ -115,7 +115,11 @@ def test_display_refresh_failure_produces_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(camera, "capture_feed", boom)
     args = _refresh_args(tmp_path, tmp_path / "missing.json")
     assert camera.run_display_refresh(args) == 0
-    assert not pathlib.Path(args.public_status).exists()
+    status = json.loads(pathlib.Path(args.public_status).read_text())
+    assert status["capture_ok"] is False
+    assert status["status"] == "capture_failure"
+    assert status["image_url"] is None
+    assert status["source_freshness_verified"] is False
 
 
 def test_completed_slots_reads_map_and_legacy_and_ignores_hourly_slots(tmp_path):

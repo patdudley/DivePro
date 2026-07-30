@@ -45,7 +45,8 @@ MIN_FRAME_MOTION_SCORE = 0.8
 CAMERA_PAGE_URL = "https://coollab.ucsd.edu/pierviz/"
 CAMERA_IFRAME_SELECTOR = 'iframe[src*="scripps_pier-underwater"]'
 PUBLIC_IMAGE = ROOT / "camera-snapshots" / "scripps-pier.jpg"
-PUBLIC_STATUS = ROOT / "camera-snapshots" / "scripps-pier-latest.json"
+LATEST_ATTEMPT_STATUS = ROOT / "camera-snapshots" / "scripps-pier-latest-attempt.json"
+LAST_VALID_STATUS = ROOT / "camera-snapshots" / "scripps-pier-last-valid.json"
 DEFAULT_PUBLIC_IMAGE_URL = "https://github.com/patdudley/DivePro/releases/download/scripps-camera-latest/scripps-pier.jpg"
 FORECAST_JSON = ROOT / "model_outputs" / "forecast_10day.json"
 FORECAST_LOG = ROOT / "forecast_log.csv"
@@ -98,28 +99,6 @@ def scheduled_slot(now: dt.datetime | None = None) -> tuple[str, dt.datetime] | 
     for hour in sorted(SCHEDULED_HOURS, reverse=True):
         if hour <= current.hour < hour + SLOT_GRACE_HOURS:
             return (SCHEDULED_HOURS[hour], current)
-    return None
-
-
-def same_day_success_text(status_path: Path, observation_date: str) -> str | None:
-    """Return the raw text of an existing same-day successful status, else None.
-
-    Used when a later slot's capture fails: overwriting the public status with a
-    capture_failure record would hide a perfectly valid earlier photo from the
-    archive. Returning the original bytes verbatim keeps the workflow's commit
-    step a no-op; the frontend independently hides that status when it ages out.
-    """
-    try:
-        text = status_path.read_text()
-        status = json.loads(text)
-    except (OSError, json.JSONDecodeError, TypeError):
-        return None
-    if (
-        status.get("capture_ok") is True
-        and status.get("image_url")
-        and status.get("observation_date") == observation_date
-    ):
-        return text
     return None
 
 
@@ -667,21 +646,9 @@ def run(args: argparse.Namespace) -> int:
         status["failure_code"] = type(exc).__name__
         print(f"Capture failed: {exc}", file=sys.stderr)
 
-    preserved_text = None
-    if status["capture_ok"] is not True:
-        preserved_text = same_day_success_text(Path(args.existing_status), observation_date)
-        if preserved_text is not None:
-            print(
-                "Capture failed but a same-day successful status exists; "
-                "keeping the earlier public status instead of overwriting it.",
-            )
-
-    if preserved_text is not None:
-        public_status_path = Path(args.public_status)
-        public_status_path.parent.mkdir(parents=True, exist_ok=True)
-        public_status_path.write_text(preserved_text)
-    else:
-        write_json(Path(args.public_status), status)
+    # This file records the latest attempt, including failures. The workflow
+    # promotes only validated captures to the independent last-valid pointer.
+    write_json(Path(args.public_status), status)
     forecasts = json.loads(Path(args.forecast_json).read_text()) if Path(args.forecast_json).exists() else []
     camera_record = _camera_record(status, capture_metrics)
     batch = {
@@ -719,7 +686,7 @@ def run_display_refresh(args: argparse.Namespace) -> int:
     status: dict[str, Any] = {
         "schema_version": "1",
         "status": "display_refresh",
-        "capture_ok": True,
+        "capture_ok": False,
         "observation_date": observation_date,
         "captured_at_utc": now_utc.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "captured_at_local": local_now.replace(microsecond=0).isoformat(),
@@ -747,9 +714,18 @@ def run_display_refresh(args: argparse.Namespace) -> int:
         capture_metrics = capture_feed(Path(args.public_image), attempts=args.attempts)
         apply_capture_freshness(status, capture_metrics)
     except Exception as exc:  # noqa: BLE001
-        print(f"Display refresh capture failed; keeping previous status untouched: {exc}", file=sys.stderr)
+        status["status"] = "capture_failure"
+        status["failure_code"] = type(exc).__name__
+        write_json(Path(args.public_status), status)
+        print(f"Display refresh capture failed: {exc}", file=sys.stderr)
+        print(json.dumps({
+            "status": status["status"],
+            "slot": slot_label,
+            "observation_date": observation_date,
+        }))
         return 0
     image_hash = _sha256(Path(args.public_image))
+    status["capture_ok"] = True
     status["image_sha256"] = image_hash
     separator = "&" if "?" in args.public_image_url else "?"
     status["image_url"] = f"{args.public_image_url}{separator}v={image_hash[:12]}"
@@ -771,8 +747,8 @@ def main() -> int:
     parser.add_argument("--model", default=os.environ.get("SCRIPPS_GRADER_MODEL") or DEFAULT_GRADER_MODEL)
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY", ""))
     parser.add_argument("--public-image", default=str(PUBLIC_IMAGE))
-    parser.add_argument("--public-status", default=str(PUBLIC_STATUS))
-    parser.add_argument("--existing-status", default=str(PUBLIC_STATUS))
+    parser.add_argument("--public-status", default=str(LATEST_ATTEMPT_STATUS))
+    parser.add_argument("--existing-status", default=str(LAST_VALID_STATUS))
     parser.add_argument("--public-image-url", default=DEFAULT_PUBLIC_IMAGE_URL)
     parser.add_argument("--forecast-json", default=str(FORECAST_JSON))
     parser.add_argument("--batch-output", default=str(ROOT / "scripps-camera-batch.json"))

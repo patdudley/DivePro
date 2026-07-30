@@ -71,10 +71,14 @@ jobs:
           python scripts/scripps_camera.py --display-refresh \
             --public-image "$RUNNER_TEMP/scripps-pier.jpg" \
             --public-status "$RUNNER_TEMP/scripps-pier-latest.json" \
+            --existing-status "camera-snapshots/scripps-pier-last-valid.json" \
             --public-image-url "${{ steps.config.outputs.public_image_url }}"
           if [ -s "$RUNNER_TEMP/scripps-pier-latest.json" ]; then
-            echo "produced=true" >> "$GITHUB_OUTPUT"
+            echo "attempted=true" >> "$GITHUB_OUTPUT"
+            capture_ok="$(python -c 'import json,os; print(str(json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "scripps-pier-latest.json"))).get("capture_ok") is True).lower())')"
+            echo "produced=$capture_ok" >> "$GITHUB_OUTPUT"
           else
+            echo "attempted=false" >> "$GITHUB_OUTPUT"
             echo "produced=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -126,16 +130,28 @@ jobs:
           done
           exit 1
 
-      - name: Commit public latest status
-        if: steps.config.outputs.publish == 'true' && steps.archive.outputs.path != ''
+      - name: Commit public camera status pointers
+        if: steps.config.outputs.publish == 'true' && steps.capture.outputs.attempted == 'true'
         run: |
-          mkdir -p camera-snapshots
-          cp "$RUNNER_TEMP/scripps-pier-latest.json" camera-snapshots/scripps-pier-latest.json
+          args=(
+            --attempt "$RUNNER_TEMP/scripps-pier-latest.json"
+            --attempt-destination camera-snapshots/scripps-pier-latest-attempt.json
+            --last-valid-destination camera-snapshots/scripps-pier-last-valid.json
+          )
+          if [ -n "${{ steps.archive.outputs.path }}" ]; then
+            args+=(
+              --archive-path "${{ steps.archive.outputs.path }}"
+              --legacy-destination camera-snapshots/scripps-pier-latest.json
+            )
+          fi
+          python scripts/publish_scripps_status.py "${args[@]}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add camera-snapshots/scripps-pier-latest-attempt.json
+          git add camera-snapshots/scripps-pier-last-valid.json
           git add camera-snapshots/scripps-pier-latest.json
           git diff --cached --quiet && exit 0
-          git commit -m "Update Scripps camera display refresh"
+          git commit -m "Update Scripps camera status"
           for attempt in 1 2 3; do
             git push && exit 0
             git pull --rebase origin main

@@ -51,17 +51,19 @@ def test_workflow_archives_camera_jpeg_and_decouples_publish_from_grading():
     assert "scripts/archive_scripps_capture.py" in workflow
     assert 'git add "${{ steps.archive.outputs.path }}"' in workflow
     assert 'gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/scripps-pier.jpg" --clobber' in workflow
-    assert "git add camera-snapshots/scripps-pier-latest.json" in workflow
+    assert "scripts/publish_scripps_status.py" in workflow
+    assert "git add camera-snapshots/scripps-pier-latest-attempt.json" in workflow
+    assert "git add camera-snapshots/scripps-pier-last-valid.json" in workflow
     # Screenshot publishing is gated only by the publish flag, never by grading mode.
     assert workflow.count("steps.config.outputs.publish == 'true'") >= 3
     assert workflow.count("steps.config.outputs.mode == 'live'") == 1
     archive = workflow.index("Commit immutable capture archive")
     release = workflow.index("Replace public latest-image release asset")
-    status = workflow.index("Commit public latest status")
+    status = workflow.index("Commit public camera status pointers")
     live_gate = workflow.index("Require reviewed shadow evidence before live grade coupling")
     assert archive < release < status < live_gate
     assert "continue-on-error: true" in workflow[release:status]
-    assert "steps.archive.outputs.path != ''" in workflow[status:live_gate]
+    assert "steps.capture.outputs.attempted == 'true'" in workflow[status:live_gate]
     assert "--require-live" in workflow[live_gate:]
     assert "--require-secrets" in workflow[live_gate:]
     assert "--eval-data-dir \"$EVAL_DATA_DIR\"" in workflow[live_gate:]
@@ -86,12 +88,14 @@ def test_workflow_retries_each_pst_and_pdt_slot_without_duplicate_publishing():
 def test_frontend_displays_screenshot_without_automated_grade_coupling():
     source = (ROOT / "app.js").read_text()
     html = (ROOT / "index.html").read_text()
-    # Display requires the publish flag plus a successful same-day capture.
+    # Display requires the publish flag plus an independently preserved valid capture.
     assert "config.publish_screenshots !== true" in source
     assert "observation.capture_ok === true" in source
-    assert "observation.observation_date === localTodayInLaJolla(now)" in source
-    assert "scripps-pier-latest.json?t=${Date.now()}" in source
+    assert "observation.source_freshness_verified === true" in source
+    assert "scripps-pier-last-valid.json?t=${requestToken}" in source
+    assert "scripps-pier-latest-attempt.json?t=${requestToken}" in source
     assert "function cameraObservationDayLabel" in source
+    assert "last available" in source
     assert "const showObservation = Boolean(observation)" in source
     # Grade coupling stays out until the shadow review gate is passed.
     assert "applyCameraDisplayPolicy" not in source
@@ -113,7 +117,10 @@ def test_scripps_latest_camera_images_are_ignored_but_archive_is_tracked():
         capture_output=True,
         check=True,
     ).stdout.splitlines()
-    assert tracked == ["camera-snapshots/scripps-pier-latest.json"]
+    assert tracked
+    assert all(path.endswith(".json") for path in tracked)
+    assert (ROOT / "camera-snapshots/scripps-pier-last-valid.json").is_file()
+    assert (ROOT / "camera-snapshots/scripps-pier-latest-attempt.json").is_file()
 
     assert "camera-snapshot-history/scripps-pier" not in ignored
 

@@ -47,21 +47,26 @@ function localTodayInLaJolla(date = new Date()) {
 }
 
 function isCameraObservationDisplayable(observation, now = new Date()) {
-  // Keep the latest successful capture for the current local date visible all
-  // day, but never carry a prior-day camera image across midnight.
+  // Failed attempts are stored separately and can never displace this pointer.
+  // A manually reviewed legacy capture may seed the pointer once; all automated
+  // updates must carry source-freshness evidence from the live-feed validator.
   return Boolean(
     observation &&
       observation.capture_ok === true &&
       observation.image_url &&
-      observation.observation_date === localTodayInLaJolla(now),
+      observation.observation_date &&
+      (
+        observation.source_freshness_verified === true ||
+        observation.validation_source === "manual_review"
+      ),
   );
 }
 
 // Why the reference image (not a live frame) is on screen. Set by
 // loadCameraObservation before first render; renderCamera turns it into a
 // visible label so the fallback is never mistaken for a live capture.
-//   "pending"     -> no same-day record yet (before the first slot lands)
-//   "offline"     -> a same-day capture was attempted but failed / unusable
+//   "pending"     -> no validated record exists yet
+//   "offline"     -> today's latest attempt failed / was unusable
 //   "unavailable" -> status feed unreachable or screenshot publishing off
 let scrippsCameraFallbackReason = "unavailable";
 
@@ -72,11 +77,21 @@ async function loadCameraObservation() {
       scrippsCameraFallbackReason = "unavailable";
       return null;
     }
-    const observation = await fetchJson(
-      `camera-snapshots/scripps-pier-latest.json?t=${Date.now()}`,
-    );
-    if (isCameraObservationDisplayable(observation)) return observation;
-    if (observation && observation.observation_date === localTodayInLaJolla()) {
+    const requestToken = Date.now();
+    const [lastValid, latestAttempt] = await Promise.all([
+      fetchJson(
+        `camera-snapshots/scripps-pier-last-valid.json?t=${requestToken}`,
+      ).catch(() => null),
+      fetchJson(
+        `camera-snapshots/scripps-pier-latest-attempt.json?t=${requestToken}`,
+      ).catch(() => null),
+    ]);
+    if (isCameraObservationDisplayable(lastValid)) return lastValid;
+    if (
+      latestAttempt &&
+      latestAttempt.observation_date === localTodayInLaJolla() &&
+      latestAttempt.capture_ok !== true
+    ) {
       scrippsCameraFallbackReason = "offline";
     } else {
       scrippsCameraFallbackReason = "pending";
@@ -487,10 +502,13 @@ function renderCamera(data) {
   if (showObservation) {
     const slotLabel = cameraSlotLabel(observation.slot);
     const dayLabel = cameraObservationDayLabel(observation.observation_date);
+    const isToday = observation.observation_date === localTodayInLaJolla();
     image.src = observation.image_url;
     image.alt = `Scripps Pier underwater camera, captured ${dayLabel.toLowerCase()} at ${slotLabel}`;
     if (badge) {
-      badge.textContent = `${dayLabel} ${slotLabel}`;
+      badge.textContent = isToday
+        ? `${dayLabel} ${slotLabel}`
+        : `${dayLabel} ${slotLabel} \u00b7 last available`;
       badge.classList.remove("is-reference");
       badge.hidden = false;
     }
