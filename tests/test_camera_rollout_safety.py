@@ -86,13 +86,12 @@ def test_workflow_retries_each_pst_and_pdt_slot_without_duplicate_publishing():
 def test_frontend_displays_screenshot_without_automated_grade_coupling():
     source = (ROOT / "app.js").read_text()
     html = (ROOT / "index.html").read_text()
-    # Display requires the publish flag plus a validated capture. The latest
-    # successful photo remains visible across midnight until a new one lands.
+    # Display requires the publish flag plus a successful same-day capture.
     assert "config.publish_screenshots !== true" in source
     assert "observation.capture_ok === true" in source
-    assert "observation.observation_date," in source
+    assert "observation.observation_date === localTodayInLaJolla(now)" in source
+    assert "scripps-pier-latest.json?t=${Date.now()}" in source
     assert "function cameraObservationDayLabel" in source
-    assert 'if (ageDays === 1) return "Yesterday"' in source
     assert "const showObservation = Boolean(observation)" in source
     # Grade coupling stays out until the shadow review gate is passed.
     assert "applyCameraDisplayPolicy" not in source

@@ -42,18 +42,18 @@ function fallbackForecast() {
   };
 }
 
-function localTodayInLaJolla() {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(new Date());
+function localTodayInLaJolla(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(date);
 }
 
-function isCameraObservationDisplayable(observation) {
-  // Keep the latest validated capture visible until a newer one replaces it.
-  // Grades and grading mode never gate the photo (see SCRIPPS_CAMERA.md).
+function isCameraObservationDisplayable(observation, now = new Date()) {
+  // Keep the latest successful capture for the current local date visible all
+  // day, but never carry a prior-day camera image across midnight.
   return Boolean(
     observation &&
       observation.capture_ok === true &&
       observation.image_url &&
-      observation.observation_date,
+      observation.observation_date === localTodayInLaJolla(now),
   );
 }
 
@@ -72,7 +72,9 @@ async function loadCameraObservation() {
       scrippsCameraFallbackReason = "unavailable";
       return null;
     }
-    const observation = await fetchJson("camera-snapshots/scripps-pier-latest.json");
+    const observation = await fetchJson(
+      `camera-snapshots/scripps-pier-latest.json?t=${Date.now()}`,
+    );
     if (isCameraObservationDisplayable(observation)) return observation;
     if (observation && observation.observation_date === localTodayInLaJolla()) {
       scrippsCameraFallbackReason = "offline";
