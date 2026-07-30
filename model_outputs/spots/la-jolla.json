@@ -15,26 +15,26 @@
     "calibration_note": "La Jolla soft probabilistic model \u2014 development data only.  Prospective validation required before public accuracy claims.  See PROSPECTIVE_VALIDATION_PLAN.md."
   },
   "latest": {
-    "generated_at": "2026-07-30T20:11:11",
+    "generated_at": "2026-07-30T13:14:44",
     "spot_slug": "la-jolla",
     "spot_name": "La Jolla",
     "location": "La Jolla, San Diego",
     "region": "California",
     "date": "2026-07-30",
     "numeric_score_0_100": 64,
-    "grade": "B",
+    "grade": "D",
     "grade_probabilities": {
-      "F": 0.026856191450262856,
-      "D": 0.29208172014136996,
-      "C": 0.18236109400827993,
+      "F": 0.026856191450262842,
+      "D": 0.2920817201413699,
+      "C": 0.18236109400827988,
       "B": 0.49870099440008736,
       "A": 0.0,
       "A+": 0.0
     },
     "raw_grade_probabilities": {
-      "F": 0.026856191450262856,
-      "D": 0.29208172014136996,
-      "C": 0.18236109400827993,
+      "F": 0.026856191450262842,
+      "D": 0.2920817201413699,
+      "C": 0.18236109400827988,
       "B": 0.49870099440008736,
       "A": 0.0,
       "A+": 0.0
@@ -48,13 +48,13 @@
     "display_override": {
       "active": true,
       "source": "owner_manual",
-      "reason": "Observed visibility improved to B; owner correction."
+      "reason": "Observed visibility was D; owner correction."
     },
     "estimated_visibility_range_ft": [
-      15,
-      24
+      5,
+      9
     ],
-    "estimated_visibility_mid_ft": 19.5,
+    "estimated_visibility_mid_ft": 7.0,
     "raw_expected_vis_ft": 14.02,
     "guardrail_applied": false,
     "confidence": "medium",
@@ -69,7 +69,7 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with dry recent conditions supporting useful clarity. Some swell energy, surface movement and wind-driven mixing keep the forecast below exceptional A-grade conditions.\n\nThe rising tide is a favorable signal. As water moves toward the next high tide at 10:08 PM, cleaner offshore water may move into La Jolla and support improving visibility.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
+    "report_text": "The model expects 5-9 ft of visibility, resulting in a D grade. Conditions are marginal, with swell energy, surface movement and wind-driven mixing creating significant pressure on visibility.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 4:00 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, visibility looks marginal. Divers should confirm local conditions before committing and favor sheltered coves or deeper water over shallow, sandy, or surge-exposed areas.",
     "features": {
       "date": "2026-07-30",
       "coherent_swell_source": "hourly_max_height_event",
@@ -441,11 +441,11 @@
           "height_ft": 5.74
         }
       ],
-      "tide_phase": "rising",
+      "tide_phase": "falling",
       "tide_next_event": {
-        "time": "22:08",
-        "height_ft": 5.96,
-        "type": "H"
+        "time": "16:00",
+        "height_ft": 2.08,
+        "type": "L"
       },
       "tide_slack_windows": [
         {
@@ -492,38 +492,35 @@
     "camera_note": "Updated a few times daily from the Scripps Pier cam.",
     "report_text_version": "v2-explanatory-three-paragraph",
     "community_report": {
-      "visibility_ft": [
-        10,
-        20
-      ],
-      "weight": 0.8,
-      "confidence_label": "high",
-      "source_excerpt": "Vis: 10\u201320 ft\u00a0Swell: 3\u20134 ftHigh Tide: ~11:08amLow Tide: ~4:01pmTemp: 70\u201372\u00b0F Inshore visibility is looking very good today with clear blue water around la jolla shores according to local dive reports and the sripps pier cam. Visibility has been a little...",
-      "error": null
+      "error": "HTTP 429",
+      "visibility_ft": null,
+      "weight": 0.0,
+      "confidence_label": "low",
+      "source_excerpt": null
     }
   },
   "tenDay": [
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
       "region": "California",
       "date": "2026-07-30",
       "numeric_score_0_100": 64,
-      "grade": "B",
+      "grade": "D",
       "grade_probabilities": {
-        "F": 0.026856191450262856,
-        "D": 0.29208172014136996,
-        "C": 0.18236109400827993,
+        "F": 0.026856191450262842,
+        "D": 0.2920817201413699,
+        "C": 0.18236109400827988,
         "B": 0.49870099440008736,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
-        "F": 0.026856191450262856,
-        "D": 0.29208172014136996,
-        "C": 0.18236109400827993,
+        "F": 0.026856191450262842,
+        "D": 0.2920817201413699,
+        "C": 0.18236109400827988,
         "B": 0.49870099440008736,
         "A": 0.0,
         "A+": 0.0
@@ -537,13 +534,13 @@
       "display_override": {
         "active": true,
         "source": "owner_manual",
-        "reason": "Observed visibility improved to B; owner correction."
+        "reason": "Observed visibility was D; owner correction."
       },
       "estimated_visibility_range_ft": [
-        15,
-        24
+        5,
+        9
       ],
-      "estimated_visibility_mid_ft": 19.5,
+      "estimated_visibility_mid_ft": 7.0,
       "raw_expected_vis_ft": 14.02,
       "guardrail_applied": false,
       "confidence": "medium",
@@ -558,7 +555,7 @@
       "is_projected": false,
       "projected_from": null,
       "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-      "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with dry recent conditions supporting useful clarity. Some swell energy, surface movement and wind-driven mixing keep the forecast below exceptional A-grade conditions.\n\nThe rising tide is a favorable signal. As water moves toward the next high tide at 10:08 PM, cleaner offshore water may move into La Jolla and support improving visibility.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
+      "report_text": "The model expects 5-9 ft of visibility, resulting in a D grade. Conditions are marginal, with swell energy, surface movement and wind-driven mixing creating significant pressure on visibility.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 4:00 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, visibility looks marginal. Divers should confirm local conditions before committing and favor sheltered coves or deeper water over shallow, sandy, or surge-exposed areas.",
       "features": {
         "date": "2026-07-30",
         "coherent_swell_source": "hourly_max_height_event",
@@ -930,11 +927,11 @@
             "height_ft": 5.74
           }
         ],
-        "tide_phase": "rising",
+        "tide_phase": "falling",
         "tide_next_event": {
-          "time": "22:08",
-          "height_ft": 5.96,
-          "type": "H"
+          "time": "16:00",
+          "height_ft": 2.08,
+          "type": "L"
         },
         "tide_slack_windows": [
           {
@@ -982,7 +979,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -992,17 +989,17 @@
       "grade": "C",
       "grade_probabilities": {
         "F": 0.0,
-        "D": 0.22453212742984377,
-        "C": 0.3455540894010091,
-        "B": 0.42991378316914725,
+        "D": 0.22453212742984371,
+        "C": 0.34555408940100907,
+        "B": 0.4299137831691472,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
         "F": 0.0,
-        "D": 0.22453212742984377,
-        "C": 0.3455540894010091,
-        "B": 0.42991378316914725,
+        "D": 0.22453212742984371,
+        "C": 0.34555408940100907,
+        "B": 0.4299137831691472,
         "A": 0.0,
         "A+": 0.0
       },
@@ -1427,7 +1424,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -1873,7 +1870,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -1882,17 +1879,17 @@
       "numeric_score_0_100": 62,
       "grade": "D",
       "grade_probabilities": {
-        "F": 0.00015051465494388892,
+        "F": 0.00015051465494388876,
         "D": 0.40215551999135607,
-        "C": 0.2739103453934205,
+        "C": 0.2739103453934206,
         "B": 0.32378361996027943,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
-        "F": 0.00015051465494388892,
+        "F": 0.00015051465494388876,
         "D": 0.40215551999135607,
-        "C": 0.2739103453934205,
+        "C": 0.2739103453934206,
         "B": 0.32378361996027943,
         "A": 0.0,
         "A+": 0.0
@@ -2320,7 +2317,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -2332,7 +2329,7 @@
         "F": 0.0,
         "D": 0.36490413418578793,
         "C": 0.35613766431846783,
-        "B": 0.2789582014957442,
+        "B": 0.27895820149574413,
         "A": 0.0,
         "A+": 0.0
       },
@@ -2340,7 +2337,7 @@
         "F": 0.0,
         "D": 0.36490413418578793,
         "C": 0.35613766431846783,
-        "B": 0.2789582014957442,
+        "B": 0.27895820149574413,
         "A": 0.0,
         "A+": 0.0
       },
@@ -2767,7 +2764,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -2777,7 +2774,7 @@
       "grade": "B",
       "grade_probabilities": {
         "F": 0.0,
-        "D": 0.30400424844929935,
+        "D": 0.3040042484492993,
         "C": 0.26351280138588207,
         "B": 0.4324829501648187,
         "A": 0.0,
@@ -2785,7 +2782,7 @@
       },
       "raw_grade_probabilities": {
         "F": 0.0,
-        "D": 0.30400424844929935,
+        "D": 0.3040042484492993,
         "C": 0.26351280138588207,
         "B": 0.4324829501648187,
         "A": 0.0,
@@ -3212,7 +3209,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -3221,18 +3218,18 @@
       "numeric_score_0_100": 64,
       "grade": "B",
       "grade_probabilities": {
-        "F": 0.0012111166200454433,
+        "F": 0.0012111166200454405,
         "D": 0.29167292694746044,
-        "C": 0.26473023570631804,
-        "B": 0.44238572072617605,
+        "C": 0.264730235706318,
+        "B": 0.4423857207261761,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
-        "F": 0.0012111166200454433,
+        "F": 0.0012111166200454405,
         "D": 0.29167292694746044,
-        "C": 0.26473023570631804,
-        "B": 0.44238572072617605,
+        "C": 0.264730235706318,
+        "B": 0.4423857207261761,
         "A": 0.0,
         "A+": 0.0
       },
@@ -3658,7 +3655,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -3668,17 +3665,17 @@
       "grade": "B",
       "grade_probabilities": {
         "F": 0.0,
-        "D": 0.1307343176561425,
+        "D": 0.13073431765614252,
         "C": 0.23715796635687908,
-        "B": 0.6321077159869783,
+        "B": 0.6321077159869785,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
         "F": 0.0,
-        "D": 0.1307343176561425,
+        "D": 0.13073431765614252,
         "C": 0.23715796635687908,
-        "B": 0.6321077159869783,
+        "B": 0.6321077159869785,
         "A": 0.0,
         "A+": 0.0
       },
@@ -4104,7 +4101,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -4115,7 +4112,7 @@
       "grade_probabilities": {
         "F": 0.04553664640719317,
         "D": 0.18805923855528558,
-        "C": 0.16984571129533077,
+        "C": 0.16984571129533074,
         "B": 0.5965584037421905,
         "A": 0.0,
         "A+": 0.0
@@ -4123,7 +4120,7 @@
       "raw_grade_probabilities": {
         "F": 0.04553664640719317,
         "D": 0.18805923855528558,
-        "C": 0.16984571129533077,
+        "C": 0.16984571129533074,
         "B": 0.5965584037421905,
         "A": 0.0,
         "A+": 0.0
@@ -4549,7 +4546,7 @@
       "report_text_version": "v2-explanatory-three-paragraph"
     },
     {
-      "generated_at": "2026-07-30T20:11:11",
+      "generated_at": "2026-07-30T13:14:44",
       "spot_slug": "la-jolla",
       "spot_name": "La Jolla",
       "location": "La Jolla, San Diego",
@@ -4558,16 +4555,16 @@
       "numeric_score_0_100": 66,
       "grade": "B",
       "grade_probabilities": {
-        "F": 0.032048328685489805,
-        "D": 0.20523117068585062,
+        "F": 0.0320483286854898,
+        "D": 0.2052311706858506,
         "C": 0.17392115947050663,
         "B": 0.588799341158153,
         "A": 0.0,
         "A+": 0.0
       },
       "raw_grade_probabilities": {
-        "F": 0.032048328685489805,
-        "D": 0.20523117068585062,
+        "F": 0.0320483286854898,
+        "D": 0.2052311706858506,
         "C": 0.17392115947050663,
         "B": 0.588799341158153,
         "A": 0.0,
