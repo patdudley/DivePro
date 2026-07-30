@@ -25,7 +25,8 @@ def test_camera_link_is_minimal_and_independent_from_grading():
 
     assert "camera-config" not in camera_block
     assert "camera_display" not in camera_block
-    assert "cameraImageForGrade(data.grade)" in camera_block
+    assert 'image.removeAttribute("src")' in camera_block
+    assert "image.hidden = true" in camera_block
     assert "Scripps Pier cam" in html
     assert "<figcaption" not in html
     assert "Live camera &mdash; Scripps Pier" not in html

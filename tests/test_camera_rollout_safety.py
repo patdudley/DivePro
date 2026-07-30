@@ -92,7 +92,7 @@ def test_frontend_displays_screenshot_without_automated_grade_coupling():
     assert "config.publish_screenshots !== true" in source
     assert "observation.capture_ok === true" in source
     assert "observation.source_freshness_verified === true" in source
-    assert 'observation.validation_source === "legacy_last_capture"' in source
+    assert 'observation.validation_source === "legacy_last_capture"' not in source
     assert "scripps-pier-last-valid.json?t=${requestToken}" in source
     assert "scripps-pier-latest-attempt.json?t=${requestToken}" in source
     assert "function cameraObservationDayLabel" in source
@@ -103,6 +103,8 @@ def test_frontend_displays_screenshot_without_automated_grade_coupling():
     assert "camera-display-policy.js" not in source
     assert 'observation.status === "manual_observation"' in source
     assert 'id="cameraObservedBadge"' in html
+    assert 'id="cameraUnavailableMessage"' in html
+    assert 'id="cameraImage" alt="" hidden' in html
 
 
 def test_scripps_latest_camera_images_are_ignored_but_archive_is_tracked():

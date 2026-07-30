@@ -48,8 +48,8 @@ function localTodayInLaJolla(date = new Date()) {
 
 function isCameraObservationDisplayable(observation, now = new Date()) {
   // Failed attempts are stored separately and can never displace this pointer.
-  // A manually reviewed legacy capture may seed the pointer once; all automated
-  // updates must carry source-freshness evidence from the live-feed validator.
+  // Automated updates must carry source-freshness evidence from the live-feed
+  // validator. A manual review may approve a capture independently.
   return Boolean(
     observation &&
       observation.capture_ok === true &&
@@ -57,8 +57,7 @@ function isCameraObservationDisplayable(observation, now = new Date()) {
       observation.observation_date &&
       (
         observation.source_freshness_verified === true ||
-        observation.validation_source === "manual_review" ||
-        observation.validation_source === "legacy_last_capture"
+        observation.validation_source === "manual_review"
       ),
   );
 }
@@ -429,13 +428,6 @@ function defaultReport(data) {
   return `The model expects ${feet(range)} visibility based on the available wave, wind, tide, and rain inputs.`;
 }
 
-function cameraImageForGrade(grade) {
-  const letter = String(grade || "").trim().toUpperCase().match(/[ABCDF]/)?.[0] || "C";
-  if (letter === "A" || letter === "B") return "viz-best.jpg";
-  if (letter === "D" || letter === "F") return "viz-bad.jpg";
-  return "viz-mid.jpg";
-}
-
 let scrippsCameraObservation = null;
 
 function cameraObservationDisplay(data) {
@@ -495,12 +487,15 @@ function renderCamera(data) {
   const playButton = frame.querySelector(".camera-play-button");
   if (playButton) playButton.remove();
   frame.classList.remove("is-playing");
-  image.hidden = false;
 
   const badge = document.getElementById("cameraObservedBadge");
+  const unavailableMessage = document.getElementById("cameraUnavailableMessage");
   const observation = scrippsCameraObservation;
   const showObservation = Boolean(observation);
   if (showObservation) {
+    frame.classList.remove("is-camera-unavailable");
+    image.hidden = false;
+    if (unavailableMessage) unavailableMessage.hidden = true;
     const slotLabel = cameraSlotLabel(observation.slot);
     const dayLabel = cameraObservationDayLabel(observation.observation_date);
     const isToday = observation.observation_date === localTodayInLaJolla();
@@ -514,13 +509,16 @@ function renderCamera(data) {
       badge.hidden = false;
     }
   } else {
-    image.src = cameraImageForGrade(data.grade);
-    image.alt = `${data.location || "Dive spot"} estimated visibility reference`;
+    frame.classList.add("is-camera-unavailable");
+    image.hidden = true;
+    image.removeAttribute("src");
+    image.alt = "";
+    if (unavailableMessage) unavailableMessage.hidden = false;
     if (badge) {
       const fallbackLabels = {
-        pending: "Reference image \u00b7 live photo pending",
-        offline: "Camera offline \u00b7 reference image",
-        unavailable: "Reference image \u00b7 not live",
+        pending: "Awaiting a verified camera image",
+        offline: "Camera unavailable",
+        unavailable: "No verified camera image",
       };
       badge.textContent =
         fallbackLabels[scrippsCameraFallbackReason] || fallbackLabels.unavailable;

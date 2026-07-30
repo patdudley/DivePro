@@ -108,8 +108,8 @@ def test_homepage_labels_reference_image_when_not_live():
     # The fallback branch must surface a visible label instead of hiding the badge.
     assert "badge.hidden = true" not in camera_block
     assert "is-reference" in camera_block
-    assert "live photo pending" in camera_block
-    assert "Camera offline" in camera_block
+    assert "Awaiting a verified camera image" in camera_block
+    assert "Camera unavailable" in camera_block
     assert "last available" in camera_block
     # Live captures must not carry the reference styling.
     assert 'badge.classList.remove("is-reference")' in camera_block

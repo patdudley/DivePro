@@ -1651,6 +1651,27 @@ h2::before {
   display: none;
 }
 
+.camera-frame.is-camera-unavailable {
+  min-height: clamp(260px, 45vw, 520px);
+  background: #09233d;
+}
+
+.camera-unavailable-message {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: min(80%, 420px);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 800;
+  text-align: center;
+}
+
+.camera-unavailable-message[hidden] {
+  display: none;
+}
+
 .camera-live-link {
   position: absolute;
   right: 14px;
