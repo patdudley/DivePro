@@ -9,7 +9,7 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from archive_scripps_capture import archive_capture  # noqa: E402
+from archive_scripps_capture import archive_capture, archive_metadata_path  # noqa: E402
 
 
 def _status(image: bytes, **updates):
@@ -45,6 +45,8 @@ def test_archives_with_timestamp_and_hash_without_overwriting(tmp_path):
         f"{hashlib.sha256(image_bytes).hexdigest()[:12]}.jpg"
         f"?v={hashlib.sha256(image_bytes).hexdigest()[:12]}"
     )
+    archived_metadata = json.loads(archive_metadata_path(archived).read_text())
+    assert archived_metadata == updated_status
     assert archive_capture(image, status, tmp_path / "history") == archived
 
 

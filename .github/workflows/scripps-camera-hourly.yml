@@ -1,9 +1,8 @@
 # Hourly daylight screenshot refresh for the DiveProSD homepage.
 #
-# This publishes fresh frames only. It never grades, never writes evaluation
-# records, and never marks graded slots complete: the 8 AM / noon / 4 PM
-# pipeline in scripps-camera-grade.yml is unchanged and its slot idempotency
-# reads the slots_completed map that display refreshes carry forward.
+# This publishes fresh frames and records an image-only OpenAI pylon grade.
+# It never couples that grade into forecasts or marks scheduled grading slots
+# complete: the separate 8 AM / noon / 4 PM shadow pipeline is unchanged.
 #
 # Primary trigger is an external dispatcher (Cloudflare Worker) because
 # GitHub throttles this repo's cron to roughly one run per 75-100 minutes.
@@ -67,19 +66,27 @@ jobs:
       - name: Capture display refresh frame
         id: capture
         if: steps.config.outputs.publish == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python scripts/scripps_camera.py --display-refresh \
             --public-image "$RUNNER_TEMP/scripps-pier.jpg" \
             --public-status "$RUNNER_TEMP/scripps-pier-latest.json" \
             --existing-status "camera-snapshots/scripps-pier-last-valid.json" \
-            --public-image-url "${{ steps.config.outputs.public_image_url }}"
+            --public-image-url "${{ steps.config.outputs.public_image_url }}" \
+            --openai-api-key "$OPENAI_API_KEY" \
+            --openai-model "gpt-4.1-mini-2025-04-14" \
+            --reference-image "camera-reference/scripps-piling-distance-reference.png"
           if [ -s "$RUNNER_TEMP/scripps-pier-latest.json" ]; then
             echo "attempted=true" >> "$GITHUB_OUTPUT"
             capture_ok="$(python -c 'import json,os; print(str(json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "scripps-pier-latest.json"))).get("capture_ok") is True).lower())')"
             echo "produced=$capture_ok" >> "$GITHUB_OUTPUT"
+            grade_status="$(python -c 'import json,os; print(json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "scripps-pier-latest.json"))).get("grade_status", "not_attempted"))')"
+            echo "grade_status=$grade_status" >> "$GITHUB_OUTPUT"
           else
             echo "attempted=false" >> "$GITHUB_OUTPUT"
             echo "produced=false" >> "$GITHUB_OUTPUT"
+            echo "grade_status=not_attempted" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Archive validated capture
@@ -96,7 +103,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${{ steps.archive.outputs.path }}"
+          archive_path="${{ steps.archive.outputs.path }}"
+          git add "$archive_path" "${archive_path%.jpg}.json"
           git diff --cached --quiet && exit 0
           git commit -m "Archive Scripps camera capture"
           for attempt in 1 2 3; do
@@ -104,6 +112,14 @@ jobs:
             git pull --rebase origin main
           done
           exit 1
+
+      - name: Report hourly grade status
+        if: steps.capture.outputs.attempted == 'true'
+        run: |
+          echo "OpenAI image grade: ${{ steps.capture.outputs.grade_status }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.capture.outputs.grade_status }}" = "grading_skipped_missing_key" ]; then
+            echo "OPENAI_API_KEY is not configured; screenshot publication continued." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Replace public latest-image release asset
         if: steps.config.outputs.publish == 'true' && steps.capture.outputs.produced == 'true'

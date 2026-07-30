@@ -82,6 +82,64 @@ def test_display_refresh_publishes_frame_and_carries_slot_map(tmp_path, monkeypa
     assert not camera.slot_already_captured(pathlib.Path(args.public_status), today, "12:00")
 
 
+def test_display_refresh_records_openai_grade_without_changing_capture_status(
+    tmp_path,
+    monkeypatch,
+):
+    _fixed_utc(monkeypatch, 11)
+    _capture_writes_frame(monkeypatch)
+    existing = tmp_path / "existing.json"
+    args = _refresh_args(tmp_path, existing)
+    args.openai_api_key = "test-key"
+    args.openai_model = "test-openai-model"
+    args.reference_image = str(tmp_path / "reference.png")
+    pathlib.Path(args.reference_image).write_bytes(b"reference")
+    monkeypatch.setattr(camera, "grade_image_with_openai", lambda *args, **kwargs: {
+        "status": "valid",
+        "grade": "B",
+        "visibility_midpoint_ft": 20,
+        "visibility_range_ft": [15, 24],
+        "confidence": 0.8,
+        "pylon_4ft": "clear",
+        "pylon_11ft": "clear",
+        "pylon_14ft": "clear",
+        "pylon_30ft": "faint",
+        "water_color": "clear_blue",
+        "particle_level": "low",
+        "visual_justification": "The 30 ft pylon is faintly identifiable.",
+    })
+
+    assert camera.run_display_refresh(args) == 0
+    written = json.loads(pathlib.Path(args.public_status).read_text())
+    assert written["status"] == "display_refresh"
+    assert written["grade_status"] == "graded"
+    assert written["grade"] == "B"
+    assert written["grader_provider"] == "openai"
+    assert written["grader_model"] == "test-openai-model"
+
+
+def test_display_refresh_grading_failure_does_not_block_screenshot(
+    tmp_path,
+    monkeypatch,
+):
+    _fixed_utc(monkeypatch, 11)
+    _capture_writes_frame(monkeypatch)
+    args = _refresh_args(tmp_path, tmp_path / "missing.json")
+    args.openai_api_key = "test-key"
+    monkeypatch.setattr(
+        camera,
+        "grade_image_with_openai",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("API down")),
+    )
+
+    assert camera.run_display_refresh(args) == 0
+    written = json.loads(pathlib.Path(args.public_status).read_text())
+    assert written["capture_ok"] is True
+    assert written["status"] == "display_refresh"
+    assert written["grade_status"] == "grading_failure"
+    assert written["image_url"]
+
+
 def test_display_refresh_skips_outside_daylight_and_same_hour(tmp_path, monkeypatch):
     _capture_writes_frame(monkeypatch)
     # Outside daylight window: nothing produced.
@@ -140,14 +198,18 @@ def test_completed_slots_reads_map_and_legacy_and_ignores_hourly_slots(tmp_path)
     assert camera.completed_slots(path, today) == {"12:00": True}
 
 
-def test_hourly_workflow_never_marks_slots_and_serializes_with_graded():
+def test_hourly_workflow_grades_without_coupling_and_serializes_with_shadow_job():
     workflow = (ROOT / ".github/workflows/scripps-camera-hourly.yml").read_text()
     assert "--display-refresh" in workflow
     assert "group: scripps-camera-grade" in workflow
     assert "cancel-in-progress: false" in workflow
-    # Hourly refresh must not run the graded pipeline or eval collection.
+    assert "secrets.OPENAI_API_KEY" in workflow
+    assert "gpt-4.1-mini-2025-04-14" in workflow
+    assert "scripps-piling-distance-reference.png" in workflow
+    # Hourly refresh must not run coupling or private eval collection.
     assert "--force-slot" not in workflow
     assert "--eval" not in workflow
     assert "Check out private evaluation repository" not in workflow
+    assert "camera_display_policy.py" not in workflow
     # No workflow_run trigger: the hourly job must never join the chain loop.
     assert "workflow_run:" not in workflow

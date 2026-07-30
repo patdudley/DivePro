@@ -28,6 +28,13 @@ from camera_display_policy import (
     canonical_range,
     couple_forecasts,
 )
+from openai_camera_grader import (
+    DEFAULT_MODEL as DEFAULT_OPENAI_GRADER_MODEL,
+    GRADER_VERSION as OPENAI_GRADER_VERSION,
+    PROMPT_VERSION as OPENAI_PROMPT_VERSION,
+    RUBRIC_VERSION as OPENAI_RUBRIC_VERSION,
+    grade_image_with_openai,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +60,9 @@ FORECAST_LOG = ROOT / "forecast_log.csv"
 GRADER_VERSION = "scripps-piling-rubric-v1-reconstructed"
 PROMPT_VERSION = "scripps-piling-rubric-v1-reconstructed"
 DEFAULT_GRADER_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_OPENAI_REFERENCE_IMAGE = (
+    ROOT / "camera-reference" / "scripps-piling-distance-reference.png"
+)
 
 
 GRADE_PROMPT = """You grade underwater visibility at the Scripps Pier camera from this image only.
@@ -152,6 +162,8 @@ def apply_capture_freshness(status: dict[str, Any], metrics: dict[str, Any]) -> 
         "frame_motion_score": metrics.get("frame_motion_score"),
         "source_timestamp_verified": metrics.get("source_timestamp_verified") is True,
         "source_timestamp_age_seconds": metrics.get("source_timestamp_age_seconds"),
+        "seekable_edge_advanced": metrics.get("seekable_edge_advanced") is True,
+        "seekable_edge_delta_seconds": metrics.get("seekable_edge_delta_seconds"),
     })
 
 
@@ -227,7 +239,6 @@ def validate_live_video_states(
     first_state: dict[str, Any],
     second_state: dict[str, Any],
 ) -> float:
-    require_live_stream_state(second_state)
     before = float(first_state["current_time"])
     after = float(second_state["current_time"])
     if after - before < 0.75:
@@ -235,16 +246,14 @@ def validate_live_video_states(
     seekable_end = second_state.get("seekable_end")
     if seekable_end is None:
         raise RuntimeError("video does not expose a seekable live edge")
+    if second_state.get("is_live_stream") is not True:
+        first_edge = first_state.get("seekable_end")
+        if first_edge is None or float(seekable_end) - float(first_edge) < 0.25:
+            raise RuntimeError("finite player window did not advance with the live source")
     lag = float(seekable_end) - after
     if lag < -2.0 or lag > MAX_LIVE_EDGE_LAG_SECONDS:
         raise RuntimeError(f"video is {lag:.1f}s behind its live edge")
     return round(max(0.0, lag), 3)
-
-
-def require_live_stream_state(state: dict[str, Any]) -> None:
-    if state.get("is_live_stream") is not True:
-        duration = state.get("duration")
-        raise RuntimeError(f"player is a finite prerecorded clip ({duration}s)")
 
 
 def _video_state(video: Any) -> dict[str, Any]:
@@ -312,7 +321,6 @@ def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
                         timeout=45_000,
                     )
                     initial_state = _video_state(video)
-                    require_live_stream_state(initial_state)
                     live_edge = initial_state.get("seekable_end")
                     if live_edge is None:
                         raise RuntimeError("video does not expose a seekable live edge")
@@ -329,7 +337,12 @@ def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
                     first_state = _video_state(video)
                     video.screenshot(path=str(first_temp), type="jpeg", quality=90)
                     validate_feed_image(first_temp)
-                    page.wait_for_timeout(2500)
+                    # Coollab currently exposes a rolling finite HLS window whose
+                    # seekable edge advances on segment boundaries. Wait through
+                    # one boundary so a static prerecorded clip cannot pass.
+                    page.wait_for_timeout(
+                        12_000 if first_state.get("is_live_stream") is not True else 2_500
+                    )
                     second_state = _video_state(video)
                     live_edge_lag = validate_live_video_states(first_state, second_state)
                     video.screenshot(path=str(second_temp), type="jpeg", quality=90)
@@ -342,6 +355,9 @@ def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
                     source_age = None
                     if manifest_program_times:
                         source_age = source_timestamp_age_seconds(max(manifest_program_times))
+                    edge_delta = (
+                        float(second_state["seekable_end"]) - float(first_state["seekable_end"])
+                    )
                     second_temp.replace(output)
                     first_temp.unlink(missing_ok=True)
                     return {
@@ -352,6 +368,8 @@ def capture_feed(output: Path, attempts: int = 3) -> dict[str, Any]:
                         "frame_motion_score": motion_score,
                         "source_timestamp_age_seconds": source_age,
                         "source_timestamp_verified": source_age is not None,
+                        "seekable_edge_advanced": edge_delta >= 0.25,
+                        "seekable_edge_delta_seconds": round(edge_delta, 3),
                         "source_freshness_verified": True,
                         "capture_attempt": attempt,
                         "capture_source": CAMERA_PAGE_URL,
@@ -662,12 +680,13 @@ def run(args: argparse.Namespace) -> int:
 
 
 def run_display_refresh(args: argparse.Namespace) -> int:
-    """Hourly daylight screenshot refresh: publish a fresh frame, never grade.
+    """Hourly daylight refresh with non-blocking OpenAI observation grading.
 
     Produces no output files at all when it declines to capture, so the
     workflow's produced=false gate skips publishing entirely. Never overwrites
     a same-day status on failure, and always carries the graded-slot
-    completion map forward so slot idempotency survives hourly writes.
+    completion map forward so slot idempotency survives hourly writes. OpenAI
+    failure never prevents a validated screenshot from being published.
     """
     now_utc = utc_now()
     local_now = now_utc.astimezone(LOCAL_TZ)
@@ -698,10 +717,11 @@ def run_display_refresh(args: argparse.Namespace) -> int:
         "visibility_midpoint_ft": None,
         "confidence": None,
         "image_sha256": None,
-        "grader_model": args.model,
-        "grader_version": GRADER_VERSION,
-        "prompt_version": PROMPT_VERSION,
-        "rubric_version": GRADER_VERSION,
+        "grader_provider": "openai",
+        "grader_model": getattr(args, "openai_model", DEFAULT_OPENAI_GRADER_MODEL),
+        "grader_version": OPENAI_GRADER_VERSION,
+        "prompt_version": OPENAI_PROMPT_VERSION,
+        "rubric_version": OPENAI_RUBRIC_VERSION,
         "display_policy_version": POLICY_VERSION,
         "source_freshness_verified": False,
         "live_edge_lag_seconds": None,
@@ -729,6 +749,29 @@ def run_display_refresh(args: argparse.Namespace) -> int:
     status["image_sha256"] = image_hash
     separator = "&" if "?" in args.public_image_url else "?"
     status["image_url"] = f"{args.public_image_url}{separator}v={image_hash[:12]}"
+    openai_api_key = getattr(args, "openai_api_key", "")
+    if not openai_api_key:
+        status["grade_status"] = "grading_skipped_missing_key"
+    else:
+        try:
+            grade = grade_image_with_openai(
+                Path(args.public_image),
+                Path(getattr(args, "reference_image", DEFAULT_OPENAI_REFERENCE_IMAGE)),
+                openai_api_key,
+                model=getattr(args, "openai_model", DEFAULT_OPENAI_GRADER_MODEL),
+                attempts=args.attempts,
+            )
+            status.update(grade)
+            status["grade_status"] = (
+                "graded" if grade["status"] == "valid" else "unusable"
+            )
+            # Keep the capture classification stable. The public frontend only
+            # overrides forecasts for explicit manual_observation records.
+            status["status"] = "display_refresh"
+        except Exception as exc:  # noqa: BLE001
+            status["grade_status"] = "grading_failure"
+            status["grading_failure_code"] = type(exc).__name__
+            print(f"OpenAI hourly grading failed: {exc}", file=sys.stderr)
     write_json(Path(args.public_status), status)
     print(json.dumps({
         "status": status["status"],
@@ -746,6 +789,15 @@ def main() -> int:
     parser.add_argument("--attempts", type=int, default=3)
     parser.add_argument("--model", default=os.environ.get("SCRIPPS_GRADER_MODEL") or DEFAULT_GRADER_MODEL)
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY", ""))
+    parser.add_argument("--openai-api-key", default=os.environ.get("OPENAI_API_KEY", ""))
+    parser.add_argument(
+        "--openai-model",
+        default=os.environ.get("SCRIPPS_OPENAI_GRADER_MODEL") or DEFAULT_OPENAI_GRADER_MODEL,
+    )
+    parser.add_argument(
+        "--reference-image",
+        default=str(DEFAULT_OPENAI_REFERENCE_IMAGE),
+    )
     parser.add_argument("--public-image", default=str(PUBLIC_IMAGE))
     parser.add_argument("--public-status", default=str(LATEST_ATTEMPT_STATUS))
     parser.add_argument("--existing-status", default=str(LAST_VALID_STATUS))
