@@ -8,7 +8,8 @@ on:
         type: choice
         options:
           - latest
-          - all
+          - current_archive
+          - owner_history
         default: latest
 
 permissions:
@@ -20,6 +21,8 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -34,12 +37,19 @@ jobs:
         run: |
           test -n "$OPENAI_API_KEY"
           IMAGE_ARGS=()
+          ARCHIVE_ROOT="camera-snapshot-history/scripps-pier"
           if [ "${{ inputs.scope }}" = "latest" ]; then
             latest_image="$(find camera-snapshot-history/scripps-pier -type f -name '*.jpg' | sort | tail -1)"
             test -n "$latest_image"
             IMAGE_ARGS+=(--image "$latest_image")
+          elif [ "${{ inputs.scope }}" = "owner_history" ]; then
+            mkdir -p "$RUNNER_TEMP/owner-history"
+            git archive dbc37e8 camera-snapshot-history/scripps-pier \
+              | tar -x -C "$RUNNER_TEMP/owner-history"
+            ARCHIVE_ROOT="$RUNNER_TEMP/owner-history/camera-snapshot-history/scripps-pier"
           fi
           python scripts/backfill_openai_camera_grades.py \
+            --archive-root "$ARCHIVE_ROOT" \
             --output-dir "$RUNNER_TEMP/scripps-camera-grades" \
             "${IMAGE_ARGS[@]}"
 
