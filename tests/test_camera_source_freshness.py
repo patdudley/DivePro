@@ -34,8 +34,26 @@ def test_live_edge_rejects_frozen_clock_and_accepts_current_video():
     assert lag == 0.5
 
 
-def test_finite_prerecorded_clip_is_never_accepted_as_live():
-    with pytest.raises(RuntimeError, match="finite prerecorded clip"):
+def test_finite_rolling_live_window_is_accepted_when_edge_advances():
+    lag = camera.validate_live_video_states(
+        {
+            "current_time": 128.0,
+            "seekable_end": 130.0,
+            "duration": 130.0,
+            "is_live_stream": False,
+        },
+        {
+            "current_time": 158.0,
+            "seekable_end": 160.0,
+            "duration": 160.0,
+            "is_live_stream": False,
+        },
+    )
+    assert lag == 2.0
+
+
+def test_finite_prerecorded_clip_is_rejected_when_edge_does_not_advance():
+    with pytest.raises(RuntimeError, match="finite player window"):
         camera.validate_live_video_states(
             {
                 "current_time": 5.0,

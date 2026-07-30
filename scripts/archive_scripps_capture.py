@@ -11,6 +11,10 @@ from datetime import datetime
 from pathlib import Path
 
 
+def archive_metadata_path(image_path: Path) -> Path:
+    return image_path.with_suffix(".json")
+
+
 def archive_capture(
     image_path: Path,
     status_path: Path,
@@ -49,6 +53,11 @@ def archive_capture(
         f"{public_url_prefix.rstrip('/')}/{relative_path}?v={actual_hash[:12]}"
     )
     status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\n")
+    metadata_path = archive_metadata_path(destination)
+    metadata_text = json.dumps(status, indent=2, sort_keys=True) + "\n"
+    if metadata_path.exists() and metadata_path.read_text() != metadata_text:
+        raise ValueError(f"archive metadata collision at {metadata_path}")
+    metadata_path.write_text(metadata_text)
     return destination
 
 
