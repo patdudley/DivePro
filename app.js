@@ -57,7 +57,8 @@ function isCameraObservationDisplayable(observation, now = new Date()) {
       observation.observation_date &&
       (
         observation.source_freshness_verified === true ||
-        observation.validation_source === "manual_review"
+        observation.validation_source === "manual_review" ||
+        observation.validation_source === "legacy_last_capture"
       ),
   );
 }

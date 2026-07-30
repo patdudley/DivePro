@@ -92,6 +92,7 @@ def test_frontend_displays_screenshot_without_automated_grade_coupling():
     assert "config.publish_screenshots !== true" in source
     assert "observation.capture_ok === true" in source
     assert "observation.source_freshness_verified === true" in source
+    assert 'observation.validation_source === "legacy_last_capture"' in source
     assert "scripps-pier-last-valid.json?t=${requestToken}" in source
     assert "scripps-pier-latest-attempt.json?t=${requestToken}" in source
     assert "function cameraObservationDayLabel" in source
