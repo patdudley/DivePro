@@ -14,9 +14,10 @@ import requests
 
 OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_MODEL = "gpt-4.1-mini-2025-04-14"
-GRADER_VERSION = "openai-scripps-pylon-v1"
-PROMPT_VERSION = "openai-scripps-pylon-reference-v1"
-RUBRIC_VERSION = "scripps-pylon-distances-v1"
+GRADER_VERSION = "openai-scripps-pylon-v2"
+PROMPT_VERSION = "openai-scripps-pylon-reference-v2"
+RUBRIC_VERSION = "scripps-pylon-distances-v2"
+C_BOUNDARY_REFERENCE_NAME = "scripps-grade-c-faint-left-pylons.png"
 PYLON_STATES = {"not_visible", "faint", "visible", "clear"}
 GRADE_ORDER = ("F", "D", "C", "B", "A", "A+")
 GRADE_RANGES = {
@@ -41,19 +42,27 @@ Use these fixed visual anchors:
 
 Canonical grades:
 - F = 0-4 ft: even the nearest 4 ft pylon is not reliably resolved.
-- D = 5-9 ft: the 4 ft pylon is resolved, but the 11/14 ft pylons are not reliable.
-- C = 10-14 ft: the 14 ft left pylon is identifiable; the 30 ft pylon is not.
+- D = 5-9 ft: the 4 ft pylon is resolved and BOTH left-side pylons are completely
+  absent. Do not use D when either left-side pylon has an identifiable silhouette.
+- C = 10-14 ft: either left-side pylon is faintly identifiable, even if its edges
+  are soft in green water; the 30 ft back-center pylon is not identifiable.
 - B = 15-24 ft: the 30 ft back-center pylon is faint or partially identifiable.
 - A = 25-35 ft: the 30 ft pylon is clearly resolved, comparable to the reference.
 - A+ = 35-40 ft: exceptional clarity with clear detail beyond the 30 ft pylon.
 
 Hard constraints:
-- Seeing the 14 ft left pylon makes the grade at least C.
+- Any identifiable silhouette from either of the two left-side pylons makes the
+  grade at least C. Faint/dark/low-contrast still counts as identifiable.
+- D is allowed only when both left-side pylons are absent, not merely unclear.
 - Identifying the 30 ft back-center pylon makes the grade at least B.
 - A requires the 30 ft pylon to be clear, not merely guessed from its expected position.
 - A+ requires visible detail beyond the 30 ft anchor, not just a clear 30 ft pylon.
 - If darkness, glare, player chrome, loading state, obstruction, or changed framing
   prevents a defensible comparison, return status=unusable and do not guess a grade.
+
+When a labeled C-boundary image is supplied between the annotated distance reference
+and the current frame, use it to calibrate faint-but-identifiable left pylons. It is
+a C example, not the current frame.
 
 Return only the requested JSON. Keep visual_justification to one short sentence
 describing pylon visibility, water color, and suspended particles."""
@@ -184,22 +193,39 @@ def grade_image_with_openai(
     if not reference_path.is_file():
         raise FileNotFoundError(f"Scripps pylon reference not found: {reference_path}")
 
+    content: list[dict[str, Any]] = [
+        {"type": "text", "text": GRADE_PROMPT},
+        {
+            "type": "image_url",
+            "image_url": {"url": _data_url(reference_path), "detail": "high"},
+        },
+    ]
+    c_boundary_path = reference_path.with_name(C_BOUNDARY_REFERENCE_NAME)
+    if c_boundary_path.is_file():
+        content.extend([
+            {
+                "type": "text",
+                "text": (
+                    "CALIBRATION EXAMPLE: this next image is grade C because the "
+                    "two left-side pylons are faintly identifiable."
+                ),
+            },
+            {
+                "type": "image_url",
+                "image_url": {"url": _data_url(c_boundary_path), "detail": "high"},
+            },
+        ])
+    content.append({
+        "type": "image_url",
+        "image_url": {"url": _data_url(image_path), "detail": "high"},
+    })
+
     request_body = {
         "model": model,
         "temperature": 0,
         "messages": [{
             "role": "user",
-            "content": [
-                {"type": "text", "text": GRADE_PROMPT},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": _data_url(reference_path), "detail": "high"},
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {"url": _data_url(image_path), "detail": "high"},
-                },
-            ],
+            "content": content,
         }],
         "response_format": {
             "type": "json_schema",
