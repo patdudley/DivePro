@@ -22,7 +22,7 @@
     "region": "California",
     "date": "2026-08-05",
     "numeric_score_0_100": 65,
-    "grade": "C",
+    "grade": "B",
     "grade_probabilities": {
       "F": 0.0,
       "D": 0.2926718760555283,
@@ -45,12 +45,16 @@
     },
     "model_source": "soft_probabilistic",
     "display_policy_version": "v4-bimodal-aware",
-    "display_override": null,
+    "display_override": {
+      "active": true,
+      "source": "owner_manual",
+      "reason": "Owner visibility correction for current conditions."
+    },
     "estimated_visibility_range_ft": [
-      10,
-      14
+      15,
+      24
     ],
-    "estimated_visibility_mid_ft": 12.0,
+    "estimated_visibility_mid_ft": 19.5,
     "raw_expected_vis_ft": 14.12,
     "guardrail_applied": false,
     "confidence": "medium",
@@ -66,7 +70,7 @@
     "is_projected": false,
     "projected_from": null,
     "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-    "report_text": "The model expects 10-14 ft of visibility, resulting in a C grade. Conditions are moderately favorable overall, but the algorithm is seeing enough wind-driven mixing to prevent a clearer B-grade forecast.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 10:23 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, sandy bottoms and areas exposed to surge.",
+    "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with modest swell and manageable surface conditions supporting improved clarity. Some wind-driven mixing may still keep conditions below an exceptional A grade.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 10:23 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
     "features": {
       "date": "2026-08-05",
       "coherent_swell_source": "hourly_max_height_event",
@@ -505,7 +509,7 @@
       "region": "California",
       "date": "2026-08-05",
       "numeric_score_0_100": 65,
-      "grade": "C",
+      "grade": "B",
       "grade_probabilities": {
         "F": 0.0,
         "D": 0.2926718760555283,
@@ -528,12 +532,16 @@
       },
       "model_source": "soft_probabilistic",
       "display_policy_version": "v4-bimodal-aware",
-      "display_override": null,
+      "display_override": {
+        "active": true,
+        "source": "owner_manual",
+        "reason": "Owner visibility correction for current conditions."
+      },
       "estimated_visibility_range_ft": [
-        10,
-        14
+        15,
+        24
       ],
-      "estimated_visibility_mid_ft": 12.0,
+      "estimated_visibility_mid_ft": 19.5,
       "raw_expected_vis_ft": 14.12,
       "guardrail_applied": false,
       "confidence": "medium",
@@ -549,7 +557,7 @@
       "is_projected": false,
       "projected_from": null,
       "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-      "report_text": "The model expects 10-14 ft of visibility, resulting in a C grade. Conditions are moderately favorable overall, but the algorithm is seeing enough wind-driven mixing to prevent a clearer B-grade forecast.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 10:23 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, sandy bottoms and areas exposed to surge.",
+      "report_text": "The model expects 15-24 ft of visibility, resulting in a B grade. Conditions are favorable overall, with modest swell and manageable surface conditions supporting improved clarity. Some wind-driven mixing may still keep conditions below an exceptional A grade.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 10:23 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, the forecast is favorable for diving. Sheltered coves and deeper water may hold the clearest conditions, while exposed coastline and sandy entries could be less consistent.",
       "features": {
         "date": "2026-08-05",
         "coherent_swell_source": "hourly_max_height_event",
