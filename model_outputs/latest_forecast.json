@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T14:50:32",
+  "generated_at": "2026-08-13T19:51:47",
   "spot_slug": "la-jolla",
   "spot_name": "La Jolla",
   "location": "La Jolla, San Diego",
@@ -8,24 +8,24 @@
   "numeric_score_0_100": 66,
   "grade": "C",
   "grade_probabilities": {
-    "F": 0.0,
-    "D": 0.357766996493977,
-    "C": 0.04252421105240648,
-    "B": 0.5997087924536165,
+    "F": 0.001415955594902184,
+    "D": 0.35726041431362,
+    "C": 0.04246399865784803,
+    "B": 0.5988596314336297,
     "A": 0.0,
     "A+": 0.0
   },
   "raw_grade_probabilities": {
-    "F": 0.0,
-    "D": 0.357766996493977,
-    "C": 0.04252421105240648,
-    "B": 0.5997087924536165,
+    "F": 0.001415955594902184,
+    "D": 0.35726041431362,
+    "C": 0.04246399865784803,
+    "B": 0.5988596314336297,
     "A": 0.0,
     "A+": 0.0
   },
   "most_likely_grade": {
     "grade": "B",
-    "probability": 0.5997
+    "probability": 0.5989
   },
   "model_source": "soft_probabilistic",
   "display_policy_version": "v4-bimodal-aware",
@@ -35,13 +35,12 @@
     14
   ],
   "estimated_visibility_mid_ft": 12.0,
-  "raw_expected_vis_ft": 14.71,
+  "raw_expected_vis_ft": 14.69,
   "guardrail_applied": false,
   "confidence": "medium",
   "best_window": "Early morning to late morning before wind builds",
   "risk_factors": [
-    "Elevated surf can stir up the shallows.",
-    "Afternoon wind may texture the surface."
+    "Elevated surf can stir up the shallows."
   ],
   "positive_factors": [
     "Overall swell load is modest."
@@ -50,7 +49,7 @@
   "is_projected": false,
   "projected_from": null,
   "forecast_basis": "Open-Meteo marine components (coherent hourly swell)",
-  "report_text": "The model expects 10-14 ft of visibility, resulting in a C grade. Conditions are moderately favorable overall, but the algorithm is seeing enough swell energy, surface movement and wind-driven mixing to prevent a clearer B-grade forecast.\n\nThe falling tide is an additional negative signal. As water moves toward the next low tide at 4:09 PM, visibility may gradually decline because the outgoing tide is less likely to bring cleaner offshore water into La Jolla.\n\nOverall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, sandy bottoms and areas exposed to surge.",
+  "report_text": "The model expects 10-14 ft of visibility, resulting in a C grade. Conditions are moderately favorable overall, but the algorithm is seeing enough swell energy, surface movement and wind-driven mixing to prevent a clearer B-grade forecast.\n\nThe rising tide is a favorable signal. As water moves toward the next high tide at 10:15 PM, cleaner offshore water may move into La Jolla and support improving visibility.\n\nOverall, the forecast remains diveable, but clarity may vary by location and could be worse around shallow reefs, sandy bottoms and areas exposed to surge.",
   "features": {
     "date": "2026-08-13",
     "coherent_swell_source": "hourly_max_height_event",
@@ -88,7 +87,7 @@
     "rain_24h_in": 0.0,
     "ml_rain_3day_in": 0.0,
     "ml_rain_7day_in": 0.0,
-    "ml_gust_max_mph": 11.9,
+    "ml_gust_max_mph": 11.0,
     "ml_sst_f": 75.8,
     "ml_sin_doy": -0.6661,
     "ml_cos_doy": -0.7459,
@@ -98,9 +97,9 @@
     "ml_buoy_dir_deg": 203,
     "ml_buoy_exp": 0.682,
     "ml_buoy_energy_wtd": 5.248,
-    "ml_wind_dir_deg": 229,
+    "ml_wind_dir_deg": 225,
     "ml_upwelling_wind": 0.0,
-    "ml_pressure_trend": 0.4,
+    "ml_pressure_trend": 0.2,
     "ml_sst_anomaly": 5.3,
     "ml_wave_trend": 0.26,
     "ml_wave_accel": 0.33,
@@ -108,9 +107,9 @@
     "ml_tide_range_ft": 7.24,
     "ml_tide_morning_avg": 2.51,
     "wave_height_max_ft": 3.02,
-    "wind_speed_mean_mph": 6.34,
-    "wind_speed_max_mph": 9.9,
-    "wind_gust_max_mph": 11.9,
+    "wind_speed_mean_mph": 5.7,
+    "wind_speed_max_mph": 8.9,
+    "wind_gust_max_mph": 11.0,
     "wave_energy_mean_kj": 77.075,
     "wave_energy_max_kj": 77.075,
     "total_swell_height_mean_ft": 2.6,
@@ -120,12 +119,12 @@
     "short_period_swell_energy": 0.39,
     "long_period_swell_energy": 76.685,
     "mixed_swell_score": 1,
-    "wind_wave_churn_proxy": 8.412,
-    "wave_energy_wind_interaction": 763.047,
+    "wind_wave_churn_proxy": 7.563,
+    "wave_energy_wind_interaction": 685.972,
     "water_temp_estimate_f": 75.8,
-    "buoy_water_temp_f": 73.0,
+    "buoy_water_temp_f": 72.5,
     "buoy_water_temp_source": "ndbc_46254",
-    "air_temp_max_f": 74.2,
+    "air_temp_max_f": 74.5,
     "air_temp_min_f": 67.8,
     "tide_range_ft": 7.24,
     "wind_chart": [
@@ -159,51 +158,51 @@
       },
       {
         "time": "07:00",
-        "speed_mph": 3.9
+        "speed_mph": 2.2
       },
       {
         "time": "08:00",
-        "speed_mph": 4.7
+        "speed_mph": 4.0
       },
       {
         "time": "09:00",
-        "speed_mph": 6.5
+        "speed_mph": 4.0
       },
       {
         "time": "10:00",
-        "speed_mph": 6.7
+        "speed_mph": 4.8
       },
       {
         "time": "11:00",
-        "speed_mph": 6.7
+        "speed_mph": 5.7
       },
       {
         "time": "12:00",
-        "speed_mph": 6.6
+        "speed_mph": 7.2
       },
       {
         "time": "13:00",
-        "speed_mph": 8.5
-      },
-      {
-        "time": "14:00",
-        "speed_mph": 9.2
-      },
-      {
-        "time": "15:00",
-        "speed_mph": 9.9
-      },
-      {
-        "time": "16:00",
-        "speed_mph": 9.1
-      },
-      {
-        "time": "17:00",
         "speed_mph": 7.5
       },
       {
+        "time": "14:00",
+        "speed_mph": 8.1
+      },
+      {
+        "time": "15:00",
+        "speed_mph": 8.9
+      },
+      {
+        "time": "16:00",
+        "speed_mph": 8.9
+      },
+      {
+        "time": "17:00",
+        "speed_mph": 8.1
+      },
+      {
         "time": "18:00",
-        "speed_mph": 6.6
+        "speed_mph": 6.5
       },
       {
         "time": "19:00",
@@ -211,19 +210,19 @@
       },
       {
         "time": "20:00",
-        "speed_mph": 3.6
+        "speed_mph": 4.2
       },
       {
         "time": "21:00",
-        "speed_mph": 2.7
+        "speed_mph": 4.8
       },
       {
         "time": "22:00",
-        "speed_mph": 3.3
+        "speed_mph": 4.2
       },
       {
         "time": "23:00",
-        "speed_mph": 4.8
+        "speed_mph": 4.0
       }
     ],
     "wave_chart": [
@@ -422,11 +421,11 @@
         "height_ft": 6.21
       }
     ],
-    "tide_phase": "falling",
+    "tide_phase": "rising",
     "tide_next_event": {
-      "time": "16:09",
-      "height_ft": 1.29,
-      "type": "L"
+      "time": "22:15",
+      "height_ft": 6.41,
+      "type": "H"
     },
     "tide_slack_windows": [
       {
@@ -473,10 +472,13 @@
   "camera_note": "Updated a few times daily from the Scripps Pier cam.",
   "report_text_version": "v2-explanatory-three-paragraph",
   "community_report": {
-    "visibility_ft": null,
-    "weight": 0.0,
+    "visibility_ft": [
+      10,
+      20
+    ],
+    "weight": 0.2,
     "confidence_label": "low",
-    "source_excerpt": null,
+    "source_excerpt": "Vis: 10-20 ftSwell: 1-2 ftSurface Temp: 75\u00b0F High tide: ~10:44 amLow tide: ~4:07pm\u00a0 Good morning San Diegans! Decent visibility looks to be holding up this morning with slightly hazier blue water. That being said, swell is still down and winds...",
     "error": null
   }
 }
